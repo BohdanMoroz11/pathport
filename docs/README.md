@@ -7,6 +7,7 @@ This directory is the project knowledge base for Pathport. Use it to keep durabl
 - [project-brief.md](project-brief.md): Core product concept, problem statement, target user, portfolio-first goal, MVP shape, and open product questions.
 - [competitive-landscape.md](competitive-landscape.md): Notes from similar relocation, immigration, expat, and digital-nomad products, including patterns to borrow and gaps Pathport can explore.
 - [content-principles.md](content-principles.md): Source hierarchy, uncertainty handling, metadata expectations, AI-use boundaries, and legal-advice guardrails.
+- [plans/](plans/README.md): Living phase plans for project execution, from initial setup through the first MVP rollout.
 
 ## Local-Only Docs
 

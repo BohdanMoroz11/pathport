@@ -30,6 +30,20 @@ When new durable context appears, update or add a focused doc in `docs/`. Keep `
 
 Start with `docs/README.md` to understand the current documentation map.
 
+## Phase Planning
+
+Use `docs/plans/` for living project plans. The project should move through named phases, from initial project setup through the first MVP production rollout. Each phase should have its own document with stages, tasks, status, notes, and exit criteria.
+
+Treat plan documents as active project state. When work is completed, update the relevant phase plan in the same branch or commit series so future sessions can see what is done, what changed, and what remains.
+
+Workflow conventions:
+
+- each phase should happen on a separate branch
+- major features or meaningful todo groups should become their own commits
+- completing a phase should result in a larger phase PR
+- phase and stage details can change as the project becomes clearer
+- keep plan docs honest rather than aspirational; update them when scope changes
+
 ## Product Inspiration
 
 The project is inspired by simple relocation databases, especially the way they make options easy to scan and compare. Pathport should target a wider audience and avoid being tied to one nationality or language community.
