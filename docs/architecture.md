@@ -45,6 +45,21 @@ Tradeoffs:
 - Decorators and metadata may need careful Biome/framework configuration.
 - The structure is worth it here because Pathport is portfolio-first and should demonstrate backend architecture clearly.
 
+## Compatibility Notes
+
+These are the main compatibility points to validate during scaffold and pipeline setup:
+
+- NestJS requires TypeScript decorator support and emitted metadata. Keep backend `tsconfig` explicit about `experimentalDecorators` and `emitDecoratorMetadata`.
+- Biome is the preferred formatter/linter, but NestJS decorator-heavy code may need targeted configuration. Add narrow exceptions only if the scaffold proves they are necessary.
+- Next.js App Router should stay frontend-focused. Core product data should come from the NestJS API over HTTP.
+- Async React Server Components should mostly be covered by integration/E2E tests rather than brittle unit tests.
+- Drizzle should own schema and migrations in `packages/db`, with the NestJS API consuming database access through providers.
+- Shared contracts should avoid coupling the frontend directly to backend internals. Prefer explicit request/response schemas or DTOs.
+- Real Postgres-backed tests require repeatable local database setup before API integration tests become mandatory in CI.
+- Lighthouse CI and Playwright should run against production-like builds, not only the dev server.
+
+If implementation shows that one of these assumptions is wrong, update this document and the active phase plan in the same change.
+
 ## Horizontal Scaling Principles
 
 Pathport should be compatible with multiple web and API replicas from day one, even before orchestration such as Kubernetes or Docker Swarm exists.
@@ -118,4 +133,3 @@ GitHub Actions should eventually run:
 - Lighthouse CI
 
 The exact CI split can evolve, but Phase 0 should establish the foundation for this pipeline.
-

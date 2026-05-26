@@ -45,7 +45,7 @@ Tasks:
 
 ## S3: Stack Decision
 
-Status: In progress
+Status: Done
 
 Tasks:
 
@@ -56,7 +56,7 @@ Tasks:
 - [x] Decide database/provider approach.
 - [x] Decide hosting/deployment target.
 - [x] Document the chosen stack and tradeoffs.
-- [ ] Validate framework/tooling compatibility during scaffold.
+- [x] Document framework/tooling compatibility checks to validate during scaffold.
 
 ## S4: Repository And App Scaffold
 
@@ -66,6 +66,7 @@ Tasks:
 
 - [ ] Scaffold the application.
 - [ ] Define initial folder structure.
+- [ ] Validate Next.js, NestJS, Drizzle, Tailwind, and Biome compatibility in the scaffold.
 - [ ] Add baseline app routes/pages.
 - [ ] Add shared UI/component structure.
 - [ ] Add environment variable conventions.
@@ -81,6 +82,7 @@ Tasks:
 - [ ] Configure TypeScript.
 - [ ] Configure linting.
 - [ ] Configure formatting.
+- [ ] Validate NestJS decorator support with the chosen TypeScript/Biome setup.
 - [x] Decide testing baseline.
 - [ ] Add first unit/component test setup.
 - [ ] Add frontend unit/component/integration test setup.
