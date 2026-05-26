@@ -16,3 +16,4 @@ test-results/
 !.env.example
 
 .DS_Store
+next-env.d.ts
