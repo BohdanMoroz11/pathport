@@ -78,3 +78,13 @@ See:
 - [docs/content-principles.md](docs/content-principles.md)
 - [docs/competitive-landscape.md](docs/competitive-landscape.md)
 - [AGENTS.md](AGENTS.md)
+
+## Local Development
+
+Create a local environment file before starting the app:
+
+```sh
+cp .env.example .env
+```
+
+The API expects `DATABASE_URL` to point at a local Postgres database. The root `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` scripts build shared packages before starting app dev servers.

@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool, type PoolConfig } from "pg";
-import * as schema from "./schema";
+import * as schema from "./schema.js";
 
 export function createDatabasePool(connectionString: string, options: PoolConfig = {}) {
   return new Pool({

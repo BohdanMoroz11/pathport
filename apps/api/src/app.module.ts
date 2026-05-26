@@ -6,6 +6,7 @@ import { HealthModule } from "./health/health.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: [".env", "../../.env"],
       isGlobal: true,
     }),
     DatabaseModule,
