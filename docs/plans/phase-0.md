@@ -60,29 +60,29 @@ Tasks:
 
 ## S4: Repository And App Scaffold
 
-Status: Not started
+Status: Done
 
 Tasks:
 
-- [ ] Scaffold the application.
-- [ ] Define initial folder structure.
-- [ ] Validate Next.js, NestJS, Drizzle, Tailwind, and Biome compatibility in the scaffold.
-- [ ] Add baseline app routes/pages.
-- [ ] Add shared UI/component structure.
-- [ ] Add environment variable conventions.
-- [ ] Add project scripts for local development.
-- [ ] Update docs to describe how the repo is organized.
+- [x] Scaffold the application.
+- [x] Define initial folder structure.
+- [x] Validate Next.js, NestJS, Drizzle, Tailwind, and Biome compatibility in the scaffold.
+- [x] Add baseline app routes/pages.
+- [x] Add shared UI/component structure.
+- [x] Add environment variable conventions.
+- [x] Add project scripts for local development.
+- [x] Update docs to describe how the repo is organized.
 
 ## S5: Development And Quality Pipeline
 
-Status: Planned
+Status: In progress
 
 Tasks:
 
-- [ ] Configure TypeScript.
-- [ ] Configure linting.
-- [ ] Configure formatting.
-- [ ] Validate NestJS decorator support with the chosen TypeScript/Biome setup.
+- [x] Configure TypeScript.
+- [x] Configure linting.
+- [x] Configure formatting.
+- [x] Validate NestJS decorator support with the chosen TypeScript/Biome setup.
 - [x] Decide testing baseline.
 - [ ] Add first unit/component test setup.
 - [ ] Add frontend unit/component/integration test setup.

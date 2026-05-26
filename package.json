@@ -1,0 +1,25 @@
+{
+  "name": "pathport",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @pathport/api --filter @pathport/web dev",
+    "dev:web": "pnpm --filter @pathport/web dev",
+    "dev:api": "pnpm --filter @pathport/api dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
