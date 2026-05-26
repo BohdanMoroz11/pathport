@@ -36,3 +36,6 @@ Workspace commands:
 - `pnpm typecheck`: typecheck all workspaces.
 - `pnpm check`: run Biome checks.
 - `pnpm test`: run workspace tests.
+- `pnpm test:coverage`: run workspace tests with coverage.
+- `pnpm test:e2e`: run Playwright tests.
+- `pnpm lhci`: run Lighthouse CI.

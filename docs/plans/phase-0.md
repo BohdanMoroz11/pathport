@@ -84,15 +84,15 @@ Tasks:
 - [x] Configure formatting.
 - [x] Validate NestJS decorator support with the chosen TypeScript/Biome setup.
 - [x] Decide testing baseline.
-- [ ] Add first unit/component test setup.
-- [ ] Add frontend unit/component/integration test setup.
-- [ ] Add backend unit/integration/API test setup.
+- [x] Add first unit/component test setup.
+- [x] Add frontend unit/component/integration test setup.
+- [x] Add backend unit/integration/API test setup.
 - [ ] Add real Postgres-backed test workflow.
-- [ ] Add Playwright E2E setup.
-- [ ] Add accessibility testing with axe-core.
-- [ ] Add Lighthouse CI with v1 score target of 90+.
-- [ ] Add GitHub Actions workflow.
-- [ ] Document local development and validation commands.
+- [x] Add Playwright E2E setup.
+- [x] Add accessibility testing with axe-core.
+- [x] Add Lighthouse CI with v1 score target of 90+.
+- [x] Add GitHub Actions workflow.
+- [x] Document local development and validation commands.
 
 ## S6: Database And Schema Foundation
 
