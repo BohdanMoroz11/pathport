@@ -1,6 +1,6 @@
 # Phase 0: Project Foundation
 
-Status: In progress
+Status: Done
 
 Branch: phase-0
 
@@ -110,15 +110,15 @@ Note: detailed product questions such as supported citizenships, destination set
 
 ## S7: Phase 1 Planning
 
-Status: Not started
+Status: Done
 
 Tasks:
 
-- [ ] Define Phase 1 goal.
-- [ ] Draft Phase 1 stages.
-- [ ] Decide Phase 1 branch name.
-- [ ] Identify first implementation commits.
-- [ ] Confirm Phase 0 exit criteria are met.
+- [x] Define Phase 1 goal.
+- [x] Draft Phase 1 stages.
+- [x] Decide Phase 1 branch name.
+- [x] Identify first implementation commits.
+- [x] Confirm Phase 0 exit criteria are met.
 
 ## Exit Criteria
 
@@ -138,11 +138,11 @@ Phase 0 is done when:
 
 ## Open Questions
 
-- How much CI should exist in Phase 0 versus later?
-- Should visual design foundations be limited to tokens/layout primitives now, with detailed product UI left for later feature phases?
-- What should Phase 1 focus on after the foundation is ready?
+No active Phase 0 questions.
+
+Product-scope questions are parked in [future-product-scope.md](future-product-scope.md) and initial Phase 1 direction is drafted in [phase-1.md](phase-1.md).
 
 ## Notes
 
 - Final phases are intentionally TBD until the MVP shape becomes clearer.
-- Keep this document updated as tasks are completed or reframed.
+- Phase 0 completed the foundation needed to start feature work.
