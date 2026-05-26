@@ -39,3 +39,5 @@ Workspace commands:
 - `pnpm test:coverage`: run workspace tests with coverage.
 - `pnpm test:e2e`: run Playwright tests.
 - `pnpm lhci`: run Lighthouse CI.
+- `pnpm --filter @pathport/db db:generate`: generate Drizzle migrations.
+- `pnpm --filter @pathport/db db:migrate`: apply Drizzle migrations.

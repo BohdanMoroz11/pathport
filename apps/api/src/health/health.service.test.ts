@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import { HealthService } from "./health.service";
 
 describe("HealthService", () => {
+  const databaseService = {
+    assertReady: async () => undefined,
+  } as never;
+
   it("returns health status", () => {
-    const service = new HealthService();
+    const service = new HealthService(databaseService);
 
     expect(service.health()).toEqual({
       ok: true,
@@ -11,10 +15,10 @@ describe("HealthService", () => {
     });
   });
 
-  it("returns readiness status", () => {
-    const service = new HealthService();
+  it("returns readiness status", async () => {
+    const service = new HealthService(databaseService);
 
-    expect(service.ready()).toEqual({
+    await expect(service.ready()).resolves.toEqual({
       ok: true,
       service: "api",
     });

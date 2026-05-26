@@ -6,15 +6,18 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:coverage": "vitest run --coverage --passWithNoTests"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "drizzle-orm": "^0.44.0",
     "pg": "^8.13.0"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^12.0.0",
     "@types/pg": "^8.11.0",
     "drizzle-kit": "^0.31.0",
     "typescript": "^5.8.0",

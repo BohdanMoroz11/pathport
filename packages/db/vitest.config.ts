@@ -4,6 +4,7 @@ export default defineWorkspaceTestConfig({
   test: {
     coverage: {
       ...coverageConfig,
+      exclude: [...coverageConfig.exclude, "src/schema.ts"],
       provider: "v8",
       reporter: ["text", "html"],
     },

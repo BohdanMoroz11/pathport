@@ -75,7 +75,7 @@ Tasks:
 
 ## S5: Development And Quality Pipeline
 
-Status: In progress
+Status: Done
 
 Tasks:
 
@@ -87,7 +87,7 @@ Tasks:
 - [x] Add first unit/component test setup.
 - [x] Add frontend unit/component/integration test setup.
 - [x] Add backend unit/integration/API test setup.
-- [ ] Add real Postgres-backed test workflow.
+- [x] Add real Postgres-backed test workflow.
 - [x] Add Playwright E2E setup.
 - [x] Add accessibility testing with axe-core.
 - [x] Add Lighthouse CI with v1 score target of 90+.
@@ -96,15 +96,15 @@ Tasks:
 
 ## S6: Database And Schema Foundation
 
-Status: Not started
+Status: Done
 
 Tasks:
 
-- [ ] Define initial database/schema approach.
-- [ ] Add migration or schema tooling if the chosen stack needs it.
-- [ ] Create initial placeholder schema for future citizenship, destination, route, and source concepts.
-- [ ] Decide how local development data will work.
-- [ ] Document database setup and reset workflow.
+- [x] Define initial database/schema approach.
+- [x] Add migration or schema tooling if the chosen stack needs it.
+- [x] Create initial placeholder schema for future citizenship, destination, route, and source concepts.
+- [x] Decide how local development data will work.
+- [x] Document database setup and reset workflow.
 
 Note: detailed product questions such as supported citizenships, destination set, route taxonomy, and demo data belong to future feature phases. Phase 0 only needs enough schema foundation to avoid painting the codebase into a corner.
 

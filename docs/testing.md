@@ -9,7 +9,7 @@ Testing is a first-class part of Pathport because the project is meant to demons
 - v1 global coverage target: 60%
 - Lighthouse CI target for v1: 90 or higher for performance, accessibility, best practices, and SEO
 - E2E coverage for core user journeys
-- Backend integration/API tests should use real Postgres once database-backed behavior exists
+- Backend integration/API tests use real Postgres for database-backed behavior
 
 ## Commands
 
