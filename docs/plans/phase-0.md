@@ -32,7 +32,7 @@ Tasks:
 
 ## S2: Product Concept
 
-Status: Mostly done
+Status: Done
 
 Tasks:
 
@@ -40,8 +40,8 @@ Tasks:
 - [x] Document portfolio-first success criteria.
 - [x] Document content principles and legal-advice boundaries.
 - [x] Research similar products and competitive patterns.
-- [ ] Refine the one-sentence positioning.
-- [ ] Move detailed MVP product-scope questions into a future phase plan.
+- [x] Refine the one-sentence positioning.
+- [x] Move detailed MVP product-scope questions into a future phase plan.
 
 ## S3: Stack Decision
 

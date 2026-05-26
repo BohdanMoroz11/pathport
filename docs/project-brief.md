@@ -6,7 +6,11 @@ Pathport
 
 ## One-Line Description
 
-A clean immigration options explorer that helps people understand where they can move and what routes may be available based on their citizenship and circumstances.
+Immigration options, structured and source-aware.
+
+## Product Description
+
+Pathport is a clean immigration options explorer that helps people understand where they can move and what routes may be available based on their citizenship and circumstances.
 
 ## Primary Goal
 
@@ -88,9 +92,4 @@ It should be different from generic AI chat by having persistent data, source li
 
 ## Open Questions
 
-- Which citizenship should be supported first?
-- Which destination countries should be included in the first dataset?
-- How much content should be human-reviewed before launch?
-- Should the first version be English-only?
-- How should uncertainty, missing data, and outdated data be displayed?
-- Should AI be used only internally for drafting, or should the product include user-facing AI features later?
+Detailed MVP scope questions are parked in [plans/future-product-scope.md](plans/future-product-scope.md) until the foundation phase is complete.

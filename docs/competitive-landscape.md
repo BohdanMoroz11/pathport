@@ -386,23 +386,18 @@ The early data model should probably include:
 - overpromising legal certainty
 - building community, accounts, reports, and calculators before the core explorer is useful
 
-## Product Positioning Draft
+## Product Positioning
 
 Pathport is not a travel inspiration site and not a law firm. It is a structured immigration research interface.
 
-Possible positioning:
-
-> Explore realistic immigration paths by passport, route, and destination. Compare requirements, costs, timelines, and caveats, then verify the details from official sources.
-
-Shorter:
+Primary positioning:
 
 > Immigration options, structured and source-aware.
 
+Expanded version:
+
+> Explore realistic immigration paths by passport, route, and destination. Compare requirements, costs, timelines, and caveats, then verify the details from official sources.
+
 ## Open Product Questions
 
-- Should the first MVP start with a narrow, easy-to-research citizenship scenario, or with a larger search audience such as US, Indian, Turkish, Russian, or EU citizens?
-- Should humanitarian and asylum-related routes be included in MVP, or added later with extra care?
-- Should Pathport initially show only human-reviewed content, or allow clearly labeled AI-assisted drafts?
-- Should country scores exist at all, or should the product rely on filters and comparable facts?
-- How much cost-of-living data is useful before city-level data becomes necessary?
-- What is the smallest dataset that can still prove the product concept?
+Detailed MVP scope questions are parked in [plans/future-product-scope.md](plans/future-product-scope.md).
