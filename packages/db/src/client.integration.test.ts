@@ -22,8 +22,8 @@ describe("database foundation", () => {
   }, 120_000);
 
   afterAll(async () => {
-    await pool.end();
-    await container.stop();
+    await pool?.end();
+    await container?.stop();
   });
 
   it("connects to a real Postgres database", async () => {

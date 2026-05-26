@@ -19,6 +19,8 @@ export const coverageConfig = {
   },
 };
 
+export const testExclude = ["**/dist/**", "**/node_modules/**"];
+
 export function defineWorkspaceTestConfig(options: Parameters<typeof defineConfig>[0]) {
   return defineConfig(options);
 }

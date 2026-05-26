@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { coverageConfig, defineWorkspaceTestConfig } from "../../vitest.shared";
+import { coverageConfig, defineWorkspaceTestConfig, testExclude } from "../../vitest.shared";
 
 export default defineWorkspaceTestConfig({
   esbuild: {
@@ -19,6 +19,7 @@ export default defineWorkspaceTestConfig({
       reporter: ["text", "html"],
     },
     environment: "jsdom",
+    exclude: testExclude,
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },

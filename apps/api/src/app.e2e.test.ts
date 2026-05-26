@@ -34,9 +34,9 @@ describe("App API", () => {
   });
 
   afterAll(async () => {
-    await app.close();
-    await pool.end();
-    await container.stop();
+    await app?.close();
+    await pool?.end();
+    await container?.stop();
   });
 
   it("responds to /health", async () => {

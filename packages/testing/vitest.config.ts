@@ -1,4 +1,4 @@
-import { coverageConfig, defineWorkspaceTestConfig } from "../../vitest.shared";
+import { coverageConfig, defineWorkspaceTestConfig, testExclude } from "../../vitest.shared";
 
 export default defineWorkspaceTestConfig({
   test: {
@@ -8,6 +8,7 @@ export default defineWorkspaceTestConfig({
       reporter: ["text", "html"],
     },
     environment: "node",
+    exclude: testExclude,
     globals: true,
   },
 });
