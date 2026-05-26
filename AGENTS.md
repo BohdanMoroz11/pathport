@@ -54,6 +54,7 @@ The goal is not to copy another product directly. The goal is to build a clean, 
 
 - Portfolio quality comes first.
 - Make immigration options comparable at a glance.
+- Keep the product focused on people who want to immigrate or relocate long term. Short-stay or visitor information can appear when useful, but it is supporting context rather than the main product purpose.
 - Prefer structured data over article-only content.
 - Keep UI calm, fast, and simple.
 - Be honest about uncertainty.

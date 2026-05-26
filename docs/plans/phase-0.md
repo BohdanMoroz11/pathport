@@ -118,6 +118,7 @@ Tasks:
 - [x] Draft Phase 1 stages.
 - [x] Decide Phase 1 branch name.
 - [x] Identify first implementation commits.
+- [x] Align Phase 1 around database, API, and UI foundation rather than deep content research.
 - [x] Confirm Phase 0 exit criteria are met.
 
 ## Exit Criteria
@@ -140,9 +141,9 @@ Phase 0 is done when:
 
 No active Phase 0 questions.
 
-Product-scope questions are parked in [future-product-scope.md](future-product-scope.md) and initial Phase 1 direction is drafted in [phase-1.md](phase-1.md).
+Future product-scope questions are parked in [future-product-scope.md](future-product-scope.md), and Phase 1 foundation work is planned in [phase-1.md](phase-1.md).
 
 ## Notes
 
-- Final phases are intentionally TBD until the MVP shape becomes clearer.
+- Final phases are intentionally TBD until the foundation and MVP shape become clearer.
 - Phase 0 completed the foundation needed to start feature work.
