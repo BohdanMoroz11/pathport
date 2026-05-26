@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const reviewStatusEnum = pgEnum("review_status", [
   "draft",
@@ -46,26 +46,34 @@ export const destinationCountries = pgTable("destination_countries", {
   ...timestamps,
 });
 
-export const routes = pgTable("routes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  destinationCountryId: uuid("destination_country_id")
-    .notNull()
-    .references(() => destinationCountries.id),
-  type: routeTypeEnum("type").notNull(),
-  title: text("title").notNull(),
-  summary: text("summary").notNull(),
-  reviewStatus: reviewStatusEnum("review_status").notNull().default("draft"),
-  ...timestamps,
-});
+export const routes = pgTable(
+  "routes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    destinationCountryId: uuid("destination_country_id")
+      .notNull()
+      .references(() => destinationCountries.id),
+    type: routeTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    reviewStatus: reviewStatusEnum("review_status").notNull().default("draft"),
+    ...timestamps,
+  },
+  (table) => [index("routes_destination_country_id_idx").on(table.destinationCountryId)],
+);
 
-export const routeSources = pgTable("route_sources", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  routeId: uuid("route_id")
-    .notNull()
-    .references(() => routes.id, { onDelete: "cascade" }),
-  type: sourceTypeEnum("type").notNull(),
-  label: text("label").notNull(),
-  url: text("url").notNull(),
-  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
-  ...timestamps,
-});
+export const routeSources = pgTable(
+  "route_sources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    routeId: uuid("route_id")
+      .notNull()
+      .references(() => routes.id, { onDelete: "cascade" }),
+    type: sourceTypeEnum("type").notNull(),
+    label: text("label").notNull(),
+    url: text("url").notNull(),
+    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [index("route_sources_route_id_idx").on(table.routeId)],
+);

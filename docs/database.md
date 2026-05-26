@@ -28,8 +28,29 @@ These tables are intentionally minimal. Product decisions such as the first citi
 
 From the repo root:
 
+- `pnpm db:up`: start the local Postgres container.
+- `pnpm db:down`: stop the local Postgres container.
+- `pnpm db:logs`: follow local Postgres logs.
+- `pnpm db:migrate`: apply migrations to the configured `DATABASE_URL`.
 - `pnpm --filter @pathport/db db:generate`: generate a Drizzle migration from schema changes.
 - `pnpm --filter @pathport/db db:migrate`: apply migrations using `DATABASE_URL`.
+
+## Local Development
+
+Local development uses `docker-compose.yml` at the repo root. It starts a Postgres 16 container with credentials matching `.env.example`:
+
+```text
+postgres://pathport:pathport@localhost:5433/pathport
+```
+
+First local run:
+
+```sh
+cp .env.example .env
+pnpm db:up
+pnpm db:migrate
+pnpm dev
+```
 
 ## Testing
 
