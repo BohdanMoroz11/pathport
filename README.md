@@ -6,7 +6,7 @@ The core idea is simple: choose your citizenship and personal context, then see 
 
 ## Project Goal
 
-Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. But if it grows into a genuinely useful public product, that is a welcome outcome.
+Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. If it grows into a genuinely useful public product, that is a welcome outcome.
 
 ## Why This Exists
 
@@ -70,6 +70,7 @@ See:
 
 - [docs/README.md](docs/README.md)
 - [docs/project-brief.md](docs/project-brief.md)
+- [docs/architecture.md](docs/architecture.md)
 - [docs/content-principles.md](docs/content-principles.md)
 - [docs/competitive-landscape.md](docs/competitive-landscape.md)
 - [AGENTS.md](AGENTS.md)

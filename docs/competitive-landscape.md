@@ -400,7 +400,7 @@ Shorter:
 
 ## Open Product Questions
 
-- Should the first MVP start with Ukrainian citizenship because it matches lived context, or with a larger search audience such as US, Indian, Turkish, Russian, or EU citizens?
+- Should the first MVP start with a narrow, easy-to-research citizenship scenario, or with a larger search audience such as US, Indian, Turkish, Russian, or EU citizens?
 - Should humanitarian and asylum-related routes be included in MVP, or added later with extra care?
 - Should Pathport initially show only human-reviewed content, or allow clearly labeled AI-assisted drafts?
 - Should country scores exist at all, or should the product rely on filters and comparable facts?

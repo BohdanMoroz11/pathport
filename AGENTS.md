@@ -10,7 +10,7 @@ The project is currently in early concept/setup phase.
 
 ## Primary Success Criteria
 
-Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. But if it grows into a genuinely useful public product, that is a welcome outcome.
+Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. If it grows into a genuinely useful public product, that is a welcome outcome.
 
 Prefer decisions that make the codebase impressive, understandable, maintainable, and easy to demo.
 
@@ -65,3 +65,7 @@ The goal is not to copy another product directly. The goal is to build a clean, 
 
 - Prefer a stack that supports a polished demo and clean code over one optimized for premature scale.
 - Prioritize maintainability and clear data modeling, because content freshness and source tracking will matter.
+- Current technical direction is documented in `docs/architecture.md`.
+- Keep frontend and backend separate.
+- Treat testing as a first-class showcase feature; prefer TDD where practical.
+- Preserve horizontal-scaling readiness: stateless services, external persistent state, explicit config, health/readiness checks, and no single-replica assumptions.

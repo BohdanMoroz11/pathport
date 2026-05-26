@@ -1,6 +1,6 @@
 # Phase 0: Project Foundation
 
-Status: Draft
+Status: In progress
 
 Branch: phase-0
 
@@ -8,17 +8,17 @@ Branch: phase-0
 
 Establish the project foundation before application implementation begins.
 
-Phase 0 should leave Pathport with a clear concept, documented planning approach, initial product scope, technical direction, and enough structure to begin building the first usable application phase with confidence.
+Phase 0 should leave Pathport with a clear concept, documented planning approach, chosen stack, initial repository structure, development workflow, testing/quality pipeline, and database/schema foundation.
 
 ## Why This Phase Exists
 
-Pathport is portfolio-first. Before code is generated, the project needs a clear shape so future work does not drift into a huge, vague immigration platform.
+Pathport is portfolio-first. Before feature work begins, the project needs a clean engineering foundation that is pleasant to build on and easy to explain.
 
-This phase should make the project easier to resume across sessions, easier to explain publicly, and easier to turn into a polished MVP.
+This phase should make the project easier to resume across sessions, easier to explain publicly, and ready for focused feature phases.
 
 ## S1: Repository Context
 
-Status: In progress
+Status: Done
 
 Tasks:
 
@@ -28,11 +28,11 @@ Tasks:
 - [x] Add optional local-only `docs/user-context.md` convention.
 - [x] Add `docs/README.md` as the documentation index.
 - [x] Add `docs/plans/` for living phase plans.
-- [ ] Review public docs for tone, clarity, and fork-friendliness.
+- [x] Review public docs for tone, clarity, and fork-friendliness.
 
 ## S2: Product Concept
 
-Status: In progress
+Status: Mostly done
 
 Tasks:
 
@@ -41,54 +41,72 @@ Tasks:
 - [x] Document content principles and legal-advice boundaries.
 - [x] Research similar products and competitive patterns.
 - [ ] Refine the one-sentence positioning.
-- [ ] Decide the first target user scenario.
-- [ ] Decide which route types belong in the first MVP.
-- [ ] Decide what should be explicitly out of scope for MVP.
+- [ ] Move detailed MVP product-scope questions into a future phase plan.
 
-## S3: MVP Scope
+## S3: Stack Decision
+
+Status: In progress
+
+Tasks:
+
+- [x] Compare reasonable stack options for a portfolio-first MVP.
+- [x] Decide frontend framework and routing approach.
+- [x] Decide styling/UI approach.
+- [x] Decide backend/API approach.
+- [x] Decide database/provider approach.
+- [x] Decide hosting/deployment target.
+- [x] Document the chosen stack and tradeoffs.
+- [ ] Validate framework/tooling compatibility during scaffold.
+
+## S4: Repository And App Scaffold
 
 Status: Not started
 
 Tasks:
 
-- [ ] Define the first MVP user journey.
-- [ ] Choose first supported citizenship or citizenship set.
-- [ ] Choose first destination-country set.
-- [ ] Define what counts as a "route" in the product.
-- [ ] Define minimum route-card fields.
-- [ ] Define minimum route-detail fields.
-- [ ] Decide how source links and review status appear in the UI.
-- [ ] Create or update a dedicated MVP scope doc if needed.
+- [ ] Scaffold the application.
+- [ ] Define initial folder structure.
+- [ ] Add baseline app routes/pages.
+- [ ] Add shared UI/component structure.
+- [ ] Add environment variable conventions.
+- [ ] Add project scripts for local development.
+- [ ] Update docs to describe how the repo is organized.
 
-## S4: Data And Content Model
+## S5: Development And Quality Pipeline
+
+Status: Planned
+
+Tasks:
+
+- [ ] Configure TypeScript.
+- [ ] Configure linting.
+- [ ] Configure formatting.
+- [x] Decide testing baseline.
+- [ ] Add first unit/component test setup.
+- [ ] Add frontend unit/component/integration test setup.
+- [ ] Add backend unit/integration/API test setup.
+- [ ] Add real Postgres-backed test workflow.
+- [ ] Add Playwright E2E setup.
+- [ ] Add accessibility testing with axe-core.
+- [ ] Add Lighthouse CI with v1 score target of 90+.
+- [ ] Add GitHub Actions workflow.
+- [ ] Document local development and validation commands.
+
+## S6: Database And Schema Foundation
 
 Status: Not started
 
 Tasks:
 
-- [ ] Draft initial data model.
-- [ ] Decide whether MVP data starts as static files, database records, or a hybrid.
-- [ ] Define source metadata shape.
-- [ ] Define confidence / review status values.
-- [ ] Define route-type taxonomy.
-- [ ] Decide how mock or AI-assisted content should be labeled.
-- [ ] Create or update a dedicated data model doc if needed.
+- [ ] Define initial database/schema approach.
+- [ ] Add migration or schema tooling if the chosen stack needs it.
+- [ ] Create initial placeholder schema for future citizenship, destination, route, and source concepts.
+- [ ] Decide how local development data will work.
+- [ ] Document database setup and reset workflow.
 
-## S5: Stack And Architecture Decision
+Note: detailed product questions such as supported citizenships, destination set, route taxonomy, and demo data belong to future feature phases. Phase 0 only needs enough schema foundation to avoid painting the codebase into a corner.
 
-Status: Not started
-
-Tasks:
-
-- [ ] Compare reasonable stack options for a portfolio-first MVP.
-- [ ] Decide frontend framework and routing approach.
-- [ ] Decide styling/UI approach.
-- [ ] Decide hosting/deployment target.
-- [ ] Decide testing baseline.
-- [ ] Decide linting/formatting/tooling baseline.
-- [ ] Create or update architecture decision docs.
-
-## S6: Phase 1 Planning
+## S7: Phase 1 Planning
 
 Status: Not started
 
@@ -107,17 +125,20 @@ Phase 0 is done when:
 - public docs clearly explain what Pathport is and why it exists
 - docs clearly state that the project is portfolio-first
 - planning workflow is documented in `AGENTS.md` and `docs/plans/`
-- MVP scope is clear enough to start implementation
-- initial stack and architecture direction are decided
+- main stack is chosen and documented
+- app scaffold and folder structure exist
+- local development workflow works
+- linting, formatting, TypeScript, and baseline tests are configured
+- coverage threshold is configured at 60% for v1
+- accessibility and Lighthouse CI foundations exist
+- initial database/schema foundation exists
 - Phase 1 has a draft plan
 
 ## Open Questions
 
-- What should the Phase 0 branch be called?
-- Should Phase 0 end before or after stack scaffolding?
-- Should MVP start with Ukrainian citizenship, another citizenship, or a fictional/demo dataset?
-- Should early content be real, mocked, or a mix of real and clearly labeled draft data?
-- How polished should the first design direction be before code begins?
+- How much CI should exist in Phase 0 versus later?
+- Should visual design foundations be limited to tokens/layout primitives now, with detailed product UI left for later feature phases?
+- What should Phase 1 focus on after the foundation is ready?
 
 ## Notes
 
