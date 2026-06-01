@@ -67,24 +67,24 @@ The Phase 1 schema should be easy to query for the citizenship-first UI while st
 
 ## S1: Domain Scope And Taxonomy
 
-Status: Not started
+Status: Done
 
-Define the durable domain concepts Phase 1 needs before schema work begins.
+Define the durable domain concepts Phase 1 needs before schema work begins. Output: [../domain-model.md](../domain-model.md).
 
 Tasks:
 
-- [ ] Define the citizenship-first explorer flow in product terms.
-- [ ] Confirm United States and Ukraine as the 2 demo citizenships.
-- [ ] Define Germany, Portugal, and Spain as the 3 European demo destinations.
-- [ ] Confirm the route taxonomy matches the schema enum.
-- [ ] Confirm the `route ↔ citizenship` applicability join as the citizenship-first filter (resolved).
-- [ ] Confirm arrival context attaches to the citizenship × destination pair, not to routes (resolved).
-- [ ] Define the minimum route summary and route detail fields.
-- [ ] Define source, review, confidence, and demo-data metadata.
-- [ ] Apply the hybrid schema approach (validated JSONB for flexible route details).
-- [ ] Validate the schema direction against the first demo records before stabilizing it.
-- [ ] Document explicit Phase 1 non-goals.
-- [ ] Move resolved items out of [future-product-scope.md](future-product-scope.md).
+- [x] Define the citizenship-first explorer flow in product terms (destination drill-down).
+- [x] Confirm United States and Ukraine as the 2 demo citizenships.
+- [x] Define Germany, Portugal, and Spain as the 3 European demo destinations.
+- [x] Confirm the route taxonomy matches the schema enum.
+- [x] Confirm the `route ↔ citizenship` applicability join as the citizenship-first filter.
+- [x] Confirm arrival context attaches to the citizenship × destination pair, not to routes.
+- [x] Define the minimum route summary and route detail fields.
+- [x] Define source, review, confidence, and demo-data metadata (review_status + confidence + is_demo; labels derived).
+- [x] Apply the hybrid schema approach (validated JSONB for flexible route details).
+- [ ] Validate the schema direction against the first demo records before stabilizing it. (Deferred to S2/S3 when records are written.)
+- [x] Document explicit Phase 1 non-goals.
+- [x] Move resolved items out of [future-product-scope.md](future-product-scope.md).
 
 ## S2: Main Database Structure
 

@@ -5,6 +5,7 @@ This directory is the project knowledge base for Pathport. Use it to keep durabl
 ## Current Docs
 
 - [project-brief.md](project-brief.md): Core product concept, problem statement, target user, portfolio-first goal, MVP shape, and open product questions.
+- [domain-model.md](domain-model.md): Phase 1 domain vocabulary — citizenship-first flow, entities and relationships, route summary/detail fields, and source/review/confidence/demo metadata.
 - [architecture.md](architecture.md): Initial technical direction, stack decisions, scaling principles, and testing strategy.
 - [repository-structure.md](repository-structure.md): Monorepo layout, app/package responsibilities, and planned local development commands.
 - [testing.md](testing.md): Testing strategy, quality targets, and validation commands.
