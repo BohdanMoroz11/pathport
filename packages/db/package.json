@@ -10,14 +10,14 @@
       "default": "./dist/index.js"
     },
     "./testing": {
-      "types": "./dist/push.d.ts",
-      "default": "./dist/push.js"
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
     }
   },
   "typesVersions": {
     "*": {
       "testing": [
-        "./dist/push.d.ts"
+        "./dist/testing.d.ts"
       ]
     }
   },
