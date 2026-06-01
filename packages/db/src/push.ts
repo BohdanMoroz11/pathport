@@ -23,3 +23,16 @@ export async function pushSchema(pool: Pool): Promise<void> {
     await pool.query(statement);
   }
 }
+
+/**
+ * Drop everything in the public schema and rebuild it from the current Drizzle
+ * schema. This is the repeatable "drop and recreate the dev DB" workflow used
+ * by the seeder and by tests that want a guaranteed-clean slate.
+ *
+ * Same constraints as {@link pushSchema}: dev/test only, never production.
+ */
+export async function resetSchema(pool: Pool): Promise<void> {
+  await pool.query("drop schema if exists public cascade");
+  await pool.query("create schema public");
+  await pushSchema(pool);
+}

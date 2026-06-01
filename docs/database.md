@@ -48,6 +48,20 @@ change. Instead it pushes the schema onto an empty database:
 A single clean baseline migration replaces this once the schema stabilizes (plan S6),
 after which the seeder, tests, and CI switch back to `db:migrate`.
 
+### Seeding Demo Data
+
+`pnpm db:seed` ([packages/db/src/seed/](../packages/db/src/seed/)) loads throwaway
+Phase 1 demo data so the full flow can be developed and demoed end to end. It is
+repeatable: it calls `resetSchema` (drop + recreate `public`, then push) before
+inserting, so re-running always produces the same clean state.
+
+The data ([data.ts](../packages/db/src/seed/data.ts)) covers the two demo
+citizenships (US, Ukraine), three destinations (Germany, Portugal, Spain), and at
+least one route of every `route_type`. The humanitarian (Temporary Protection)
+routes are Ukraine-only, so the citizenship filter provably differentiates results.
+Everything is flagged `is_demo`. The seeder is dev/test-only (it depends on the
+push path).
+
 ## Commands
 
 From the repo root:
@@ -56,6 +70,7 @@ From the repo root:
 - `pnpm db:down`: stop the local Postgres container.
 - `pnpm db:logs`: follow local Postgres logs.
 - `pnpm db:push`: push the current schema onto the configured `DATABASE_URL` (Phase 1 dev workflow).
+- `pnpm db:seed`: drop and recreate the schema, then load the demo data (Phase 1 dev workflow).
 - `pnpm db:migrate`: apply migrations to the configured `DATABASE_URL` (used once the baseline migration exists in S6).
 - `pnpm --filter @pathport/db db:generate`: generate a Drizzle migration from schema changes.
 - `pnpm --filter @pathport/db db:migrate`: apply migrations using `DATABASE_URL`.
@@ -73,7 +88,7 @@ First local run:
 ```sh
 cp .env.example .env
 pnpm db:up
-pnpm db:push
+pnpm db:seed
 pnpm dev
 ```
 

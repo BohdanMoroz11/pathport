@@ -17,6 +17,7 @@
     "db:logs": "docker compose logs -f db",
     "db:migrate": "pnpm --filter @pathport/db db:migrate",
     "db:push": "pnpm --filter @pathport/db db:push",
+    "db:seed": "pnpm --filter @pathport/db db:seed",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "check": "biome check .",

@@ -107,20 +107,24 @@ Tasks:
 
 ## S3: Seed And Demo Data
 
-Status: Not started
+Status: Done
 
 Create enough demo data to exercise the full product foundation.
 
+The seed lives in [../../packages/db/src/seed/](../../packages/db/src/seed/): pure
+demo data in `data.ts`, the insert logic in `seed.ts`, and a repeatable CLI runner
+in `run.ts` (`pnpm db:seed`) that drops and recreates the schema before loading.
+
 Tasks:
 
-- [ ] Add a repeatable seed workflow that drops and recreates the dev DB.
-- [ ] Seed United States and Ukraine as the two demo citizenships.
-- [ ] Seed Germany, Portugal, and Spain as the first destination countries.
-- [ ] Seed route applicability so US and Ukraine differ on at least some routes (proving the filter).
-- [ ] Seed realistic-ish placeholder records across all major immigration route types.
-- [ ] Seed arrival context for the demo citizenship × destination pairs.
-- [ ] Mark demo, estimated, or needs-review fields explicitly.
-- [ ] Add seed tests or smoke checks against real Postgres.
+- [x] Add a repeatable seed workflow that drops and recreates the dev DB (`resetSchema` + `pnpm db:seed`).
+- [x] Seed United States and Ukraine as the two demo citizenships.
+- [x] Seed Germany, Portugal, and Spain as the first destination countries.
+- [x] Seed route applicability so US and Ukraine differ on at least some routes (humanitarian routes are Ukraine-only).
+- [x] Seed realistic-ish placeholder records across all major immigration route types (every `route_type` is covered).
+- [x] Seed arrival context for the demo citizenship × destination pairs.
+- [x] Mark demo, estimated, or needs-review fields explicitly (all rows `is_demo`; review/confidence varied).
+- [x] Add seed tests or smoke checks against real Postgres.
 
 ## S4: Read API Foundation
 
