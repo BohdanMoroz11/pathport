@@ -18,6 +18,7 @@
     "@pathport/config": "workspace:*",
     "@pathport/contracts": "workspace:*",
     "@pathport/db": "workspace:*",
+    "drizzle-orm": "^0.44.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
   },
