@@ -1,0 +1,33 @@
+{
+  "name": "@pathport/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@pathport/config": "workspace:*",
+    "@pathport/contracts": "workspace:*",
+    "@pathport/db": "workspace:*",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/testing": "^11.1.24",
+    "@types/node": "^22.0.0",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.7"
+  }
+}

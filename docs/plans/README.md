@@ -16,7 +16,9 @@ Update these files as work happens so they reflect the real project state, not a
 
 ## Current Phases
 
-- [phase-0.md](phase-0.md): Initial project framing, documentation setup, product concept polish, stack decision, and MVP direction.
+- [phase-0.md](phase-0.md): Initial project framing, stack decision, app scaffold, development pipeline, testing baseline, and database/schema foundation.
+- [phase-1.md](phase-1.md): Draft plan for the main product foundation: database structure, read API, citizenship-first UI, and small demo data.
+- [future-product-scope.md](future-product-scope.md): Parked product-scope questions for future planning phases.
 
 ## Phase Template
 

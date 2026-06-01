@@ -4,9 +4,13 @@ Pathport is an immigration options explorer for people trying to understand wher
 
 The core idea is simple: choose your citizenship and personal context, then see migration paths presented in a clean, comparable, human-readable way. Instead of burying answers inside long articles or scattered forum threads, Pathport should make options easier to scan, compare, and investigate further.
 
+Positioning:
+
+> Immigration options, structured and source-aware.
+
 ## Project Goal
 
-Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. But if it grows into a genuinely useful public product, that is a welcome outcome.
+Pathport is primarily a portfolio project. The main goal is to build a polished, usable, well-structured application that demonstrates product thinking, UI craft, clean architecture, and strong TypeScript/JavaScript engineering. If it grows into a genuinely useful public product, that is a welcome outcome.
 
 ## Why This Exists
 
@@ -70,6 +74,30 @@ See:
 
 - [docs/README.md](docs/README.md)
 - [docs/project-brief.md](docs/project-brief.md)
+- [docs/architecture.md](docs/architecture.md)
 - [docs/content-principles.md](docs/content-principles.md)
 - [docs/competitive-landscape.md](docs/competitive-landscape.md)
 - [AGENTS.md](AGENTS.md)
+
+## Local Development
+
+Create a local environment file before starting the app:
+
+```sh
+cp .env.example .env
+```
+
+Start the local Postgres database and apply migrations:
+
+```sh
+pnpm db:up
+pnpm db:migrate
+```
+
+Then start the app:
+
+```sh
+pnpm dev
+```
+
+The root `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` scripts build shared packages before starting app dev servers. Use `pnpm db:down` to stop the local database.
