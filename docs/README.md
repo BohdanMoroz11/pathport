@@ -10,6 +10,7 @@ This directory is the project knowledge base for Pathport. Use it to keep durabl
 - [repository-structure.md](repository-structure.md): Monorepo layout, app/package responsibilities, and planned local development commands.
 - [testing.md](testing.md): Testing strategy, quality targets, and validation commands.
 - [database.md](database.md): Postgres/Drizzle setup, initial schema, migrations, and real-database testing approach.
+- [api.md](api.md): Read-only API endpoints for the citizenship-first explorer, shared response contracts, and metadata handling.
 - [competitive-landscape.md](competitive-landscape.md): Notes from similar relocation, immigration, expat, and digital-nomad products, including patterns to borrow and gaps Pathport can explore.
 - [content-principles.md](content-principles.md): Source hierarchy, uncertainty handling, metadata expectations, AI-use boundaries, and legal-advice guardrails.
 - [plans/](plans/README.md): Living phase plans for project execution, from initial setup through the first MVP rollout.

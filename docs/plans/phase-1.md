@@ -128,19 +128,23 @@ Tasks:
 
 ## S4: Read API Foundation
 
-Status: Not started
+Status: Done
 
-Expose read-only API endpoints from NestJS for the explorer UI.
+Expose read-only API endpoints from NestJS for the explorer UI. The shared
+response types live in [`@pathport/contracts`](../../packages/contracts) (the
+web app consumes them without importing the database layer); the API services
+map Drizzle rows into those types, so the mappers enforce enum conformance at
+compile time. Endpoints and shapes are documented in [../api.md](../api.md).
 
 Tasks:
 
-- [ ] Define shared response contracts for citizenships, destinations, route summaries, and route details.
-- [ ] Add endpoint for available citizenships.
-- [ ] Add endpoint for destinations available to a citizenship.
-- [ ] Add endpoint for route summaries filtered by citizenship and destination.
-- [ ] Add endpoint for route details.
-- [ ] Include source/review/demo metadata in API responses.
-- [ ] Add API integration tests against real Postgres.
+- [x] Define shared response contracts for citizenships, destinations, route summaries, and route details.
+- [x] Add endpoint for available citizenships (`GET /citizenships`).
+- [x] Add endpoint for destinations available to a citizenship (`GET /citizenships/:code/destinations`, with route counts + arrival context).
+- [x] Add endpoint for route summaries filtered by citizenship and destination (`GET /citizenships/:code/destinations/:code/routes`).
+- [x] Add endpoint for route details (`GET /routes/:id`).
+- [x] Include source/review/demo metadata in API responses.
+- [x] Add API integration tests against real Postgres (Testcontainers, whole-app boot against a seeded DB).
 
 ## S5: Citizenship-First Web Explorer
 
