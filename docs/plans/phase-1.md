@@ -88,7 +88,7 @@ Tasks:
 
 ## S2: Main Database Structure
 
-Status: Not started
+Status: Done
 
 Replace the placeholder database foundation with the first real domain schema.
 
@@ -96,14 +96,14 @@ During Phase 1 the schema is still being designed, so iterate with `drizzle-kit 
 
 Tasks:
 
-- [ ] Model citizenships, destinations, route types, immigration routes, requirements, costs, timelines, caveats, and sources.
-- [ ] Add the `route ↔ citizenship` applicability join.
-- [ ] Add arrival context keyed on citizenship × destination.
-- [ ] Add source/review/confidence metadata in a way that can survive real content work later.
-- [ ] Iterate the schema with `drizzle-kit push`; remove the Phase 0 baseline migration.
-- [ ] Add database constraints and indexes for the expected read paths.
-- [ ] Add real Postgres-backed schema tests where useful.
-- [ ] Update database documentation with the Phase 1 model.
+- [x] Model citizenships, destinations, route types, immigration routes, requirements, costs, timelines, caveats, and sources.
+- [x] Add the `route ↔ citizenship` applicability join.
+- [x] Add arrival context keyed on citizenship × destination.
+- [x] Add source/review/confidence metadata in a way that can survive real content work later.
+- [x] Iterate the schema with `drizzle-kit push`; remove the Phase 0 baseline migration.
+- [x] Add database constraints and indexes for the expected read paths.
+- [x] Add real Postgres-backed schema tests where useful.
+- [x] Update database documentation with the Phase 1 model.
 
 ## S3: Seed And Demo Data
 

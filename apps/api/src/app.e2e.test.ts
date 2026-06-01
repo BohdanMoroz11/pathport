@@ -1,8 +1,7 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { createDatabasePool } from "@pathport/db";
+import { pushSchema } from "@pathport/db/testing";
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -18,12 +17,7 @@ describe("App API", () => {
     process.env.DATABASE_URL = container.getConnectionUri();
     pool = createDatabasePool(container.getConnectionUri());
 
-    const migration = await readFile(
-      resolve(__dirname, "../../../packages/db/migrations/0000_initial_foundation.sql"),
-      "utf8",
-    );
-
-    await pool.query(migration);
+    await pushSchema(pool);
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
