@@ -148,19 +148,32 @@ Tasks:
 
 ## S5: Citizenship-First Web Explorer
 
-Status: Not started
+Status: Done
 
 Build the first usable Next.js explorer experience on top of the API.
 
+The explorer is server-rendered App Router pages that read the API through a
+typed client over [`@pathport/contracts`](../../packages/contracts) — the web
+app never imports the database layer. The flow is `/` (pick a citizenship,
+United States first) → `/explore/[citizenship]` (destinations) →
+`/explore/[citizenship]/[destination]` (route cards grouped by type) →
+`/routes/[id]` (full detail). The route detail link carries a `from` query so
+the detail page can offer a back link, restricted to internal explorer paths.
+Unknown or malformed codes/ids resolve to a shared not-found page. The
+user-facing content-quality labels are **derived** in the UI from the raw
+signals (never stored); the derivation and formatting live in pure, unit-tested
+helpers, and the presentational components are unit-tested with React Testing
+Library. Frontend coverage is documented in [../web.md](../web.md).
+
 Tasks:
 
-- [ ] Add the application shell for the product experience.
-- [ ] Add citizenship selection with United States seeded as the first usable option.
-- [ ] Add destination browsing for the selected citizenship.
-- [ ] Add route cards grouped or filtered by route type.
-- [ ] Add route detail view with requirements, costs, timelines, caveats, and sources.
-- [ ] Show demo/review/source metadata clearly without overwhelming the UI.
-- [ ] Preserve responsive layout, keyboard usability, and accessibility from the start.
+- [x] Add the application shell for the product experience (header/footer in the root layout).
+- [x] Add citizenship selection with United States seeded as the first usable option.
+- [x] Add destination browsing for the selected citizenship (`/explore/[citizenship]`).
+- [x] Add route cards grouped or filtered by route type (`/explore/[citizenship]/[destination]`).
+- [x] Add route detail view with requirements, costs, timelines, caveats, and sources (`/routes/[id]`).
+- [x] Show demo/review/source metadata clearly without overwhelming the UI (derived quality badges).
+- [x] Preserve responsive layout, keyboard usability, and accessibility from the start.
 
 ## S6: Quality And Documentation Pass
 
