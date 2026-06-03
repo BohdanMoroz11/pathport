@@ -1,5 +1,6 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe } from "@nestjs/common";
 import type { RouteDetail, RouteSummary } from "@pathport/contracts";
+import { CountryCodePipe } from "../common/country-code.pipe";
 import { RoutesService } from "./routes.service";
 
 /** Route summaries for the citizenship-first drill-down into one destination. */
@@ -9,8 +10,8 @@ export class DestinationRoutesController {
 
   @Get()
   list(
-    @Param("citizenshipCode") citizenshipCode: string,
-    @Param("destinationCode") destinationCode: string,
+    @Param("citizenshipCode", CountryCodePipe) citizenshipCode: string,
+    @Param("destinationCode", CountryCodePipe) destinationCode: string,
   ): Promise<RouteSummary[]> {
     return this.routes.listForCitizenshipAndDestination(citizenshipCode, destinationCode);
   }

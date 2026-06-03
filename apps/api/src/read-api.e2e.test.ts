@@ -69,6 +69,10 @@ describe("Read API", () => {
     it("404s for an unknown citizenship", async () => {
       await http().get("/citizenships/ZZZ/destinations").expect(404);
     });
+
+    it("400s for a malformed citizenship code", async () => {
+      await http().get("/citizenships/this-is-not-a-code/destinations").expect(400);
+    });
   });
 
   describe("GET /citizenships/:code/destinations/:code/routes", () => {
@@ -83,6 +87,14 @@ describe("Read API", () => {
       expect(ukrRoutes.length).toBeGreaterThan(usRoutes.length);
       expect(usRoutes.some((r) => r.type === "humanitarian")).toBe(false);
       expect(ukrRoutes.some((r) => r.type === "humanitarian")).toBe(true);
+    });
+
+    it("404s when the destination is unknown for a known citizenship", async () => {
+      await http().get("/citizenships/USA/destinations/ZZ/routes").expect(404);
+    });
+
+    it("400s for a malformed destination code", async () => {
+      await http().get("/citizenships/USA/destinations/not-a-code/routes").expect(400);
     });
 
     it("includes comparison fields and content metadata on each card", async () => {
