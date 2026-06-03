@@ -68,6 +68,10 @@ jobs:
         env:
           DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
 
+      # Audits the production stack: the build above plus a freshly seeded DB,
+      # which start-stack.mjs serves through the real API + `next start`.
       - name: Lighthouse CI
-        run: pnpm lhci
+        run: pnpm db:seed && pnpm lhci
+        env:
+          DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
 
