@@ -7,11 +7,13 @@ import { getRouteDetail } from "@/lib/api";
 import {
   booleanLabel,
   formatCost,
+  formatReviewDate,
   formatTimeline,
   pathToPrLabel,
   ROUTE_TYPE_LABELS,
   workPermissionLabel,
 } from "@/lib/format";
+import { safeBackHref } from "@/lib/navigation";
 import { deriveQualityLabels } from "@/lib/quality";
 import { panelClass } from "@/lib/styles";
 
@@ -22,11 +24,6 @@ const SOURCE_TYPE_LABELS: Record<RouteSource["type"], string> = {
   ai_assisted: "AI-assisted",
   other: "Other",
 };
-
-/** Only allow internal explorer paths as the back link, never arbitrary URLs. */
-function safeBackHref(from: string | string[] | undefined): string | null {
-  return typeof from === "string" && from.startsWith("/explore/") ? from : null;
-}
 
 function ListSection({ title, items }: { title: string; items: string[] }) {
   if (items.length === 0) {
@@ -62,7 +59,7 @@ export default async function RouteDetailPage({
     route,
     route.sources.map((source) => source.type),
   );
-  const backHref = safeBackHref(from);
+  const backHref = safeBackHref(from, route.destination.code);
   const { details } = route;
 
   return (
@@ -129,24 +126,26 @@ export default async function RouteDetailPage({
             Sources
           </h2>
           <ul className="space-y-2">
-            {route.sources.map((source) => (
-              <li key={source.url} className="text-sm">
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                >
-                  {source.label}
-                </a>
-                <span className="text-[var(--muted)]">
-                  {" "}
-                  · {SOURCE_TYPE_LABELS[source.type]}
-                  {source.lastReviewedAt &&
-                    ` · reviewed ${new Date(source.lastReviewedAt).toLocaleDateString("en-CA")}`}
-                </span>
-              </li>
-            ))}
+            {route.sources.map((source) => {
+              const reviewedOn = formatReviewDate(source.lastReviewedAt);
+              return (
+                <li key={source.url} className="text-sm">
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-[var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                  >
+                    {source.label}
+                  </a>
+                  <span className="text-[var(--muted)]">
+                    {" "}
+                    · {SOURCE_TYPE_LABELS[source.type]}
+                    {reviewedOn && ` · reviewed ${reviewedOn}`}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

@@ -88,3 +88,15 @@ export function booleanLabel(value: boolean, note: string | null): string {
   const base = value ? "Yes" : "No";
   return note ? `${base} — ${note}` : base;
 }
+
+/**
+ * Format an ISO date from the API for display, or `null` if it's missing or
+ * unparseable — so a malformed value never renders as "Invalid Date".
+ */
+export function formatReviewDate(iso: string | null): string | null {
+  if (!iso) {
+    return null;
+  }
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString("en-CA");
+}

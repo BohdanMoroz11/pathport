@@ -66,7 +66,7 @@ export default async function RoutesPage({
                 <li key={route.id}>
                   <RouteCard
                     route={route}
-                    href={`/routes/${route.id}?from=${encodeURIComponent(backToDestination)}`}
+                    href={`/routes/${encodeURIComponent(route.id)}?from=${encodeURIComponent(backToDestination)}`}
                   />
                 </li>
               ))}

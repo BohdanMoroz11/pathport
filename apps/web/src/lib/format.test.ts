@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   booleanLabel,
   formatCost,
+  formatReviewDate,
   formatTimeline,
   NOT_SPECIFIED,
   pathToPrLabel,
@@ -65,5 +66,20 @@ describe("booleanLabel", () => {
     expect(booleanLabel(true, null)).toBe("Yes");
     expect(booleanLabel(false, null)).toBe("No");
     expect(booleanLabel(true, "spouse and children")).toBe("Yes — spouse and children");
+  });
+});
+
+describe("formatReviewDate", () => {
+  it("formats a valid ISO date as YYYY-MM-DD", () => {
+    // Exact day is timezone-dependent; assert the shape, not a fixed date.
+    expect(formatReviewDate("2025-03-14T12:00:00.000Z")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("returns null when missing", () => {
+    expect(formatReviewDate(null)).toBeNull();
+  });
+
+  it("returns null for an unparseable value instead of 'Invalid Date'", () => {
+    expect(formatReviewDate("not-a-date")).toBeNull();
   });
 });
