@@ -1,4 +1,12 @@
 packages:
   - "apps/*"
   - "packages/*"
-
+allowBuilds:
+  # Build tooling and runtime image optimization genuinely need their
+  # install scripts; everything else stays blocked by pnpm's default.
+  esbuild: true # native binary for vitest/next build tooling
+  sharp: true # libvips for next/image production optimization
+  '@nestjs/core': false # only prints an OpenCollective donation notice
+  protobufjs: false # transitive (lighthouse); works without codegen step
+  cpu-features: false # test-only native SSH crypto via testcontainers
+  ssh2: false # test-only; we use the local Docker socket, not SSH
