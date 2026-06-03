@@ -44,6 +44,18 @@ Workflow conventions:
 - phase and stage details can change as the project becomes clearer
 - keep plan docs honest rather than aspirational; update them when scope changes
 
+Committing conventions:
+
+- Separate commits by concern as much as is reasonable, but achieve the split by
+  **staging selectively** (`git add <path>` / `git add -p`), never by rewriting,
+  reformatting, or moving code to make the history look tidy. The diff in a
+  commit must be the change you actually made — nothing more.
+- Do NOT refactor or "clean up" untouched code while committing. If a tidy-up is
+  worth doing, it is its own deliberate change, proposed separately — not a
+  side effect of organizing commits.
+- One file can legitimately span two commits (stage hunks with `git add -p`);
+  that is fine and preferred over editing the file to force a clean boundary.
+
 ## Product Inspiration
 
 The project is inspired by simple relocation databases, especially the way they make options easy to scan and compare. Pathport should target a wider audience and avoid being tied to one nationality or language community.
