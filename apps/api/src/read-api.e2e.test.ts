@@ -54,7 +54,10 @@ describe("Read API", () => {
       expect(destinations.map((d) => d.code)).toEqual(["DE", "PT", "ES"]);
       expect(destinations.every((d) => d.routeCount > 0)).toBe(true);
 
+      // routeCount must be a real number, not the string Postgres COUNT returns.
       const germany = destinations.find((d) => d.code === "DE");
+      expect(typeof germany?.routeCount).toBe("number");
+      expect(germany?.routeCount).toBe(5);
       expect(germany?.arrivalContext?.visaFreeDays).toBe(90);
       expect(germany?.arrivalContext?.isDemo).toBe(true);
     });

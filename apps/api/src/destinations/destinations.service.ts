@@ -45,7 +45,9 @@ export class DestinationsService {
     return destinations.map((destination) => ({
       code: destination.code,
       name: destination.name,
-      routeCount: destination.routeCount,
+      // Postgres returns COUNT(...) as a string via node-postgres; coerce so the
+      // contract's `number` is honest rather than a lie the type system can't see.
+      routeCount: Number(destination.routeCount),
       arrivalContext: contexts.get(destination.code) ?? null,
     }));
   }
