@@ -25,9 +25,11 @@
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
     "test:e2e": "playwright test",
+    "test:all": "pnpm test && pnpm test:e2e",
+    "start:stack": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build --wait",
+    "stop:stack": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down",
     "lhci": "lhci autorun",
-    "lighthouse": "pnpm build && pnpm db:seed && pnpm lhci",
-    "start:stack": "node scripts/start-stack.mjs"
+    "lighthouse": "pnpm start:stack && pnpm lhci; pnpm stop:stack"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

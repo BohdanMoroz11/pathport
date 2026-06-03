@@ -68,10 +68,12 @@ jobs:
         env:
           DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
 
-      # Audits the production stack: the build above plus a freshly seeded DB,
-      # which start-stack.mjs serves through the real API + `next start`.
+      # Audits the production stack: the compose images (real API + Next.js
+      # server) on a self-contained, freshly seeded database. `--wait` blocks on
+      # the container healthchecks, so lhci only runs once the stack is ready.
       - name: Lighthouse CI
-        run: pnpm db:seed && pnpm lhci
-        env:
-          DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d --wait
+          pnpm lhci
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
