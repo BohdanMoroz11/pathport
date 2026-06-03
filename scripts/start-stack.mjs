@@ -1,14 +1,14 @@
-// Boot the production stack (API then web) for a Lighthouse run, and print
-// "STACK READY" once both answer. The explorer pages are server-rendered and
-// read the API over HTTP, which in turn needs a seeded database — so a
-// meaningful Lighthouse audit has to measure the real chain, not a web server
-// pointed at nothing. Lighthouse measures production builds only: `next dev`
-// ships unminified bundles and the dev React runtime, so its scores are
-// meaningless. Run `pnpm build` (and seed the DB) before this script.
+// Boot the production stack — the built API (gated on /ready, which verifies
+// the database) then `next start` — and print "STACK READY" once both answer.
+// Use it whenever you want to exercise the real production chain instead of the
+// dev servers: manual testing, perf work, or any tooling that needs a live app.
+// The explorer pages are server-rendered and read the API over HTTP, which in
+// turn needs a seeded database, so all three have to be up. Run `pnpm build`
+// (and seed the DB) first; the process stays up until interrupted.
 //
-// This is used by lighthouserc.cjs as `startServerCommand`; Lighthouse waits
-// for the sentinel, runs its audits, then terminates this process — at which
-// point we tear the child process groups down.
+// Consumers can wait on the "STACK READY" line as a readiness signal — that is
+// how lighthouserc.cjs drives it. When the process is terminated (Ctrl+C, or by
+// such a consumer) we tear the child process groups down.
 
 import { spawn } from "node:child_process";
 import process from "node:process";

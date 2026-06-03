@@ -26,7 +26,8 @@
     "test:coverage": "pnpm -r test:coverage",
     "test:e2e": "playwright test",
     "lhci": "lhci autorun",
-    "lighthouse": "pnpm build && pnpm db:seed && pnpm lhci"
+    "lighthouse": "pnpm build && pnpm db:seed && pnpm lhci",
+    "start:stack": "node scripts/start-stack.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
