@@ -1,0 +1,16 @@
+# Keep the build context small and reproducible: never ship host-built artifacts
+# or local state into the image — the build compiles everything from source.
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/*.tsbuildinfo
+.git
+.github
+.lighthouseci
+playwright-report
+test-results
+.env
+.env.*
+!.env.example
+.DS_Store

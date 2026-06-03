@@ -12,7 +12,14 @@ import type {
  * without the frontend importing the database layer.
  */
 function apiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+  // These calls run server-side (RSC), so prefer a runtime, server-only var:
+  // `NEXT_PUBLIC_*` is inlined at build time and can't be set per-deployment,
+  // which is wrong for the container talking to the API over the compose
+  // network. `API_BASE_URL` is read at runtime; the public var stays as the
+  // dev fallback (see .env.example).
+  return (
+    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
+  );
 }
 
 /** A non-2xx response from the API, carrying the status so callers can branch. */

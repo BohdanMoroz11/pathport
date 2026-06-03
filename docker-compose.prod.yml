@@ -1,0 +1,77 @@
+# Production stack overlay. Layer it on the base db service:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+#
+# (the `pnpm start:stack` script wraps that with --wait). This builds and runs
+# the real API + Next.js images — never the dev servers — so it is what
+# Lighthouse audits and what you exercise for manual or perf testing. Dev still
+# runs on the host with `pnpm db:up` + `pnpm dev`; the two setups stay separate.
+#
+# Startup order is enforced by health/completion conditions rather than the
+# hand-rolled polling the old start-stack script did: db must be healthy, then
+# the seed one-shot must finish (the API's /ready needs the schema), then the
+# API must be healthy before web starts.
+
+services:
+  # The prod stack reaches Postgres over the compose network (db:5432), so it
+  # never needs the host port the dev base publishes. Dropping it also avoids a
+  # clash with the CI Postgres service, which binds the same 5433.
+  db:
+    ports: !reset []
+
+  # One-shot: reset the schema and load demo data, then exit. The API's /ready
+  # check queries a seeded table, so this must complete before the API starts.
+  seed:
+    build:
+      context: .
+      target: seed
+    environment:
+      DATABASE_URL: postgres://pathport:pathport@db:5432/pathport
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      target: api
+    environment:
+      DATABASE_URL: postgres://pathport:pathport@db:5432/pathport
+      API_HOST: 0.0.0.0
+      API_PORT: "4000"
+      WEB_ORIGIN: http://localhost:3000
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:4000/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      # Server-side fetches go over the compose network to the API service.
+      API_BASE_URL: http://api:4000
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
