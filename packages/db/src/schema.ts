@@ -11,6 +11,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { RouteDetails } from "./route-details.js";
 
 // --- Enums -----------------------------------------------------------------
 
@@ -65,25 +66,9 @@ const contentMetadata = {
   isDemo: boolean("is_demo").notNull().default(false),
 };
 
-// --- Flexible route detail shape (validated JSONB) -------------------------
-
-export type RouteRequirementGroup = {
-  title: string;
-  items: string[];
-};
-
-/**
- * Still-volatile, route-specific content kept as validated JSONB rather than
- * block tables. Normalize into tables later once real routes show which
- * fields repeat. See docs/domain-model.md.
- */
-export type RouteDetails = {
-  requirementGroups?: RouteRequirementGroup[];
-  documentList?: string[];
-  eligibilityNotes?: string[];
-  stepNotes?: string[];
-  caveats?: string[];
-};
+// The flexible route-detail shape and its runtime validation live in
+// ./route-details.ts (re-exported above). Kept as validated JSONB rather than
+// block tables while the shape is still volatile; see docs/domain-model.md.
 
 // --- Tables ----------------------------------------------------------------
 

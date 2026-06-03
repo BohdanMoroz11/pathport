@@ -1,5 +1,5 @@
 import type { RouteDetail, RouteSource, RouteSummary } from "@pathport/contracts";
-import type { routeSources, routes } from "@pathport/db";
+import { parseRouteDetails, type routeSources, type routes } from "@pathport/db";
 
 type RouteRow = typeof routes.$inferSelect;
 type RouteSourceRow = typeof routeSources.$inferSelect;
@@ -47,8 +47,9 @@ function toRouteSource(source: RouteSourceRow): RouteSource {
 
 /**
  * Map a route row plus its destination and sources to the full detail contract.
- * Normalizes the still-volatile JSONB detail fields to present arrays so the UI
- * never has to guard for missing keys.
+ * Validates the still-volatile JSONB detail blob on read (Postgres does not
+ * enforce its shape) and returns it normalized to present arrays, so the UI
+ * never has to guard for missing keys and a malformed row can't reach the client.
  */
 export function toRouteDetail(
   route: RouteRow,
@@ -58,13 +59,7 @@ export function toRouteDetail(
   return {
     ...toRouteSummary(route),
     destination,
-    details: {
-      requirementGroups: route.details.requirementGroups ?? [],
-      documentList: route.details.documentList ?? [],
-      eligibilityNotes: route.details.eligibilityNotes ?? [],
-      stepNotes: route.details.stepNotes ?? [],
-      caveats: route.details.caveats ?? [],
-    },
+    details: parseRouteDetails(route.details),
     sources: sources.map(toRouteSource),
   };
 }

@@ -1,4 +1,5 @@
 import type { DatabaseClient } from "../client.js";
+import { parseRouteDetails } from "../route-details.js";
 import {
   arrivalContext,
   citizenships,
@@ -79,7 +80,8 @@ export async function seedDatabase(
           pathToPermanentResidenceNote: route.pathToPermanentResidenceNote,
           renewable: route.renewable,
           renewableNote: route.renewableNote,
-          details: route.details,
+          // Validate on write so no malformed detail blob can reach the column.
+          details: parseRouteDetails(route.details),
           reviewStatus: route.reviewStatus ?? "needs_review",
           confidence: route.confidence ?? "low",
           isDemo: true,

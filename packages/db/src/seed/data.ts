@@ -1,7 +1,7 @@
+import type { RouteDetails } from "../route-details.js";
 import type {
   confidenceEnum,
   pathToPrEnum,
-  RouteDetails,
   reviewStatusEnum,
   routeTypeEnum,
   sourceTypeEnum,
