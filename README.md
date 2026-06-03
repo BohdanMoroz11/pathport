@@ -81,6 +81,12 @@ See:
 
 ## Local Development
 
+Dev and production are two deliberately separate setups. **Dev** runs Postgres in
+Docker while the API and web servers run on the host with hot reload. **Production**
+runs the whole stack (database, API, and web) as built images via Docker Compose.
+
+### Dev
+
 Create a local environment file before starting the app:
 
 ```sh
@@ -100,4 +106,45 @@ Then start the app:
 pnpm dev
 ```
 
-The root `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` scripts build shared packages before starting app dev servers. Use `pnpm db:down` to stop the local database.
+The root `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` scripts build shared
+packages before starting the app dev servers. Use `pnpm db:down` to stop the
+local database.
+
+### Production stack
+
+Run the entire production stack — database, the built NestJS API, and the
+Next.js server — with one command:
+
+```sh
+pnpm start:stack   # builds images, seeds the DB, waits until healthy
+pnpm stop:stack    # tears it down
+```
+
+`start:stack` layers [docker-compose.prod.yml](docker-compose.prod.yml) over the
+base [docker-compose.yml](docker-compose.yml). Startup order is enforced by
+container health/completion checks: the database becomes healthy, a one-shot
+service seeds it, then the API starts, then web. The app is served on
+http://localhost:3000 (API on http://localhost:4000). This is the stack
+Lighthouse audits — never the dev server.
+
+> The bundled seed resets the schema and loads demo data, so this stack is a
+> production-*like* local stack for demos, manual testing, and perf work. A real
+> cloud deployment would run `db:migrate` against managed Postgres instead.
+
+## Scripts
+
+| Script | What it does |
+| --- | --- |
+| `pnpm dev` | Build shared packages, then run API + web dev servers (also `dev:api`, `dev:web`) |
+| `pnpm build` | Build every workspace project (`build:packages` builds just the shared packages) |
+| `pnpm typecheck` | Type-check every workspace project |
+| `pnpm check` / `pnpm format` | Biome lint / format |
+| `pnpm test` | Unit, component, and API tests across the workspace |
+| `pnpm test:coverage` | The above with coverage |
+| `pnpm test:e2e` | Playwright end-to-end tests |
+| `pnpm test:all` | `test` + `test:e2e` in one command |
+| `pnpm db:up` / `db:down` / `db:logs` | Manage the local dev Postgres container |
+| `pnpm db:migrate` / `db:push` / `db:seed` | Drizzle migrations / schema push / demo seed |
+| `pnpm start:stack` / `stop:stack` | Bring the production Docker stack up / down |
+| `pnpm lighthouse` | Bring the stack up, run Lighthouse, tear it down |
+| `pnpm lhci` | Run Lighthouse against an already-running stack |
