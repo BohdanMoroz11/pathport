@@ -12,7 +12,6 @@ Pathport uses a pnpm workspace monorepo with separate frontend and backend appli
 - `packages/contracts`: shared request/response types and future API schemas.
 - `packages/config`: shared configuration helpers.
 - `packages/db`: database schema, migrations, and data-access primitives.
-- `packages/testing`: shared test utilities once repeated test setup appears.
 
 ## Root Files
 

@@ -15,7 +15,6 @@ route handlers, so the data and contracts stay framework-agnostic.
 - `packages/db`: schema, migrations, and data-access primitives (Drizzle).
 - `packages/contracts`: shared request/response types, independent of the db layer.
 - `packages/config`: shared environment/config helpers.
-- `packages/testing`: shared test utilities.
 
 See [repository-structure.md](repository-structure.md) for the layout in detail.
 
