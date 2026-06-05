@@ -1,7 +1,5 @@
 # Database
 
-Status: Draft
-
 Pathport uses Postgres with Drizzle for schema definition and migrations.
 
 ## Package
@@ -13,9 +11,9 @@ Database code lives in `packages/db`.
 - `migrations/`: SQL migrations.
 - `drizzle.config.ts`: Drizzle Kit configuration.
 
-## Phase 1 Schema
+## Schema
 
-The schema implements the Phase 1 domain model ([domain-model.md](domain-model.md)).
+The schema implements the [domain model](domain-model.md).
 
 Tables:
 
@@ -34,9 +32,9 @@ Tables:
 Enums: `review_status`, `route_type`, `source_type`, `confidence`, `work_permission`,
 `path_to_pr`.
 
-### Migration Strategy During Phase 1
+### Migration Strategy
 
-The schema is still being designed, so Phase 1 does **not** generate a migration per
+The schema is still being designed, so for now there is **no** migration per
 change. Instead it pushes the schema onto an empty database:
 
 - The dev workflow uses `drizzle-kit push` (drop and recreate the dev DB freely).
@@ -45,13 +43,13 @@ change. Instead it pushes the schema onto an empty database:
   from the schema and applies it. It depends on `drizzle-kit` and is dev/test-only —
   it must never run on a production path.
 
-A single clean baseline migration replaces this once the schema stabilizes (plan S6),
-after which the seeder, tests, and CI switch back to `db:migrate`.
+A single clean baseline migration replaces this once the schema stabilizes, after
+which the seeder, tests, and CI switch back to `db:migrate`.
 
 ### Seeding Demo Data
 
 `pnpm db:seed` ([packages/db/src/seed/](../packages/db/src/seed/)) loads throwaway
-Phase 1 demo data so the full flow can be developed and demoed end to end. It is
+demo data so the full flow can be developed and demoed end to end. It is
 repeatable: it calls `resetSchema` (drop + recreate `public`, then push) before
 inserting, so re-running always produces the same clean state.
 
@@ -64,32 +62,17 @@ push path).
 
 ## Commands
 
-From the repo root:
+The `db:*` scripts are listed in the [README scripts table](../README.md#scripts).
+Two notes specific to the current push-based workflow: `db:push` and `db:seed`
+drive the schema directly, while `db:migrate` is dormant until the baseline
+migration exists. Generate a Drizzle migration with
+`pnpm --filter @pathport/db db:generate`.
 
-- `pnpm db:up`: start the local Postgres container.
-- `pnpm db:down`: stop the local Postgres container.
-- `pnpm db:logs`: follow local Postgres logs.
-- `pnpm db:push`: push the current schema onto the configured `DATABASE_URL` (Phase 1 dev workflow).
-- `pnpm db:seed`: drop and recreate the schema, then load the demo data (Phase 1 dev workflow).
-- `pnpm db:migrate`: apply migrations to the configured `DATABASE_URL` (used once the baseline migration exists in S6).
-- `pnpm --filter @pathport/db db:generate`: generate a Drizzle migration from schema changes.
-- `pnpm --filter @pathport/db db:migrate`: apply migrations using `DATABASE_URL`.
-
-## Local Development
-
-Local development uses `docker-compose.yml` at the repo root. It starts a Postgres 16 container with credentials matching `.env.example`:
+The local dev database is a Postgres 16 container (`docker-compose.yml`) with
+credentials matching `.env.example`:
 
 ```text
 postgres://pathport:pathport@localhost:5433/pathport
-```
-
-First local run:
-
-```sh
-cp .env.example .env
-pnpm db:up
-pnpm db:seed
-pnpm dev
 ```
 
 ## Testing

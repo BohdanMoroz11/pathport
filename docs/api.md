@@ -1,7 +1,5 @@
 # API
 
-Status: Phase 1
-
 The API is a NestJS service that exposes read-only endpoints for the
 citizenship-first explorer. It is the only thing the web app talks to; the web
 app never reaches the database directly.
@@ -16,7 +14,7 @@ app never reaches the database directly.
 - All read queries run through the shared `DatabaseService` (one pool) using
   Drizzle.
 - Country codes in paths are matched case-insensitively (`USA`, `usa`).
-- Phase 1 is read-only: there is no write, auth, or mutation surface.
+- The API is read-only: there is no write, auth, or mutation surface yet.
 
 ## Endpoints
 

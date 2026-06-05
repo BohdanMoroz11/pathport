@@ -1,7 +1,5 @@
 # Testing
 
-Status: Draft
-
 Testing is a first-class part of Pathport because the project is meant to demonstrate production-quality engineering.
 
 ## Targets
@@ -11,14 +9,8 @@ Testing is a first-class part of Pathport because the project is meant to demons
 - E2E coverage for core user journeys
 - Backend integration/API tests use real Postgres for database-backed behavior
 
-## Commands
-
-- `pnpm test`: run unit/component/integration tests across workspaces.
-- `pnpm test:coverage`: run coverage across workspaces.
-- `pnpm test:e2e`: run Playwright browser tests.
-- `pnpm lighthouse`: build, seed the DB, then run Lighthouse CI end to end (the local one-shot).
-- `pnpm lhci`: run Lighthouse CI alone, assuming a production build and a seeded DB already exist.
-- `pnpm start:stack`: boot the production API + web stack (built API + `next start`) for manual testing, perf work, or any tooling that needs a live production app.
+See the [README scripts table](../README.md#scripts) for the test and Lighthouse
+commands.
 
 ## Frontend Layers
 
@@ -30,22 +22,11 @@ Testing is a first-class part of Pathport because the project is meant to demons
 
 ### Running the production stack
 
-The explorer pages are server-rendered and fetch from the API at request time,
-so exercising the real production app means bringing up the whole chain: a
-seeded DB, the built API, and `next start` — not the dev servers.
-
-`scripts/start-stack.mjs` orchestrates that: it boots the built API (waiting on
-`/ready`, which verifies the database), then `next start`, then prints a
-`STACK READY` line and stays up until interrupted. Run it with `pnpm start:stack`
-(after `pnpm build` and a seed) for manual or perf testing against production
-behavior.
-
-Lighthouse is one consumer of that script. It only produces meaningful numbers
-against a production build — never `next dev` (unminified bundles, the dev React
-runtime) — so `lighthouserc.cjs` drives the stack via `start-stack.mjs`, waits
-on the `STACK READY` line, audits, and tears it down. CI seeds the DB and passes
-`DATABASE_URL` to the same flow; locally, `pnpm lighthouse` builds and seeds
-first, then runs it.
+Lighthouse only produces meaningful numbers against a production build, never the
+dev server. So it audits the Docker Compose production stack (database, built API,
+Next.js server) rather than `next dev`. The stack is brought up by Compose gated
+on container healthchecks, then `lhci` audits the running app. See the
+[production stack section in the README](../README.md#production-stack).
 
 ## Backend Layers
 

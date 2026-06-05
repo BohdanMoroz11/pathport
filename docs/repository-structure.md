@@ -1,7 +1,5 @@
 # Repository Structure
 
-Status: Draft
-
 Pathport uses a pnpm workspace monorepo with separate frontend and backend applications.
 
 ## Applications
@@ -24,20 +22,4 @@ Pathport uses a pnpm workspace monorepo with separate frontend and backend appli
 - `biome.json`: shared formatting and linting configuration.
 - `.env.example`: documented environment variables.
 
-## Local Development
-
-Workspace commands:
-
-- `pnpm install`: install workspace dependencies.
-- `pnpm dev`: run web and API apps together.
-- `pnpm dev:web`: run the Next.js app.
-- `pnpm dev:api`: run the NestJS API.
-- `pnpm build`: build all workspaces.
-- `pnpm typecheck`: typecheck all workspaces.
-- `pnpm check`: run Biome checks.
-- `pnpm test`: run workspace tests.
-- `pnpm test:coverage`: run workspace tests with coverage.
-- `pnpm test:e2e`: run Playwright tests.
-- `pnpm lhci`: run Lighthouse CI.
-- `pnpm --filter @pathport/db db:generate`: generate Drizzle migrations.
-- `pnpm --filter @pathport/db db:migrate`: apply Drizzle migrations.
+Workspace commands live in the [README scripts table](../README.md#scripts).

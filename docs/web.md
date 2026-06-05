@@ -1,7 +1,5 @@
 # Web Explorer
 
-Status: Phase 1
-
 The web app (`apps/web`) is the citizenship-first explorer: a Next.js App Router
 frontend that reads the [API](api.md) over HTTP and never touches the database
 directly (see [architecture.md](architecture.md)).
@@ -31,8 +29,9 @@ deferred to the real-data phase, per the phase plan.
 ## Boundaries
 
 - **Data:** a thin typed client in `src/lib/api.ts` wraps `fetch` and returns
-  the shared `@pathport/contracts` types. The API base URL comes from
-  `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:4000`).
+  the shared `@pathport/contracts` types. These fetches run server-side, so the
+  base URL prefers the runtime `API_BASE_URL`, falling back to
+  `NEXT_PUBLIC_API_BASE_URL` and then `http://localhost:4000` for dev.
 - **Quality labels:** the user-facing labels (`Official source`, `Needs review`,
   `Estimate`, `Demo`, …) are **derived** in `src/lib/quality.ts` from the raw
   signals (`reviewStatus`, `confidence`, `isDemo`, per-source `type`), never
@@ -44,5 +43,5 @@ deferred to the real-data phase, per the phase plan.
 The pure helpers (`quality`, `format`) and the presentational components
 (quality badges, citizenship picker, route card, hero) are unit-tested with
 Vitest + React Testing Library. The data-fetching server pages are covered by
-end-to-end tests (Playwright, added in S6) rather than brittle unit tests, in
-line with [architecture.md](architecture.md). See [testing.md](testing.md).
+end-to-end tests (Playwright) rather than brittle unit tests, in line with
+[architecture.md](architecture.md). See [testing.md](testing.md).

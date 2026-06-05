@@ -1,30 +1,18 @@
 # Domain Model
 
-Status: Phase 1 definition
-
-This document defines the durable domain concepts Phase 1 builds against. It is the shared vocabulary for the schema ([database.md](database.md)), the API contracts, and the explorer UI. Schema-level types are sketched here and finalized in the schema itself; this doc owns the *concepts*, not the exact column types.
+This document defines the main domain concepts of the product. Some concepts might not yet be implemented or might change.
 
 ## Core Flow: Citizenship-First, Destination Drill-Down
 
 The product is organized around the question "I hold citizenship X — where can I go and how?"
 
-The Phase 1 flow has three steps:
+The main flow has three steps:
 
-1. **Pick a citizenship.** The entry choice. Demo: United States or Ukraine.
-2. **See a destination overview.** A list of destinations available to that citizenship, each with a short summary and a route count. Demo: Germany, Portugal, Spain.
+1. **Pick a citizenship.** The entry choice. Default should be infered from IP, geolocation, user agent, etc.
+2. **See a destination overview.** A list of destinations available to that citizenship, each with a short summary and a route count. Cross-destination comparison also included.
 3. **Drill into one destination.** See that destination's routes as cards grouped or filtered by route type, then open a route for full detail.
 
-Cross-destination comparison ("show all routes everywhere, filter by type") is a deliberately deferred enhancement. Phase 1 keeps the simpler drill-down so the foundation stays small; the data model does not prevent a comparison view later.
-
 Arrival context (visa-free / visitor entry) is shown as supporting information on the destination, not as a route.
-
-## Demo Coverage
-
-Phase 1 ships throwaway demo data, not real content:
-
-- **Citizenships:** United States (primary), Ukraine (second). Two exist so the citizenship filter provably differentiates results.
-- **Destinations:** Germany, Portugal, Spain.
-- All data is flagged as demo (see Metadata).
 
 ## Route Taxonomy
 
@@ -88,7 +76,7 @@ Three independent signals, kept minimal; the user-facing quality label is **deri
 
 ### Derived Display Labels
 
-The labels from [content-principles.md](content-principles.md) (`Official source`, `Needs review`, `Estimate`, `Community note`, `Outdated`, `AI-assisted draft`) are computed in the UI from the signals above — never stored. Intended derivation (exact precedence pinned during UI work in S5):
+The labels from [content-principles.md](content-principles.md) (`Official source`, `Needs review`, `Estimate`, `Community note`, `Outdated`, `AI-assisted draft`) are computed in the UI from the signals above — never stored. Intended derivation:
 
 - `review_status = outdated` → **Outdated**
 - `review_status ∈ {draft, needs_review}` → **Needs review**
@@ -99,14 +87,3 @@ The labels from [content-principles.md](content-principles.md) (`Official source
 - `is_demo = true` → **Demo**
 
 Labels can stack (e.g. a demo route can show **Demo** + **Estimate**).
-
-## Phase 1 Non-Goals
-
-- Real, official-source-verified immigration content.
-- Complete country or route coverage.
-- Production-ready immigration guidance or anything resembling legal advice.
-- Cross-destination comparison UI.
-- Per-field source/confidence tracking (route-level metadata is enough for the foundation; revisit with real content).
-- User accounts, saved searches, or any write/auth surface.
-
-These are foundation decisions. Anything that changes them should update this doc and the active phase plan in the same change.
