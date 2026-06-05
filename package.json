@@ -8,6 +8,7 @@
     "pnpm": ">=11.0.0"
   },
   "scripts": {
+    "prepare": "husky",
     "dev": "pnpm build:packages && pnpm --parallel --filter @pathport/api --filter @pathport/web dev",
     "dev:web": "pnpm build:packages && pnpm --filter @pathport/web dev",
     "dev:api": "pnpm build:packages && pnpm --filter @pathport/api dev",
@@ -38,10 +39,11 @@
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.60.0",
     "@testcontainers/postgresql": "^12.0.0",
+    "@types/node": "^24.12.4",
     "@vitest/coverage-v8": "^4.1.7",
+    "husky": "^9.1.7",
     "testcontainers": "^12.0.0",
     "typescript": "^5.8.0",
-    "vitest": "^4.1.7",
-    "@types/node": "^24.12.4"
+    "vitest": "^4.1.7"
   }
 }

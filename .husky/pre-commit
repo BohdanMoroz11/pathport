@@ -1,0 +1,6 @@
+# Lint and format only the staged files. Biome's --staged flag filters to the
+# git index itself, so no lint-staged wrapper is needed. --write applies safe
+# fixes, then --again re-stages the files Biome just fixed so the commit
+# includes them.
+pnpm exec biome check --staged --write --no-errors-on-unmatched
+git update-index --again
