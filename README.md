@@ -139,10 +139,11 @@ Lighthouse audits — never the dev server.
 | `pnpm build` | Build every workspace project (`build:packages` builds just the shared packages) |
 | `pnpm typecheck` | Type-check every workspace project |
 | `pnpm check` / `pnpm format` | Biome lint / format |
-| `pnpm test` | Unit, component, and API tests across the workspace |
-| `pnpm test:coverage` | The above with coverage |
+| `pnpm test` | Unit/component tests across the workspace (fast, no Docker) |
+| `pnpm test:integration` | Postgres-backed integration tests (Testcontainers, needs Docker) |
+| `pnpm test:coverage` | Unit + integration with coverage (needs Docker) |
 | `pnpm test:e2e` | Playwright end-to-end tests |
-| `pnpm test:all` | `test` + `test:e2e` in one command |
+| `pnpm test:all` | `test` + `test:integration` + `test:e2e` in one command |
 | `pnpm db:up` / `db:down` / `db:logs` | Manage the local dev Postgres container |
 | `pnpm db:migrate` / `db:push` / `db:seed` | Drizzle migrations / schema push / demo seed |
 | `pnpm start:stack` / `stop:stack` | Bring the production Docker stack up / down |

@@ -67,4 +67,9 @@ Committing conventions:
 - Current technical direction is documented in `docs/architecture.md`.
 - Keep frontend and backend separate.
 - Treat testing as a first-class showcase feature; prefer TDD where practical.
+- Tests are tiered (see `docs/testing.md`): unit (`*.test.ts`, no Docker),
+  integration (`*.integration.test.ts`, real Postgres via Testcontainers), and
+  Playwright e2e (`tests/e2e/*.spec.ts`). Any DB- or container-backed test MUST
+  be named `*.integration.test.ts` so `pnpm test` stays fast and Docker-free —
+  never put one in a plain `*.test.ts`.
 - Preserve horizontal-scaling readiness: stateless services, external persistent state, explicit config, health/readiness checks, and no single-replica assumptions.
