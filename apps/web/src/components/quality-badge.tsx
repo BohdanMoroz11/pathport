@@ -1,7 +1,7 @@
 import type { QualityLabel, QualityTone } from "@/lib/quality";
 
 const TONE_CLASSES: Record<QualityTone, string> = {
-  demo: "border-[var(--border)] bg-[var(--background)] text-[var(--muted)]",
+  demo: "border-(--border) bg-(--background) text-(--muted)",
   review: "border-amber-200 bg-amber-50 text-amber-800",
   outdated: "border-red-200 bg-red-50 text-red-700",
   estimate: "border-sky-200 bg-sky-50 text-sky-700",

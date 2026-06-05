@@ -24,19 +24,17 @@ export default async function DestinationsPage({
       <Breadcrumbs items={[{ label: "Citizenships", href: "/" }, { label: current.name }]} />
 
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold text-[var(--foreground)]">
+        <h1 className="text-3xl font-semibold text-(--foreground)">
           Destinations for {current.name}
         </h1>
-        <p className="text-[var(--muted)]">
+        <p className="text-(--muted)">
           Countries with at least one immigration route open to {current.name} citizens. Pick one to
           compare its routes.
         </p>
       </header>
 
       {destinations.length === 0 ? (
-        <p className="text-[var(--muted)]">
-          No destinations are available yet for this citizenship.
-        </p>
+        <p className="text-(--muted)">No destinations are available yet for this citizenship.</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {destinations.map((destination) => (

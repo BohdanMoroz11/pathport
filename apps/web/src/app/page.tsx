@@ -20,7 +20,7 @@ export default async function HomePage() {
       <Hero />
 
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
           Choose your citizenship
         </h2>
         <CitizenshipPicker citizenships={citizenships} />

@@ -45,20 +45,18 @@ export default async function RoutesPage({
       />
 
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold text-[var(--foreground)]">
+        <h1 className="text-3xl font-semibold text-(--foreground)">
           {dest.name} routes for {current.name}
         </h1>
-        {dest.arrivalContext && (
-          <p className="text-[var(--muted)]">{dest.arrivalContext.summary}</p>
-        )}
+        {dest.arrivalContext && <p className="text-(--muted)">{dest.arrivalContext.summary}</p>}
       </header>
 
       {groups.length === 0 ? (
-        <p className="text-[var(--muted)]">No routes are available yet for this pairing.</p>
+        <p className="text-(--muted)">No routes are available yet for this pairing.</p>
       ) : (
         groups.map((group) => (
           <section key={group.type} className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
               {ROUTE_TYPE_LABELS[group.type]}
             </h2>
             <ul className="grid gap-3 sm:grid-cols-2">

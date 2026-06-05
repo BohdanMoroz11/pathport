@@ -4,7 +4,7 @@ import { linkCardClass } from "@/lib/styles";
 
 export function CitizenshipPicker({ citizenships }: { citizenships: Citizenship[] }) {
   if (citizenships.length === 0) {
-    return <p className="text-[var(--muted)]">No citizenships are available yet.</p>;
+    return <p className="text-(--muted)">No citizenships are available yet.</p>;
   }
 
   return (
@@ -13,14 +13,12 @@ export function CitizenshipPicker({ citizenships }: { citizenships: Citizenship[
         <li key={citizenship.code}>
           <Link href={`/explore/${citizenship.code}`} className={linkCardClass}>
             <span className="flex items-center justify-between gap-3">
-              <span className="text-lg font-semibold text-[var(--foreground)]">
-                {citizenship.name}
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+              <span className="text-lg font-semibold text-(--foreground)">{citizenship.name}</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-(--muted)">
                 {citizenship.code}
               </span>
             </span>
-            <span className="text-sm text-[var(--accent)] group-hover:underline">
+            <span className="text-sm text-(--accent) group-hover:underline">
               See destinations →
             </span>
           </Link>

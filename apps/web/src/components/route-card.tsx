@@ -12,13 +12,13 @@ export function RouteCard({ route, href }: { route: RouteSummary; href: string }
   return (
     <Link href={href} className={linkCardClass}>
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-base font-semibold text-[var(--foreground)]">{route.title}</h3>
-        <span className="shrink-0 rounded-full border border-[var(--border)] px-2 py-0.5 text-xs font-medium text-[var(--muted)]">
+        <h3 className="text-base font-semibold text-(--foreground)">{route.title}</h3>
+        <span className="shrink-0 rounded-full border border-(--border) px-2 py-0.5 text-xs font-medium text-(--muted)">
           {ROUTE_TYPE_LABELS[route.type]}
         </span>
       </div>
 
-      <p className="text-sm leading-6 text-[var(--muted)]">{route.summary}</p>
+      <p className="text-sm leading-6 text-(--muted)">{route.summary}</p>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Fact label="Cost" value={formatCost(route.cost)} />
