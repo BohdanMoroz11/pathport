@@ -28,7 +28,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/seed/run.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

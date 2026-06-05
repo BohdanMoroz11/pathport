@@ -1,37 +1,17 @@
-import type { INestApplication } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
 import type { DestinationSummary, RouteDetail, RouteSummary } from "@pathport/contracts";
-import { createDatabaseClient, createDatabasePool } from "@pathport/db";
-import { resetSchema, seedDatabase } from "@pathport/db/testing";
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { AppModule } from "./app.module";
+import { type ApiTestContext, startApiTestContext, stopApiTestContext } from "./testing/test-app";
 
 describe("Read API", () => {
-  let container: StartedPostgreSqlContainer;
-  let pool: ReturnType<typeof createDatabasePool>;
-  let app: INestApplication;
-
-  const http = () => request(app.getHttpAdapter().getInstance());
+  let ctx: ApiTestContext;
+  const http = () => ctx.http();
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer("postgres:16-alpine").start();
-    process.env.DATABASE_URL = container.getConnectionUri();
-    pool = createDatabasePool(container.getConnectionUri());
-
-    await resetSchema(pool);
-    await seedDatabase(createDatabaseClient(pool));
-
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    await app.init();
+    ctx = await startApiTestContext();
   }, 120_000);
 
   afterAll(async () => {
-    await app?.close();
-    await pool?.end();
-    await container?.stop();
+    await stopApiTestContext(ctx);
   });
 
   describe("GET /citizenships", () => {
