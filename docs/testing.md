@@ -60,9 +60,29 @@ on container healthchecks, then `lhci` audits the running app. See the
 
 ## Backend Layers
 
-- Unit tests for services and domain logic.
-- Module/controller tests with NestJS testing utilities.
-- API tests against the Nest application HTTP server, over a real Postgres.
+Test at the altitude where the behavior actually lives — don't mirror every class
+with a test file:
+
+- **Unit-test pure logic**: mappers, pipes, formatters, and domain helpers
+  (e.g. [route.mapper.ts](../apps/api/src/routes/route.mapper.ts),
+  [country-code.pipe.ts](../apps/api/src/common/country-code.pipe.ts)). These have
+  branches and edge cases (null handling, coercion) that seed data won't exercise,
+  and they need no database.
+- **Integration-test DB-backed endpoints**: services that are mostly Drizzle
+  queries, and the controllers/routing, are covered through real HTTP against a
+  real Postgres (the `*.integration.test.ts` files), not by mocking the client.
+
+Two anti-patterns this avoids:
+
+- **Don't unit-test a thin service/controller by mocking the database** — it only
+  asserts which query-builder methods were called, which is brittle and proves
+  nothing. Cover it with an integration test instead.
+- **Don't write tests that only assert constants or framework wiring** (e.g. a
+  controller delegating to its service). If removing the test wouldn't fail on any
+  real regression, it is not pulling its weight.
+
+So a piece of pure logic without a unit test is a gap; a thin DB-backed service
+without its own unit test is correct by design.
 
 ## Notes
 
