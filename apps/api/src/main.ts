@@ -10,7 +10,7 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
   app.enableCors({
-    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
+    origin: process.env.WEB_ORIGIN ?? `http://${host}:${port}`,
   });
 
   await app.listen(port, host);
