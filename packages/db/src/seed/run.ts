@@ -1,5 +1,5 @@
 import { createDatabaseClient, createDatabasePool } from "../client.js";
-import { resetSchema } from "../push.js";
+import { resetSchema } from "../migrate.js";
 import { seedDatabase } from "./seed.js";
 
 /**

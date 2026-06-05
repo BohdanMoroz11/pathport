@@ -8,7 +8,7 @@ import {
   createDatabasePool,
   type DatabaseClient,
 } from "./client";
-import { pushSchema } from "./push";
+import { migrateToLatest } from "./migrate";
 import {
   arrivalContext,
   citizenships,
@@ -27,7 +27,7 @@ describe("database foundation", () => {
     pool = createDatabasePool(container.getConnectionUri());
     db = createDatabaseClient(pool);
 
-    await pushSchema(pool);
+    await migrateToLatest(pool);
   }, 120_000);
 
   afterAll(async () => {

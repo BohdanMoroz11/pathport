@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDatabaseClient, createDatabasePool, type DatabaseClient } from "../client";
-import { resetSchema } from "../push";
+import { resetSchema } from "../migrate";
 import {
   arrivalContext,
   citizenships,
