@@ -177,21 +177,21 @@ Tasks:
 
 ## S6: Quality And Documentation Pass
 
-Status: Not started
+Status: In progress
 
 Keep Phase 1 shippable as a portfolio foundation, not only technically working.
 
 Tasks:
 
-- [ ] Generate one clean baseline migration now that the schema is stable; switch seed/tests/CI from `push` to `migrate`.
-- [ ] Keep coverage at or above the v1 60% threshold.
-- [ ] Add frontend component/integration tests for the explorer flow.
-- [ ] Add Playwright coverage for the primary citizenship-first journey.
-- [ ] Keep axe checks passing.
-- [ ] Keep Lighthouse CI at 90+ for relevant categories.
-- [ ] Keep typecheck, lint, format, tests, build, and CI passing.
-- [ ] Update docs and plan status as scope changes.
-- [ ] Draft the Phase 2 plan.
+- [x] Generate one clean baseline migration now that the schema is stable; switch seed/tests/CI from `push` to `migrate`. (`migrations/0000_baseline.sql`; `resetSchema`/`migrateToLatest` apply the committed files; `db:push` retired.)
+- [x] Keep coverage at or above the v1 60% threshold. (db 91%, api 99%, web/config passing.)
+- [x] Add frontend component/integration tests for the explorer flow.
+- [x] Add Playwright coverage for the primary citizenship-first journey.
+- [x] Keep axe checks passing.
+- [x] Keep Lighthouse CI at 90+ for relevant categories. (Enforced as CI errors in `lighthouserc.cjs`.)
+- [x] Keep typecheck, lint, format, tests, build, and CI passing.
+- [x] Update docs and plan status as scope changes.
+- [ ] Draft the Phase 2 plan. (Collaborative — done next.)
 
 ## Exit Criteria
 

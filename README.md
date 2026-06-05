@@ -145,7 +145,7 @@ Lighthouse audits — never the dev server.
 | `pnpm test:e2e` | Playwright end-to-end tests |
 | `pnpm test:all` | `test` + `test:integration` + `test:e2e` in one command |
 | `pnpm db:up` / `db:down` / `db:logs` | Manage the local dev Postgres container |
-| `pnpm db:migrate` / `db:push` / `db:seed` | Drizzle migrations / schema push / demo seed |
+| `pnpm db:migrate` / `db:seed` / `db:generate` | Apply migrations / reset + seed demo data / generate a migration |
 | `pnpm start:stack` / `stop:stack` | Bring the production Docker stack up / down |
 | `pnpm lighthouse` | Bring the stack up, run Lighthouse, tear it down |
 | `pnpm lhci` | Run Lighthouse against an already-running stack |

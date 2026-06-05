@@ -34,39 +34,40 @@ Enums: `review_status`, `route_type`, `source_type`, `confidence`, `work_permiss
 
 ### Migration Strategy
 
-The schema is still being designed, so for now there is **no** migration per
-change. Instead it pushes the schema onto an empty database:
+The Phase 1 schema is stable, so it lives behind a single clean baseline
+migration ([packages/db/migrations/](../packages/db/migrations/)), generated with
+`drizzle-kit generate`. Everything applies that migration rather than pushing the
+schema object directly:
 
-- The dev workflow uses `drizzle-kit push` (drop and recreate the dev DB freely).
-- Tests and the seeder use the programmatic `pushSchema(pool)` helper
-  ([packages/db/src/push.ts](../packages/db/src/push.ts)), which generates the DDL
-  from the schema and applies it. It depends on `drizzle-kit` and is dev/test-only —
-  it must never run on a production path.
+- A real database (dev or prod) runs `pnpm db:migrate` (`drizzle-kit migrate`).
+- Tests and the seeder use the programmatic `migrateToLatest(pool)` helper
+  ([packages/db/src/migrate.ts](../packages/db/src/migrate.ts)), which runs the
+  committed migration files via Drizzle's migrator, so they exercise exactly what
+  ships. It is dev/test-only and must never run on a production request path.
 
-A single clean baseline migration replaces this once the schema stabilizes, after
-which the seeder, tests, and CI switch back to `db:migrate`.
+During earlier Phase 1 design the schema was iterated with `drizzle-kit push` on a
+throwaway DB; that is no longer used. New schema changes now add a migration with
+`pnpm --filter @pathport/db db:generate`.
 
 ### Seeding Demo Data
 
 `pnpm db:seed` ([packages/db/src/seed/](../packages/db/src/seed/)) loads throwaway
 demo data so the full flow can be developed and demoed end to end. It is
-repeatable: it calls `resetSchema` (drop + recreate `public`, then push) before
-inserting, so re-running always produces the same clean state.
+repeatable: it calls `resetSchema` (drop + recreate the schema, then apply the
+migrations) before inserting, so re-running always produces the same clean state.
 
 The data ([data.ts](../packages/db/src/seed/data.ts)) covers the two demo
 citizenships (US, Ukraine), three destinations (Germany, Portugal, Spain), and at
 least one route of every `route_type`. The humanitarian (Temporary Protection)
 routes are Ukraine-only, so the citizenship filter provably differentiates results.
-Everything is flagged `is_demo`. The seeder is dev/test-only (it depends on the
-push path).
+Everything is flagged `is_demo`. The seeder is dev/test-only (it applies the
+migrations through dev tooling).
 
 ## Commands
 
 The `db:*` scripts are listed in the [README scripts table](../README.md#scripts).
-Two notes specific to the current push-based workflow: `db:push` and `db:seed`
-drive the schema directly, while `db:migrate` is dormant until the baseline
-migration exists. Generate a Drizzle migration with
-`pnpm --filter @pathport/db db:generate`.
+`db:migrate` applies the committed migrations; `db:seed` resets and reloads the
+demo data; `db:generate` creates a new migration after a schema change.
 
 The local dev database is a Postgres 16 container (`docker-compose.yml`) with
 credentials matching `.env.example`:
