@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type ApiTestContext, startApiTestContext, stopApiTestContext } from "./testing/test-app";
 
-// `/health` is liveness only and is covered by the health unit tests; the value
-// of testing it here is `/ready`, which runs its readiness query against a real
-// database. We only need the schema to exist, not the demo rows, so skip seeding.
-describe("App readiness", () => {
+// The health endpoints are wired through the controller; integration is the right
+// altitude to cover that routing (the service logic itself is unit-tested). The
+// point of testing `/ready` here is that it runs its query against a real
+// database — we only need the schema to exist, not the demo rows, so skip seeding.
+describe("Health endpoints", () => {
   let ctx: ApiTestContext;
 
   beforeAll(async () => {
@@ -15,7 +16,13 @@ describe("App readiness", () => {
     await stopApiTestContext(ctx);
   });
 
-  it("reports ready once the database is reachable", async () => {
+  it("reports liveness on /health", async () => {
+    const response = await ctx.http().get("/health").expect(200);
+
+    expect(response.body).toEqual({ ok: true, service: "api" });
+  });
+
+  it("reports ready on /ready once the database is reachable", async () => {
     const response = await ctx.http().get("/ready").expect(200);
 
     expect(response.body).toEqual({ ok: true, service: "api" });
