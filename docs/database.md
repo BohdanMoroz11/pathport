@@ -1,7 +1,5 @@
 # Database
 
-Status: Draft
-
 Pathport uses Postgres with Drizzle for schema definition and migrations.
 
 ## Package
@@ -13,43 +11,69 @@ Database code lives in `packages/db`.
 - `migrations/`: SQL migrations.
 - `drizzle.config.ts`: Drizzle Kit configuration.
 
-## Initial Schema
+## Schema
 
-Phase 0 defines foundation tables only:
+The schema implements the [domain model](domain-model.md).
 
-- `citizenships`
-- `destination_countries`
-- `routes`
-- `route_sources`
+Tables:
 
-These tables are intentionally minimal. Product decisions such as the first citizenship, destination set, route taxonomy details, and demo data belong to future phases.
+- `citizenships` — passport/nationality (code + name).
+- `destination_countries` — countries a person can migrate to (code + name).
+- `routes` — one immigration path into a single destination. Holds the comparison
+  fields (cost/timeline ranges, work permission, family inclusion, path-to-PR,
+  renewable), flexible detail content as validated JSONB (`details`), and content
+  metadata (`review_status`, `confidence`, `is_demo`).
+- `route_applicability` — the `route ↔ citizenship` join the citizenship-first UI
+  filters on. Unique on `(route_id, citizenship_id)`.
+- `arrival_context` — visa-free / visitor / arrival facts for a
+  `citizenship × destination` pair. Unique on `(citizenship_id, destination_country_id)`.
+- `route_sources` — source links per route (type, label, url, last reviewed).
+
+Enums: `review_status`, `route_type`, `source_type`, `confidence`, `work_permission`,
+`path_to_pr`.
+
+### Migration Strategy
+
+The Phase 1 schema is stable, so it lives behind a single clean baseline
+migration ([packages/db/migrations/](../packages/db/migrations/)), generated with
+`drizzle-kit generate`. Everything applies that migration rather than pushing the
+schema object directly:
+
+- A real database (dev or prod) runs `pnpm db:migrate` (`drizzle-kit migrate`).
+- Tests and the seeder use the programmatic `migrateToLatest(pool)` helper
+  ([packages/db/src/migrate.ts](../packages/db/src/migrate.ts)), which runs the
+  committed migration files via Drizzle's migrator, so they exercise exactly what
+  ships. It is dev/test-only and must never run on a production request path.
+
+During earlier Phase 1 design the schema was iterated with `drizzle-kit push` on a
+throwaway DB; that is no longer used. New schema changes now add a migration with
+`pnpm --filter @pathport/db db:generate`.
+
+### Seeding Demo Data
+
+`pnpm db:seed` ([packages/db/src/seed/](../packages/db/src/seed/)) loads throwaway
+demo data so the full flow can be developed and demoed end to end. It is
+repeatable: it calls `resetSchema` (drop + recreate the schema, then apply the
+migrations) before inserting, so re-running always produces the same clean state.
+
+The data ([data.ts](../packages/db/src/seed/data.ts)) covers the two demo
+citizenships (US, Ukraine), three destinations (Germany, Portugal, Spain), and at
+least one route of every `route_type`. The humanitarian (Temporary Protection)
+routes are Ukraine-only, so the citizenship filter provably differentiates results.
+Everything is flagged `is_demo`. The seeder is dev/test-only (it applies the
+migrations through dev tooling).
 
 ## Commands
 
-From the repo root:
+The `db:*` scripts are listed in the [README scripts table](../README.md#scripts).
+`db:migrate` applies the committed migrations; `db:seed` resets and reloads the
+demo data; `db:generate` creates a new migration after a schema change.
 
-- `pnpm db:up`: start the local Postgres container.
-- `pnpm db:down`: stop the local Postgres container.
-- `pnpm db:logs`: follow local Postgres logs.
-- `pnpm db:migrate`: apply migrations to the configured `DATABASE_URL`.
-- `pnpm --filter @pathport/db db:generate`: generate a Drizzle migration from schema changes.
-- `pnpm --filter @pathport/db db:migrate`: apply migrations using `DATABASE_URL`.
-
-## Local Development
-
-Local development uses `docker-compose.yml` at the repo root. It starts a Postgres 16 container with credentials matching `.env.example`:
+The local dev database is a Postgres 16 container (`docker-compose.yml`) with
+credentials matching `.env.example`:
 
 ```text
 postgres://pathport:pathport@localhost:5433/pathport
-```
-
-First local run:
-
-```sh
-cp .env.example .env
-pnpm db:up
-pnpm db:migrate
-pnpm dev
 ```
 
 ## Testing

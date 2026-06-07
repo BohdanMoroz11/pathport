@@ -1,25 +1,30 @@
-import { Button } from "@/components/ui/button";
+import type { Citizenship } from "@pathport/contracts";
+import { CitizenshipPicker } from "@/components/citizenship-picker";
+import { Hero } from "@/components/hero";
+import { getCitizenships } from "@/lib/api";
 
-export default function HomePage() {
+/** United States is the primary demo citizenship, so it leads the list. */
+function withPrimaryFirst(citizenships: Citizenship[]): Citizenship[] {
+  return [...citizenships].sort((a, b) => {
+    if (a.code === "USA") return -1;
+    if (b.code === "USA") return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export default async function HomePage() {
+  const citizenships = withPrimaryFirst(await getCitizenships());
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-10">
-      <header className="flex items-center justify-between gap-6">
-        <span className="text-sm font-semibold tracking-wide text-[var(--accent)]">Pathport</span>
-        <Button type="button">Explore</Button>
-      </header>
+    <div className="space-y-12">
+      <Hero />
 
-      <section className="flex flex-1 flex-col justify-center py-20">
-        <p className="mb-4 text-sm font-medium text-[var(--muted)]">
-          Immigration options, structured and source-aware.
-        </p>
-        <h1 className="max-w-3xl text-5xl font-semibold leading-tight text-[var(--foreground)]">
-          Compare realistic migration paths without digging through scattered articles.
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-          Pathport is being built as a clean, source-aware explorer for visas, residence routes,
-          timelines, costs, and caveats.
-        </p>
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
+          Choose your citizenship
+        </h2>
+        <CitizenshipPicker citizenships={citizenships} />
       </section>
-    </main>
+    </div>
   );
 }

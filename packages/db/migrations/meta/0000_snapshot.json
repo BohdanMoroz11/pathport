@@ -1,9 +1,154 @@
 {
-  "id": "f569895e-5d22-4e53-ab59-2a8215cba99a",
+  "id": "d5e6ba67-6f3c-4fef-b3bb-160de8efb55b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.arrival_context": {
+      "name": "arrival_context",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "citizenship_id": {
+          "name": "citizenship_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination_country_id": {
+          "name": "destination_country_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "visa_free_days": {
+          "name": "visa_free_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review_status": {
+          "name": "review_status",
+          "type": "review_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'low'"
+        },
+        "is_demo": {
+          "name": "is_demo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "arrival_context_citizenship_destination_idx": {
+          "name": "arrival_context_citizenship_destination_idx",
+          "columns": [
+            {
+              "expression": "citizenship_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "destination_country_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "arrival_context_destination_country_id_idx": {
+          "name": "arrival_context_destination_country_id_idx",
+          "columns": [
+            {
+              "expression": "destination_country_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "arrival_context_citizenship_id_citizenships_id_fk": {
+          "name": "arrival_context_citizenship_id_citizenships_id_fk",
+          "tableFrom": "arrival_context",
+          "tableTo": "citizenships",
+          "columnsFrom": [
+            "citizenship_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "arrival_context_destination_country_id_destination_countries_id_fk": {
+          "name": "arrival_context_destination_country_id_destination_countries_id_fk",
+          "tableFrom": "arrival_context",
+          "tableTo": "destination_countries",
+          "columnsFrom": [
+            "destination_country_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.citizenships": {
       "name": "citizenships",
       "schema": "",
@@ -49,7 +194,9 @@
         "citizenships_code_unique": {
           "name": "citizenships_code_unique",
           "nullsNotDistinct": false,
-          "columns": ["code"]
+          "columns": [
+            "code"
+          ]
         }
       },
       "policies": {},
@@ -101,9 +248,127 @@
         "destination_countries_code_unique": {
           "name": "destination_countries_code_unique",
           "nullsNotDistinct": false,
-          "columns": ["code"]
+          "columns": [
+            "code"
+          ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.route_applicability": {
+      "name": "route_applicability",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "route_id": {
+          "name": "route_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "citizenship_id": {
+          "name": "citizenship_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "route_applicability_route_citizenship_idx": {
+          "name": "route_applicability_route_citizenship_idx",
+          "columns": [
+            {
+              "expression": "route_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "citizenship_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "route_applicability_citizenship_id_idx": {
+          "name": "route_applicability_citizenship_id_idx",
+          "columns": [
+            {
+              "expression": "citizenship_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "route_applicability_route_id_routes_id_fk": {
+          "name": "route_applicability_route_id_routes_id_fk",
+          "tableFrom": "route_applicability",
+          "tableTo": "routes",
+          "columnsFrom": [
+            "route_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "route_applicability_citizenship_id_citizenships_id_fk": {
+          "name": "route_applicability_citizenship_id_citizenships_id_fk",
+          "tableFrom": "route_applicability",
+          "tableTo": "citizenships",
+          "columnsFrom": [
+            "citizenship_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -187,8 +452,12 @@
           "name": "route_sources_route_id_routes_id_fk",
           "tableFrom": "route_sources",
           "tableTo": "routes",
-          "columnsFrom": ["route_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "route_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -235,6 +504,89 @@
           "primaryKey": false,
           "notNull": true
         },
+        "cost_min": {
+          "name": "cost_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost_max": {
+          "name": "cost_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost_currency": {
+          "name": "cost_currency",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timeline_min_months": {
+          "name": "timeline_min_months",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timeline_max_months": {
+          "name": "timeline_max_months",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "work_permission": {
+          "name": "work_permission",
+          "type": "work_permission",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family_inclusion": {
+          "name": "family_inclusion",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "family_inclusion_note": {
+          "name": "family_inclusion_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "path_to_permanent_residence": {
+          "name": "path_to_permanent_residence",
+          "type": "path_to_pr",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path_to_permanent_residence_note": {
+          "name": "path_to_permanent_residence_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "renewable": {
+          "name": "renewable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "renewable_note": {
+          "name": "renewable_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "details": {
+          "name": "details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
         "review_status": {
           "name": "review_status",
           "type": "review_status",
@@ -242,6 +594,21 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'draft'"
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'low'"
+        },
+        "is_demo": {
+          "name": "is_demo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -273,6 +640,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "routes_type_idx": {
+          "name": "routes_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -280,9 +662,13 @@
           "name": "routes_destination_country_id_destination_countries_id_fk",
           "tableFrom": "routes",
           "tableTo": "destination_countries",
-          "columnsFrom": ["destination_country_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "destination_country_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -294,10 +680,33 @@
     }
   },
   "enums": {
+    "public.confidence": {
+      "name": "confidence",
+      "schema": "public",
+      "values": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "public.path_to_pr": {
+      "name": "path_to_pr",
+      "schema": "public",
+      "values": [
+        "none",
+        "eventual",
+        "direct"
+      ]
+    },
     "public.review_status": {
       "name": "review_status",
       "schema": "public",
-      "values": ["draft", "needs_review", "reviewed", "outdated"]
+      "values": [
+        "draft",
+        "needs_review",
+        "reviewed",
+        "outdated"
+      ]
     },
     "public.route_type": {
       "name": "route_type",
@@ -317,7 +726,22 @@
     "public.source_type": {
       "name": "source_type",
       "schema": "public",
-      "values": ["official", "legal", "community", "ai_assisted", "other"]
+      "values": [
+        "official",
+        "legal",
+        "community",
+        "ai_assisted",
+        "other"
+      ]
+    },
+    "public.work_permission": {
+      "name": "work_permission",
+      "schema": "public",
+      "values": [
+        "none",
+        "limited",
+        "full"
+      ]
     }
   },
   "schemas": {},

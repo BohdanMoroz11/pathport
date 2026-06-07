@@ -1,6 +1,6 @@
 # Phase 1: Product Foundation Slice
 
-Status: In progress
+Status: Done
 
 Branch: phase-1
 
@@ -21,11 +21,11 @@ The priority is a unified foundation that can be filled with real immigration da
 Phase 1 uses these decisions unless later implementation reveals a better adjustment:
 
 - Primary flow: citizenship-first.
-- Demo citizenship: United States.
+- Demo citizenships: United States (primary) and Ukraine (second). Two citizenships exist so the citizenship-based filter provably differentiates results instead of trivially applying to everything.
 - Demo destinations: Germany, Portugal, and Spain.
-- Route taxonomy: start with work, study, family, freelance/self-employed, business/investment, humanitarian/protection, long-term residence, and other; keep the model open to additional categories as real immigration paths are explored.
-- Arrival context: include visa-free stay, visitor, or initial arrival information when useful, but treat it as supporting context rather than the main organizing purpose.
-- Data quality: use realistic-ish local placeholder data that is good enough to build and test the foundation, with clear demo or needs-review labels.
+- Route taxonomy: start with the categories already in the schema enum — work, study, family, freelance, digital_nomad, business, humanitarian, long_stay, and other; keep the model open to additional categories as real immigration paths are explored.
+- Arrival context: include visa-free stay, visitor, or initial arrival information when useful, but treat it as supporting context rather than the main organizing purpose. Arrival context is a property of a citizenship × destination pair, not of a route (see Initial Schema Direction).
+- Data quality: demo data is throwaway local placeholder data, good enough to build and test the foundation, with clear demo or needs-review labels. Phase 1 is not a real-data phase; real data collection and refresh are deferred to a later phase, where the frontend will likely move to SSG.
 - Product priority: main database structure, API, and UI foundation.
 - Secondary priority: polished enough frontend and testing to remain portfolio-quality.
 - Not a Phase 1 goal: deep official-source research, complete country coverage, or production-ready immigration guidance.
@@ -54,107 +54,144 @@ Keep route-specific details flexible at first:
 - eligibility notes
 - initial-arrival or visa-free-stay context
 
-Those flexible fields should start as structured JSON or a small related block table, depending on what is easiest to validate and render cleanly. Avoid over-normalizing requirements before the project has enough real routes to show which fields repeat consistently.
+Those flexible fields should start as validated JSONB columns rather than block tables. The fields are still volatile, so JSONB lets the shape move freely during Phase 1 while a schema (Zod/Drizzle) keeps the data validated and the API contract honest. Revisit normalization into tables once enough real routes show which fields repeat consistently. Avoid over-normalizing requirements before that signal exists.
 
 The Phase 1 schema should be easy to query for the citizenship-first UI while staying flexible enough to absorb real data later without a redesign.
 
+### Resolved Modeling Decisions
+
+- **Citizenship applicability:** model as an explicit `route ↔ citizenship` applicability join, not a column on `routes`. A route is applicable to a citizenship when a row exists. This is the join the citizenship-first UI filters on, and the reason two demo citizenships exist is to prove it actually differentiates results.
+- **Arrival context:** lives on the citizenship × destination pair (e.g. a separate `arrival_context` concept keyed on both), not on `routes`. "US citizens get 90-day visa-free Schengen entry" is a fact about the pair, not a migration route, and does not fit the route shape.
+- **Route detail fields:** validated JSONB (requirement groups, document lists, caveats, step notes, eligibility notes), per the hybrid approach above.
+- **Comparison fields:** keep them structured enough to compare and sort, not free text — that is the point of "comparable at a glance." Exact types (e.g. cost as min/max + currency, timeline as min/max months, renewability and path-to-PR as enums or boolean-with-note) are decided as the seed records are written and the UI needs them, then recorded in [../database.md](../database.md).
+
 ## S1: Domain Scope And Taxonomy
 
-Status: Not started
+Status: Done
 
-Define the durable domain concepts Phase 1 needs before schema work begins.
+Define the durable domain concepts Phase 1 needs before schema work begins. Output: [../domain-model.md](../domain-model.md).
 
 Tasks:
 
-- [ ] Define the citizenship-first explorer flow in product terms.
-- [ ] Define Germany, Portugal, and Spain as the 3 European demo destinations.
-- [ ] Define the initial extensible immigration route taxonomy for the foundation.
-- [ ] Decide how visa-free stay and initial arrival context attach to immigration routes.
-- [ ] Define the minimum route summary and route detail fields.
-- [ ] Define source, review, confidence, and demo-data metadata.
-- [ ] Apply the hybrid schema approach to route details, normalizing stable fields and keeping route-specific details flexible.
-- [ ] Validate the initial hybrid schema direction against the first demo records before committing migrations.
-- [ ] Document explicit Phase 1 non-goals.
-- [ ] Move resolved items out of [future-product-scope.md](future-product-scope.md).
+- [x] Define the citizenship-first explorer flow in product terms (destination drill-down).
+- [x] Confirm United States and Ukraine as the 2 demo citizenships.
+- [x] Define Germany, Portugal, and Spain as the 3 European demo destinations.
+- [x] Confirm the route taxonomy matches the schema enum.
+- [x] Confirm the `route ↔ citizenship` applicability join as the citizenship-first filter.
+- [x] Confirm arrival context attaches to the citizenship × destination pair, not to routes.
+- [x] Define the minimum route summary and route detail fields.
+- [x] Define source, review, confidence, and demo-data metadata (review_status + confidence + is_demo; labels derived).
+- [x] Apply the hybrid schema approach (validated JSONB for flexible route details).
+- [ ] Validate the schema direction against the first demo records before stabilizing it. (Deferred to S2/S3 when records are written.)
+- [x] Document explicit Phase 1 non-goals.
+- [x] Move resolved items out of [future-product-scope.md](future-product-scope.md).
 
 ## S2: Main Database Structure
 
-Status: Not started
+Status: Done
 
 Replace the placeholder database foundation with the first real domain schema.
 
+During Phase 1 the schema is still being designed, so iterate with `drizzle-kit push` against a throwaway dev DB (drop and recreate freely) instead of generating a migration per change. Delete the Phase 0 baseline migration. Postgres-backed tests also `push` the schema so they do not depend on migration files mid-design. A single clean baseline migration is generated later, in S6, once the schema is stable.
+
 Tasks:
 
-- [ ] Model citizenships, destinations, route types, immigration routes, requirements, costs, timelines, caveats, and sources.
-- [ ] Add source/review/confidence metadata in a way that can survive real content work later.
-- [ ] Add migrations for the Phase 1 schema.
-- [ ] Add database constraints and indexes for the expected read paths.
-- [ ] Add real Postgres-backed schema tests where useful.
-- [ ] Update database documentation with the Phase 1 model.
+- [x] Model citizenships, destinations, route types, immigration routes, requirements, costs, timelines, caveats, and sources.
+- [x] Add the `route ↔ citizenship` applicability join.
+- [x] Add arrival context keyed on citizenship × destination.
+- [x] Add source/review/confidence metadata in a way that can survive real content work later.
+- [x] Iterate the schema with `drizzle-kit push`; remove the Phase 0 baseline migration.
+- [x] Add database constraints and indexes for the expected read paths.
+- [x] Add real Postgres-backed schema tests where useful.
+- [x] Update database documentation with the Phase 1 model.
 
 ## S3: Seed And Demo Data
 
-Status: Not started
+Status: Done
 
 Create enough demo data to exercise the full product foundation.
 
+The seed lives in [../../packages/db/src/seed/](../../packages/db/src/seed/): pure
+demo data in `data.ts`, the insert logic in `seed.ts`, and a repeatable CLI runner
+in `run.ts` (`pnpm db:seed`) that drops and recreates the schema before loading.
+
 Tasks:
 
-- [ ] Add a repeatable seed workflow.
-- [ ] Seed United States as the first citizenship.
-- [ ] Seed Germany, Portugal, and Spain as the first destination countries.
-- [ ] Seed realistic-ish placeholder records across all major immigration route types.
-- [ ] Mark demo, estimated, or needs-review fields explicitly.
-- [ ] Add seed tests or smoke checks against real Postgres.
+- [x] Add a repeatable seed workflow that drops and recreates the dev DB (`resetSchema` + `pnpm db:seed`).
+- [x] Seed United States and Ukraine as the two demo citizenships.
+- [x] Seed Germany, Portugal, and Spain as the first destination countries.
+- [x] Seed route applicability so US and Ukraine differ on at least some routes (humanitarian routes are Ukraine-only).
+- [x] Seed realistic-ish placeholder records across all major immigration route types (every `route_type` is covered).
+- [x] Seed arrival context for the demo citizenship × destination pairs.
+- [x] Mark demo, estimated, or needs-review fields explicitly (all rows `is_demo`; review/confidence varied).
+- [x] Add seed tests or smoke checks against real Postgres.
 
 ## S4: Read API Foundation
 
-Status: Not started
+Status: Done
 
-Expose read-only API endpoints from NestJS for the explorer UI.
+Expose read-only API endpoints from NestJS for the explorer UI. The shared
+response types live in [`@pathport/contracts`](../../packages/contracts) (the
+web app consumes them without importing the database layer); the API services
+map Drizzle rows into those types, so the mappers enforce enum conformance at
+compile time. Endpoints and shapes are documented in [../api.md](../api.md).
 
 Tasks:
 
-- [ ] Define shared response contracts for citizenships, destinations, route summaries, and route details.
-- [ ] Add endpoint for available citizenships.
-- [ ] Add endpoint for destinations available to a citizenship.
-- [ ] Add endpoint for route summaries filtered by citizenship and destination.
-- [ ] Add endpoint for route details.
-- [ ] Include source/review/demo metadata in API responses.
-- [ ] Add API integration tests against real Postgres.
+- [x] Define shared response contracts for citizenships, destinations, route summaries, and route details.
+- [x] Add endpoint for available citizenships (`GET /citizenships`).
+- [x] Add endpoint for destinations available to a citizenship (`GET /citizenships/:code/destinations`, with route counts + arrival context).
+- [x] Add endpoint for route summaries filtered by citizenship and destination (`GET /citizenships/:code/destinations/:code/routes`).
+- [x] Add endpoint for route details (`GET /routes/:id`).
+- [x] Include source/review/demo metadata in API responses.
+- [x] Add API integration tests against real Postgres (Testcontainers, whole-app boot against a seeded DB).
 
 ## S5: Citizenship-First Web Explorer
 
-Status: Not started
+Status: Done
 
 Build the first usable Next.js explorer experience on top of the API.
 
+The explorer is server-rendered App Router pages that read the API through a
+typed client over [`@pathport/contracts`](../../packages/contracts) — the web
+app never imports the database layer. The flow is `/` (pick a citizenship,
+United States first) → `/explore/[citizenship]` (destinations) →
+`/explore/[citizenship]/[destination]` (route cards grouped by type) →
+`/routes/[id]` (full detail). The route detail link carries a `from` query so
+the detail page can offer a back link, restricted to internal explorer paths.
+Unknown or malformed codes/ids resolve to a shared not-found page. The
+user-facing content-quality labels are **derived** in the UI from the raw
+signals (never stored); the derivation and formatting live in pure, unit-tested
+helpers, and the presentational components are unit-tested with React Testing
+Library. Frontend coverage is documented in [../web.md](../web.md).
+
 Tasks:
 
-- [ ] Add the application shell for the product experience.
-- [ ] Add citizenship selection with United States seeded as the first usable option.
-- [ ] Add destination browsing for the selected citizenship.
-- [ ] Add route cards grouped or filtered by route type.
-- [ ] Add route detail view with requirements, costs, timelines, caveats, and sources.
-- [ ] Show demo/review/source metadata clearly without overwhelming the UI.
-- [ ] Preserve responsive layout, keyboard usability, and accessibility from the start.
+- [x] Add the application shell for the product experience (header/footer in the root layout).
+- [x] Add citizenship selection with United States seeded as the first usable option.
+- [x] Add destination browsing for the selected citizenship (`/explore/[citizenship]`).
+- [x] Add route cards grouped or filtered by route type (`/explore/[citizenship]/[destination]`).
+- [x] Add route detail view with requirements, costs, timelines, caveats, and sources (`/routes/[id]`).
+- [x] Show demo/review/source metadata clearly without overwhelming the UI (derived quality badges).
+- [x] Preserve responsive layout, keyboard usability, and accessibility from the start.
 
 ## S6: Quality And Documentation Pass
 
-Status: Not started
+Status: In progress
 
 Keep Phase 1 shippable as a portfolio foundation, not only technically working.
 
 Tasks:
 
-- [ ] Keep coverage at or above the v1 60% threshold.
-- [ ] Add frontend component/integration tests for the explorer flow.
-- [ ] Add Playwright coverage for the primary citizenship-first journey.
-- [ ] Keep axe checks passing.
-- [ ] Keep Lighthouse CI at 90+ for relevant categories.
-- [ ] Keep typecheck, lint, format, tests, build, and CI passing.
-- [ ] Update docs and plan status as scope changes.
-- [ ] Draft the Phase 2 plan.
+- [x] Generate one clean baseline migration now that the schema is stable; switch seed/tests/CI from `push` to `migrate`. (`migrations/0000_baseline.sql`; `resetSchema`/`migrateToLatest` apply the committed files; `db:push` retired.)
+- [x] Keep coverage at or above the v1 60% threshold. (db 91%, api 99%, web/config passing.)
+- [x] Add frontend component/integration tests for the explorer flow.
+- [x] Add Playwright coverage for the primary citizenship-first journey.
+- [x] Keep axe checks passing.
+- [x] Keep Lighthouse CI at 90+ for relevant categories. (Enforced as CI errors in `lighthouserc.cjs`.)
+- [x] Keep typecheck, lint, format, tests, build, and CI passing.
+- [x] Update docs and plan status as scope changes.
+- [x] Draft the Phase 2 plan. (Collaborative draft in [phase-2.md](phase-2.md); Phase 3 idea collection started in [phase-3.md](phase-3.md).)
 
 ## Exit Criteria
 
@@ -163,13 +200,24 @@ Phase 1 is done when:
 - the Phase 1 domain scope and non-goals are documented
 - the main database structure supports the core Pathport concepts
 - a repeatable seed workflow creates basic demo data
-- United States citizenship and Germany, Portugal, and Spain are usable in demo data
+- United States and Ukraine citizenships and Germany, Portugal, and Spain are usable in demo data
+- the citizenship filter provably differentiates results between the two demo citizenships
 - all major immigration route types are represented in the schema and at least lightly exercised in demo data
 - the API exposes read-only citizenship, destination, route summary, and route detail data
 - the web app renders a citizenship-first explorer flow from API data
 - route cards and details include source/review/demo metadata
+- the schema is stabilized behind one clean baseline migration with seed/tests/CI using `migrate`
 - tests, coverage, E2E, accessibility, Lighthouse, typecheck, and build pass
 - Phase 2 has a draft plan
+
+## Resolved Decisions
+
+- Two demo citizenships (United States + Ukraine) so the citizenship filter is provably exercised.
+- Citizenship applicability is an explicit `route ↔ citizenship` join, not a route column.
+- Arrival / visa-free context attaches to the citizenship × destination pair, not to routes.
+- Flexible route detail fields are validated JSONB, not block tables, while the shape is still volatile.
+- No per-change migrations during Phase 1: iterate with `drizzle-kit push` on a throwaway dev DB, then generate one baseline migration in S6 once the schema is stable.
+- Comparison fields stay structured (not free text); exact types are pinned down as seed records and the UI demand them.
 
 ## Open Questions
 

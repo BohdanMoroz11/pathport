@@ -12,6 +12,21 @@ jobs:
     name: Validate
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: pathport
+          POSTGRES_USER: pathport
+          POSTGRES_PASSWORD: pathport
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U pathport -d pathport"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -19,7 +34,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.17.1
+          version: 11.5.1
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -50,7 +65,15 @@ jobs:
 
       - name: Playwright E2E
         run: pnpm test:e2e
+        env:
+          DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
 
+      # Audits the production stack: the compose images (real API + Next.js
+      # server) on a self-contained, freshly seeded database. `--wait` blocks on
+      # the container healthchecks, so lhci only runs once the stack is ready.
       - name: Lighthouse CI
-        run: pnpm lhci
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d --wait
+          pnpm lhci
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 

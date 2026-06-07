@@ -8,6 +8,7 @@
       "!**/.next",
       "!**/dist",
       "!**/coverage",
+      "!**/migrations",
       "!**/playwright-report",
       "!**/test-results",
       "!**/.lighthouseci"
