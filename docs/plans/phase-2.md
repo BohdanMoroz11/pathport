@@ -1,8 +1,8 @@
 # Phase 2: UI Foundation, Data-Gathering Concept, and Admin Slice
 
-Status: Draft
+Status: In-progress
 
-Branch: phase-2 (not started)
+Branch: phase-2
 
 > Collaborative draft. The major direction is decided (see
 > [Resolved Decisions](#resolved-decisions)); task-level detail still firms up as
