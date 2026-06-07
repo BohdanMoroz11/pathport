@@ -107,6 +107,11 @@ Built on the existing CSS-variable approach (`--foreground`/`--muted`/… in
 `apps/web`), extended. Values below are the **current** direction, expected to be
 tuned; they become canonical in [design-system.md](design-system.md).
 
+**Implemented in** `apps/web/src/app/globals.css`: the full token set for both
+themes (dark default, light via `[data-theme="light"]`), display/body fonts wired
+through `next/font`, and legacy aliases (`--background`, `--foreground`, `--muted`,
+`--accent`, …) kept so the placeholder UI keeps working until it is rebuilt.
+
 ### Theme scope
 
 **Both dark and light are first-class** (decided in S1). Dark mode uses a **cool

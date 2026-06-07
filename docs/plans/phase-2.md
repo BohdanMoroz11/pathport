@@ -109,10 +109,13 @@ Tasks:
 - [x] Define the design direction (mood, references, what "calm, modern, useful"
       means concretely for Pathport), kept minimal on brand —
       see [../design-direction.md](../design-direction.md).
-- [ ] Establish design tokens incl. a **dark mode** from the start: color system,
+- [x] Establish design tokens incl. a **dark mode** from the start: color system,
       typography scale, spacing, radius, elevation, motion. Build on the existing
       CSS-variable approach (`--foreground`, `--muted`, …) rather than replacing
-      it wholesale. (Direction set in the doc; not yet implemented in `apps/web`.)
+      it wholesale. Implemented in `apps/web/src/app/globals.css` (dark default +
+      light theme, both first-class), with the display/body fonts wired via
+      `next/font`. Legacy aliases keep the placeholder UI working until S3–S5.
+      A theme **toggle** (and persistence) comes with the component layer.
 - [ ] Confirm the Radix + custom-UI setup (dependencies, theming approach, how
       tokens drive Radix-based components). The system is documented later in S5,
       once components are settled.
