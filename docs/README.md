@@ -17,6 +17,7 @@ chat history.
 - [database.md](database.md): Postgres/Drizzle setup, schema, and seeding.
 - [api.md](api.md): read-only API endpoints and shared contracts.
 - [web.md](web.md): the web explorer — page flow, data boundary, and derived labels.
+- [design-direction.md](design-direction.md): the frontend visual/structural direction (mood, layout, tokens) with a working concept mockup.
 - [competitive-landscape.md](competitive-landscape.md): patterns and gaps from adjacent products.
 - [content-principles.md](content-principles.md): source hierarchy, uncertainty, and legal guardrails.
 - [plans/](plans/README.md): living phase plans for execution.

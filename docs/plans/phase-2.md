@@ -95,18 +95,24 @@ Each stage is tagged with its pillar. Status is per-stage.
 
 ### S1 [UI]: Design Direction and Tokens
 
-Status: Not started
+Status: In progress
 
 Decide the visual language before building components.
 
+The direction was settled visually against a throwaway concept mockup and is
+written up in [../design-direction.md](../design-direction.md) (the doc links to
+the concept at `docs/ui-concepts/route-comparison-v3.html`). Remaining S1 work is
+to formalize the tokens in code and confirm the Radix setup.
+
 Tasks:
 
-- [ ] Define the design direction (mood, references, what "calm, modern, useful"
-      means concretely for Pathport), kept minimal on brand.
+- [x] Define the design direction (mood, references, what "calm, modern, useful"
+      means concretely for Pathport), kept minimal on brand —
+      see [../design-direction.md](../design-direction.md).
 - [ ] Establish design tokens incl. a **dark mode** from the start: color system,
       typography scale, spacing, radius, elevation, motion. Build on the existing
       CSS-variable approach (`--foreground`, `--muted`, …) rather than replacing
-      it wholesale.
+      it wholesale. (Direction set in the doc; not yet implemented in `apps/web`.)
 - [ ] Confirm the Radix + custom-UI setup (dependencies, theming approach, how
       tokens drive Radix-based components). The system is documented later in S5,
       once components are settled.

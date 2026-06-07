@@ -11,7 +11,8 @@
       "!**/migrations",
       "!**/playwright-report",
       "!**/test-results",
-      "!**/.lighthouseci"
+      "!**/.lighthouseci",
+      "!docs/ui-concepts"
     ]
   },
   "formatter": {
