@@ -1,28 +1,161 @@
 @import "tailwindcss";
 
+/*
+ * Pathport design tokens — see docs/design-direction.md.
+ * Dark is the default theme; light is opt-in via [data-theme="light"].
+ * Values are expected to be tuned; the canonical system lands in
+ * docs/design-system.md once components are settled (S5).
+ */
 :root {
+  color-scheme: dark;
+
+  /* Surfaces & text */
+  --bg: #090c11;
+  --surface: #141923;
+  --surface-2: #1c2230;
+  --border: #262d3a;
+  --border-strong: #38414f;
+  --text: #e9edf4;
+  --text-2: #9aa6b8;
+  --text-3: #687184;
+
+  /* Brand & functional accents */
+  --brand: #2fd4ac;
+  --violet: #8f8cff;
+  --pos: #34d08a;
+  --warn: #e7b14a;
+  --danger: #f56b54;
+  --neutral: #8a93a3;
+
+  /* Soft (low-opacity) accent fills for badges/pills */
+  --brand-soft: rgba(47, 212, 172, 0.14);
+  --violet-soft: rgba(143, 140, 255, 0.16);
+  --pos-soft: rgba(52, 208, 138, 0.15);
+  --warn-soft: rgba(231, 177, 74, 0.15);
+  --danger-soft: rgba(245, 107, 84, 0.14);
+  --neutral-soft: rgba(138, 147, 163, 0.14);
+
+  /* Data-viz track */
+  --bar-track: #222a38;
+
+  /* Left rail (stays dark in both themes) */
+  --rail-bg: #0e131c;
+  --rail-bg-2: #1a2130;
+  --rail-border: #232b39;
+  --rail-text: #e3e9f2;
+  --rail-text-2: #8d97a9;
+  --rail-active-bg: rgba(143, 140, 255, 0.16);
+  --rail-active-text: #c5c2ff;
+  --rail-active-bar: #8f8cff;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 20px 44px -26px rgba(0, 0, 0, 0.8);
+
+  /* Text on a --brand surface */
+  --on-brand: #06120d;
+
+  /* Typography */
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-sans);
+  --fs-xs: 0.75rem; /* 12 */
+  --fs-sm: 0.8125rem; /* 13 */
+  --fs-base: 0.9375rem; /* 15 */
+  --fs-md: 1rem; /* 16 */
+  --fs-lg: 1.125rem; /* 18 */
+  --fs-xl: 1.375rem; /* 22 */
+  --fs-2xl: 1.75rem; /* 28 */
+  --fs-3xl: 2.125rem; /* 34 */
+  --tracking-display: -0.02em;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-fast: 0.14s;
+  --dur: 0.18s;
+
+  /* Layout */
+  --content-max: 900px;
+
+  /* Legacy aliases for the placeholder UI; resolve to the tokens above and
+     re-resolve per theme. Removed as the explorer is rebuilt (S3–S5). */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --muted: var(--text-2);
+  --accent: var(--brand);
+  --accent-foreground: var(--on-brand);
+}
+
+:root[data-theme="light"] {
   color-scheme: light;
-  --background: #f7f5f0;
-  --foreground: #1d2528;
-  --muted: #5f6a70;
+
+  --bg: #eef2f0;
   --surface: #ffffff;
-  --border: #d9dedb;
-  --accent: #0f766e;
-  --accent-foreground: #ffffff;
+  --surface-2: #eef3f0;
+  --border: #e2e9e5;
+  --border-strong: #d2dbd6;
+  --text: #0e1714;
+  --text-2: #4f5e58;
+  --text-3: #84908a;
+
+  --brand: #0c9b78;
+  --violet: #5d54e6;
+  --pos: #13a058;
+  --warn: #bd7708;
+  --danger: #d8472d;
+  --neutral: #6c766f;
+
+  --brand-soft: rgba(12, 155, 120, 0.12);
+  --violet-soft: rgba(93, 84, 230, 0.1);
+  --pos-soft: rgba(19, 160, 88, 0.12);
+  --warn-soft: rgba(189, 119, 8, 0.12);
+  --danger-soft: rgba(216, 71, 45, 0.1);
+  --neutral-soft: rgba(108, 118, 111, 0.1);
+
+  --bar-track: #e7ede9;
+
+  --rail-bg: #0e1512;
+  --rail-bg-2: #18221d;
+  --rail-border: #233029;
+  --rail-text: #e2ebe6;
+  --rail-text-2: #8da097;
+  --rail-active-bg: rgba(93, 84, 230, 0.22);
+  --rail-active-text: #c2bcff;
+  --rail-active-bar: #7c6cff;
+
+  --shadow-sm: 0 1px 2px rgba(20, 40, 30, 0.04);
+  --shadow: 0 1px 2px rgba(20, 40, 30, 0.04), 0 16px 34px -22px rgba(20, 50, 35, 0.22);
+
+  --on-brand: #ffffff;
 }
 
 html {
   min-height: 100%;
-  background: var(--background);
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
   min-height: 100%;
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
 }
 
 a {

@@ -1,20 +1,21 @@
 import type { QualityLabel, QualityTone } from "@/lib/quality";
 
+/** Token-driven tones so badges read correctly in both themes. */
 const TONE_CLASSES: Record<QualityTone, string> = {
-  demo: "border-(--border) bg-(--background) text-(--muted)",
-  review: "border-amber-200 bg-amber-50 text-amber-800",
-  outdated: "border-red-200 bg-red-50 text-red-700",
-  estimate: "border-sky-200 bg-sky-50 text-sky-700",
-  official: "border-teal-200 bg-teal-50 text-teal-800",
-  community: "border-violet-200 bg-violet-50 text-violet-700",
-  ai: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  demo: "bg-(--violet-soft) text-(--violet)",
+  review: "bg-(--warn-soft) text-(--warn)",
+  outdated: "bg-(--danger-soft) text-(--danger)",
+  estimate: "bg-(--neutral-soft) text-(--neutral)",
+  official: "bg-(--pos-soft) text-(--pos)",
+  community: "bg-(--violet-soft) text-(--violet)",
+  ai: "bg-(--brand-soft) text-(--brand)",
 };
 
 export function QualityBadge({ label }: { label: QualityLabel }) {
   return (
     <span
       title={label.description}
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${TONE_CLASSES[label.tone]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${TONE_CLASSES[label.tone]}`}
     >
       {label.label}
     </span>
