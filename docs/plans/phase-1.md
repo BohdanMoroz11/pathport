@@ -1,6 +1,6 @@
 # Phase 1: Product Foundation Slice
 
-Status: In progress
+Status: Done
 
 Branch: phase-1
 
@@ -191,7 +191,7 @@ Tasks:
 - [x] Keep Lighthouse CI at 90+ for relevant categories. (Enforced as CI errors in `lighthouserc.cjs`.)
 - [x] Keep typecheck, lint, format, tests, build, and CI passing.
 - [x] Update docs and plan status as scope changes.
-- [ ] Draft the Phase 2 plan. (Collaborative — done next.)
+- [x] Draft the Phase 2 plan. (Collaborative draft in [phase-2.md](phase-2.md); Phase 3 idea collection started in [phase-3.md](phase-3.md).)
 
 ## Exit Criteria
 
