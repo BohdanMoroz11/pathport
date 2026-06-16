@@ -163,12 +163,24 @@ danger/neutral = functional status and quality badges.
 
 Confirmed from [phase-2.md](plans/phase-2.md) Resolved Decisions: **Radix
 primitives (unstyled) for behaviour/accessibility, with Pathport's own CSS/tokens
-for everything visual.** Expected mapping as components are built (S4):
+for everything visual.**
+
+**Setup (S1):** the unified **`radix-ui`** package is used (a single dependency
+that re-exports all primitives with synced versions), not the older individual
+`@radix-ui/react-*` packages. Radix Themes is intentionally *not* used (it ships
+its own styling). The wrapping pattern — Radix owns behaviour, our tokens own
+every visual, styled with Tailwind arbitrary values (`bg-(--surface)`,
+`rounded-[var(--radius-lg)]`, `shadow-[var(--shadow)]`, …) — is proven in
+[apps/web/src/components/ui/dialog.tsx](../apps/web/src/components/ui/dialog.tsx).
+The full component layer is built in S4.
+
+Expected primitive mapping as components are built (S4):
 
 - Country search / citizenship picker → Radix Select / Combobox pattern.
 - Sort & chart-series toggles → Radix Tabs / ToggleGroup.
-- Modals/sheets → Radix Dialog.
+- Modals/sheets → Radix Dialog (reference primitive already in place).
 - Badge/help tooltips → Radix Tooltip (the chart's own hover is custom SVG).
+- Theme toggle → Radix Switch (persistence wired with the toggle UI).
 - Section navigation → real routing, not a Radix component.
 
 ## Known open items (expected to change)

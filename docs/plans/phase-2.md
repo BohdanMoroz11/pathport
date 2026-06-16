@@ -95,7 +95,7 @@ Each stage is tagged with its pillar. Status is per-stage.
 
 ### S1 [UI]: Design Direction and Tokens
 
-Status: In progress
+Status: Done
 
 Decide the visual language before building components.
 
@@ -116,9 +116,12 @@ Tasks:
       light theme, both first-class), with the display/body fonts wired via
       `next/font`. Legacy aliases keep the placeholder UI working until S3–S5.
       A theme **toggle** (and persistence) comes with the component layer.
-- [ ] Confirm the Radix + custom-UI setup (dependencies, theming approach, how
+- [x] Confirm the Radix + custom-UI setup (dependencies, theming approach, how
       tokens drive Radix-based components). The system is documented later in S5,
-      once components are settled.
+      once components are settled. Uses the unified `radix-ui` package; the
+      token-driven wrapping pattern is proven by
+      `apps/web/src/components/ui/dialog.tsx` (+ test). See
+      [../design-direction.md](../design-direction.md#radix--custom-ui).
 
 ### S2 [Data]: Data-Gathering Concept
 
