@@ -18,7 +18,7 @@ function apiBaseUrl(): string {
   // network. `API_BASE_URL` is read at runtime; the public var stays as the
   // dev fallback (see .env.example).
   return (
-    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
+    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4311"
   );
 }
 

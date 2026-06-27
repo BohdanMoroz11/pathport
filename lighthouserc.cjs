@@ -15,7 +15,7 @@ module.exports = {
       // meaningless. The stack is brought up separately and gated on container
       // healthchecks (`pnpm start:stack`, or the CI Lighthouse step); lhci just
       // points at the already-running web service.
-      url: ["http://127.0.0.1:3000"],
+      url: ["http://127.0.0.1:4310"],
     },
     upload: {
       outputDir: ".lighthouseci",

@@ -9,7 +9,7 @@ import { seedDatabase } from "./seed.js";
  */
 async function main(): Promise<void> {
   const connectionString =
-    process.env.DATABASE_URL ?? "postgres://pathport:pathport@localhost:5433/pathport";
+    process.env.DATABASE_URL ?? "postgres://pathport:pathport@localhost:4312/pathport";
   const pool = createDatabasePool(connectionString);
 
   try {

@@ -5,7 +5,7 @@ import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = Number(process.env.API_PORT ?? 4000);
+  const port = Number(process.env.API_PORT ?? 4311);
   const host = process.env.API_HOST ?? "127.0.0.1";
 
   app.enableShutdownHooks();

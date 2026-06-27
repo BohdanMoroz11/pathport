@@ -15,7 +15,7 @@ export default defineConfig({
   // explorer journey asserts against known content.
   globalSetup: "./tests/e2e/global-setup.ts",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://127.0.0.1:4310",
     trace: "on-first-retry",
   },
   // The explorer pages are server-rendered and read the API over HTTP, so the
@@ -23,13 +23,13 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm dev:api",
-      port: 4000,
+      port: 4311,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
     {
       command: "pnpm dev:web",
-      port: 3000,
+      port: 4310,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },

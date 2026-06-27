@@ -49,7 +49,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=api-deploy /deploy/api ./
 USER node
-EXPOSE 4000
+EXPOSE 4311
 CMD ["node", "dist/main.js"]
 
 # web: Next.js standalone output. The server reads PORT/HOSTNAME from the env;
@@ -61,7 +61,7 @@ COPY --from=build /repo/apps/web/.next/standalone ./
 COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /repo/apps/web/public ./apps/web/public
 USER node
-EXPOSE 3000
+EXPOSE 4310
 CMD ["node", "apps/web/server.js"]
 
 # seed: one-shot data load. Seeding runs through tsx + drizzle-kit (dev tooling),

@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./migrations",
   schema: "./src/schema.ts",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgres://pathport:pathport@localhost:5433/pathport",
+    url: process.env.DATABASE_URL ?? "postgres://pathport:pathport@localhost:4312/pathport",
   },
 });

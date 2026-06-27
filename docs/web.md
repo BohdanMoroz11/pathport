@@ -31,7 +31,7 @@ deferred to the real-data phase, per the phase plan.
 - **Data:** a thin typed client in `src/lib/api.ts` wraps `fetch` and returns
   the shared `@pathport/contracts` types. These fetches run server-side, so the
   base URL prefers the runtime `API_BASE_URL`, falling back to
-  `NEXT_PUBLIC_API_BASE_URL` and then `http://localhost:4000` for dev.
+  `NEXT_PUBLIC_API_BASE_URL` and then `http://localhost:4311` for dev.
 - **Quality labels:** the user-facing labels (`Official source`, `Needs review`,
   `Estimate`, `Demo`, …) are **derived** in `src/lib/quality.ts` from the raw
   signals (`reviewStatus`, `confidence`, `isDemo`, per-source `type`), never

@@ -15,7 +15,7 @@
 services:
   # The prod stack reaches Postgres over the compose network (db:5432), so it
   # never needs the host port the dev base publishes. Dropping it also avoids a
-  # clash with the CI Postgres service, which binds the same 5433.
+  # clash with the CI Postgres service, which binds the same 4312.
   db:
     ports: !reset []
 
@@ -39,17 +39,17 @@ services:
     environment:
       DATABASE_URL: postgres://pathport:pathport@db:5432/pathport
       API_HOST: 0.0.0.0
-      API_PORT: "4000"
-      WEB_ORIGIN: http://localhost:3000
+      API_PORT: "4311"
+      WEB_ORIGIN: http://localhost:4310
     ports:
-      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:4311:4311"
     depends_on:
       db:
         condition: service_healthy
       seed:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:4000/ready"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:4311/ready"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -61,16 +61,16 @@ services:
       target: web
     environment:
       # Server-side fetches go over the compose network to the API service.
-      API_BASE_URL: http://api:4000
+      API_BASE_URL: http://api:4311
       HOSTNAME: 0.0.0.0
-      PORT: "3000"
+      PORT: "4310"
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:4310:4310"
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:4310/"]
       interval: 5s
       timeout: 5s
       retries: 10

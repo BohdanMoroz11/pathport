@@ -124,7 +124,7 @@ pnpm stop:stack    # tears it down
 base [docker-compose.yml](docker-compose.yml). Startup order is enforced by
 container health/completion checks: the database becomes healthy, a one-shot
 service seeds it, then the API starts, then web. The app is served on
-http://localhost:3000 (API on http://localhost:4000). This is the stack
+http://localhost:4310 (API on http://localhost:4311). This is the stack
 Lighthouse audits — never the dev server.
 
 > The bundled seed resets the schema and loads demo data, so this stack is a

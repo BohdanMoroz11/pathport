@@ -73,7 +73,7 @@ The local dev database is a Postgres 16 container (`docker-compose.yml`) with
 credentials matching `.env.example`:
 
 ```text
-postgres://pathport:pathport@localhost:5433/pathport
+postgres://pathport:pathport@localhost:4312/pathport
 ```
 
 ## Testing

@@ -20,7 +20,7 @@ jobs:
           POSTGRES_USER: pathport
           POSTGRES_PASSWORD: pathport
         ports:
-          - 5433:5432
+          - 4312:5432
         options: >-
           --health-cmd "pg_isready -U pathport -d pathport"
           --health-interval 5s
@@ -66,7 +66,7 @@ jobs:
       - name: Playwright E2E
         run: pnpm test:e2e
         env:
-          DATABASE_URL: postgres://pathport:pathport@localhost:5433/pathport
+          DATABASE_URL: postgres://pathport:pathport@localhost:4312/pathport
 
       # Audits the production stack: the compose images (real API + Next.js
       # server) on a self-contained, freshly seeded database. `--wait` blocks on
