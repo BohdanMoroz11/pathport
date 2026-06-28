@@ -51,6 +51,10 @@ Below are only the constraints Phase 2 actively introduces or stresses:
   confidence end to end; AI output cannot enter the DB as fact (it lands in a
   review queue).
 - Demo data stays throwaway unless a stage explicitly says otherwise.
+- The Phase 1 **domain/content schema is provisional**, not settled. It was built
+  for the route-centric explorer; the rebuilt pages are a new data surface, so the
+  schema **evolves alongside the UI stages (S3–S5)** as they reveal what the data
+  must hold.
 
 ## Resolved Decisions
 
@@ -62,6 +66,13 @@ Settled in collaborative planning; the stages below build on these.
   Radix for behavior/accessibility, our own design for everything visual.
 - **Dark mode from the start.**
 - **Brand identity stays minimal** in Phase 2; full brand focus is Phase 3.
+- **The domain/content schema is designed alongside the UI, not before it.** The
+  only place the real data requirements surface is the page itself, so the **UI
+  stages (S3–S5) own evolving the domain schema** — the page reveals the shape, the
+  schema (and demo seed) follow. The country/destination page is a new
+  destination-level surface, and `destination_countries` (today just `code + name`)
+  is a known stub to flesh out. The data-gathering tool (S6/S7) then consumes
+  whatever the domain schema has become; it does not design it.
 
 **Data-gathering** (full concept in [../data-gathering.md](../data-gathering.md); S2)
 
@@ -81,8 +92,10 @@ Settled in collaborative planning; the stages below build on these.
   scheduling/refresh/staleness, auto-approval, and the full eval harness are
   **Phase 3**.
 - **Scope is the tool, not the content** — populating a production DB is a
-  post-deploy Phase 3 activity. The schema keeps being **refined during Phase 2**
-  as the tool and admin reveal what the model needs.
+  post-deploy Phase 3 activity. The tool (S6/S7) is built **against the domain
+  schema as the UI stages leave it**; it *fills* the domain DB and owns only the
+  `ingestion_*` proposal layer — it does **not** design the domain/content schema
+  (that is the UI stages' job, see the UI decisions above).
 
 **Admin**
 
@@ -98,7 +111,9 @@ Settled in collaborative planning; the stages below build on these.
   deploy-related is Phase 3.
 - Stages are **interleaved**, not strict pillar order, with the **UI rework
   starting first**. The UI approach is style-first: lock the look on one real
-  page, then extract components from it, then rebuild the rest.
+  page, then extract components from it, then rebuild the rest. Because the domain
+  schema is shaped by this UI work, the data-tool stages (S6/S7) trail the UI
+  enough for that schema to stabilize.
 
 ## Stages
 
@@ -203,7 +218,10 @@ Status: Not started
 
 Build **one** real, fully-styled explorer page end to end to establish the
 overall visual style as a concrete concept — before extracting any reusable
-parts. This page is the reference everything else is derived from. 
+parts. This page is the reference everything else is derived from. It is also the
+first real test of the **domain schema**: a page is a data surface, so building it
+is where the data this surface needs becomes concrete and the schema starts to
+evolve (see the UI decision in [Resolved Decisions](#resolved-decisions)).
 
 Tasks:
 
@@ -211,6 +229,12 @@ Tasks:
       tokens (real layout, typography, spacing, dark mode).
 - [ ] Treat it as the style benchmark: this is where "calm, modern, useful" is
       proven visually before it is generalized.
+- [ ] Let the page drive the **domain schema**: as it reveals what the surface must
+      hold, evolve the schema + demo seed to match (starting with the
+      `destination_countries` stub if the country page is chosen). The page may
+      render against a provisional shape while the migration settles.
+- [ ] Record the resulting domain-schema changes and open questions in
+      [../domain-model.md](../domain-model.md) so the shape is tracked, not implicit.
 - [ ] Keep it accessible and Lighthouse-clean from the start.
 
 ### S4 [UI]: Component Extraction
@@ -236,14 +260,19 @@ Status: Not started
 
 Recreate the rest of the citizenship-first flow (`/` → `/explore/[citizenship]` →
 `/explore/[citizenship]/[destination]` → `/routes/[id]`) from the extracted
-components, matching the reference style. Data boundary and contracts from Phase 1
-stay; only presentation is rewritten.
+components, matching the reference style. As each remaining surface is rebuilt it
+keeps **evolving the domain schema** (and demo seed) the same way S3 did — by S5's
+end the schema should reflect what the whole rebuilt flow actually needs.
 
 Tasks:
 
 - [ ] Rebuild the remaining explorer screens with the extracted components.
 - [ ] Make route comparison genuinely scannable (the core product promise).
 - [ ] Strengthen responsive + keyboard + a11y across the flow.
+- [ ] Settle the domain schema for the rebuilt flow: fold the per-page changes into
+      coherent migrations + updated shared contracts, and update
+      [../domain-model.md](../domain-model.md). This is the schema the tool stages
+      (S6/S7) build against.
 - [ ] Keep Playwright + axe green on the rebuilt flow; keep Lighthouse ≥ 90.
 - [ ] Document the design system in `docs/design-system.md` (tokens + components,
       now that they are settled).
@@ -255,6 +284,8 @@ Status: Not started
 The deterministic foundation of the tool: mutations (new for Phase 2), the
 queue/worker, the full `ingestion_*` schema, and the single canonical writer —
 **no AI yet**, so all of it is provable with the deterministic machinery (Ring 1).
+This stage builds **against the domain schema as the UI stages (S3–S5) left it** —
+it owns the `ingestion_*` layer, not the domain/content schema.
 
 Tasks:
 
@@ -265,7 +296,8 @@ Tasks:
 - [ ] Model the full `ingestion_*` layer as new migrations — the run tree
       (`ingestion_run` incl. the cost ledger + `budget_exceeded`),
       `ingestion_proposal`, `ingestion_claim` (with decision state), and
-      `ingestion_evidence`; refine the domain schema toward what publish needs.
+      `ingestion_evidence`. The domain schema is taken as the UI stages left it;
+      close only the narrow gaps publish needs, don't redesign it here.
 - [ ] Implement the **single canonical writer + publish mapper** (claims →
       canonical, partial-apply, the required-field `blocked` guard, supersession),
       shared by human admin CRUD and proposal publish.
@@ -335,7 +367,8 @@ Tasks:
 Phase 2 is done when:
 
 - the placeholder UI is replaced by a documented design system (Radix-based custom
-  UI, dark mode) and the explorer flow is rebuilt to production UI quality;
+  UI, dark mode) and the explorer flow is rebuilt to production UI quality, with the
+  domain/content schema evolved alongside it to match what the rebuilt pages need;
 - the data-gathering tool has a written concept (`docs/data-gathering.md`) **and**
   a walking-skeleton implementation: a write path + single canonical writer, a
   BullMQ/Redis worker, the `ingestion_*` proposal layer, and one end-to-end
@@ -397,3 +430,11 @@ Phase 2 is done when:
   scheduling/refresh, auto-approval, the full eval harness, and rich cost
   dashboards deferred to Phase 3. Resolved Decisions and Exit Criteria updated to
   the proposals/claims + budgets + canonical-writer framing.
+- **Clarified where the domain schema is designed.** The Phase 1 domain/content
+  schema was built for the route-centric explorer and is treated as provisional, not
+  settled. Because the data requirements only surface in the pages, the **UI stages
+  (S3–S5) own evolving the domain schema** (the country/destination page is a new
+  data surface; `destination_countries` is a known stub). The data-gathering stages
+  (S6/S7) build the tool and the `ingestion_*` layer **against** that schema and do
+  not design it. Stage text, Resolved Decisions, constraints, and Exit Criteria
+  updated accordingly.
