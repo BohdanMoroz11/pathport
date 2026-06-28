@@ -16,7 +16,9 @@ Build the three things the MVP depends on, on top of the Phase 1 foundation:
 1. **UI foundation** — replace the placeholder frontend with a real design system
    and rebuilt explorer screens.
 2. **Data-gathering tool** — the basic structure of an AI-assisted tool that
-   populates the DB (concept + write path + queue + one ingestion flow).
+   populates the DB: the concept plus a *walking skeleton* of the full
+   architecture (write path + `ingestion_*` proposal layer + queue + one
+   end-to-end orchestrator-worker flow).
 3. **Admin panel** — a basic, from-scratch admin to manage data and drive the
    tool.
 
@@ -61,17 +63,26 @@ Settled in collaborative planning; the stages below build on these.
 - **Dark mode from the start.**
 - **Brand identity stays minimal** in Phase 2; full brand focus is Phase 3.
 
-**Data-gathering**
+**Data-gathering** (full concept in [../data-gathering.md](../data-gathering.md); S2)
 
-- Ingestion is a **separate module** (its own boundary, not folded into the read
-  API request path), run as a **BullMQ worker with Redis** as the queue. Basic
-  queue + worker setup happens in Phase 2.
-- **Scope is the tool, not the content.** Phase 2 builds the basic structure of
-  the populating tool and proves it works (tested, possibly against real data).
-  Populating a production DB is a separate post-deploy activity (Phase 3).
-- The **AI model and the guardrails/prompt are configurable**, not hardcoded.
-- The schema/data structure keeps being **refined during Phase 2** as the tool
-  and admin reveal what the model needs.
+- Ingestion is a **separate module/worker boundary** — modular `apps/api`
+  (read / write / ingestion) plus a **separate BullMQ worker** (Redis queue) that
+  only ever writes a dedicated **`ingestion_*` proposal layer**, never canonical
+  tables.
+- AI output flows as **proposals → field-level claims (with evidence)** and reaches
+  canonical only through a **single shared write use-case** behind a **claim-level
+  gate**; provenance, confidence, and review status are preserved end to end.
+- The research layer is an **orchestrator-worker agent** (lead agent decides its
+  own fan-out; durable spawn via BullMQ) on the **provider-agnostic Vercel AI SDK**
+  — AI model + guardrails/prompt **configurable, not hardcoded**.
+- **Token/cost budgets and metering are first-class from the first build.**
+- **Phase 2 builds a walking skeleton**, not the full pipeline: the complete
+  architecture proven on **one real end-to-end flow**. Deep recursion at scale,
+  scheduling/refresh/staleness, auto-approval, and the full eval harness are
+  **Phase 3**.
+- **Scope is the tool, not the content** — populating a production DB is a
+  post-deploy Phase 3 activity. The schema keeps being **refined during Phase 2**
+  as the tool and admin reveal what the model needs.
 
 **Admin**
 
@@ -125,7 +136,7 @@ Tasks:
 
 ### S2 [Data]: Data-Gathering Concept
 
-Status: Done (Task 2 has residuals intentionally deferred to S6/Phase 3 — cron
+Status: Done (Task 2 has residuals intentionally deferred to S7/Phase 3 — cron
 split, recursion depth, refresh cadence)
 
 Produce a design doc (`docs/data-gathering.md`) before building. Can run in
@@ -143,7 +154,7 @@ Concept areas to resolve:
       idempotency via evidence content-hash + proposal `dedup_key`/`supersedes`;
       "recursive fill/update" scoped as a durable orchestrator→sub-agent fan-out
       with per-run + per-cascade token/cost ceilings. Still open: cron-vs-manual
-      split, how much "recursive" is implemented in S6 vs concept-only, and refresh
+      split, how much "recursive" is implemented in S7 vs concept-only, and refresh
       cadence (leans Phase 3). See
       [../data-gathering.md](../data-gathering.md#job-model-s2--task-2).
 - [x] The ingestion module / worker boundary: modular NestJS `apps/api`
@@ -161,7 +172,7 @@ Concept areas to resolve:
       bulk-clear of grounded claims, auto-approval built as a wired-OFF seam. Honest
       provenance surface (value + diff + confidence + judge score + cited
       source/snapshot). Reversible via `supersedes_id` + canonical back-link. Concrete
-      UI is S8. See
+      UI is S9. See
       [../data-gathering.md](../data-gathering.md#human-in-the-loop-gate-s2--task-4).
 - [x] Configurable model + guardrails/prompt: **BullMQ (durable spawn boundary) +
       the Vercel AI SDK agent loop**, wired as a **hybrid orchestrator-worker** —
@@ -171,11 +182,20 @@ Concept areas to resolve:
       default, not locked in); AI does research via the provider's web tools;
       candidates validated against the Zod contracts (contract version recorded); a
       DIY groundedness/judge step guards against hallucinated facts. **Token/cost
-      budgets and cost observability are built in from S6** (per-run + per-cascade
-      ceilings, a metering ledger on `ingestion_run`, surfaced in admin). Frameworks
+      budgets and cost observability are built in from the first build (S6 ledger,
+      S7 enforcement)** (per-run + per-cascade ceilings, a metering ledger on
+      `ingestion_run`, surfaced in admin). Frameworks
       (Managed Agents, Mastra, LangGraph) and agent apps (OpenClaw, Hermes) evaluated
       and rejected for Phase 2. See
       [../data-gathering.md](../data-gathering.md#model--agent-layer-s2--task-5).
+- [x] Testing strategy: shrink the nondeterministic surface to one seam (model
+      behind a port) and assert on durable `ingestion_*` rows. **Ring 1** —
+      deterministic machinery (unit pure-logic + integration pipeline with a fake
+      model, real Postgres) gates CI; **Ring 2** — recorded fixtures (cassettes),
+      also the contract-drift guard; **Ring 3** — a *small* live eval suite scored on
+      coverage/groundedness/cost, scaffolded in S7 but run out-of-band (`test:eval` /
+      scheduled), never gating. Full eval harness is Phase 3. See
+      [../data-gathering.md](../data-gathering.md#testing-strategy-s2).
 
 ### S3 [UI]: Reference Page (Style Concept)
 
@@ -228,12 +248,13 @@ Tasks:
 - [ ] Document the design system in `docs/design-system.md` (tokens + components,
       now that they are settled).
 
-### S6 [Data]: Write Path, Queue, and Basic Ingestion Tool
+### S6 [Data]: Write Path, Queue & Ingestion Schema
 
 Status: Not started
 
-Introduce mutations (new for Phase 2), the queue/worker, and one working
-ingestion flow. This is the basic structure of the populating tool.
+The deterministic foundation of the tool: mutations (new for Phase 2), the
+queue/worker, the full `ingestion_*` schema, and the single canonical writer —
+**no AI yet**, so all of it is provable with the deterministic machinery (Ring 1).
 
 Tasks:
 
@@ -241,19 +262,48 @@ Tasks:
       authn/authz boundary). Keep the read API intact.
 - [ ] Stand up BullMQ + Redis and a separate ingestion worker process; add Redis
       to local dev (compose) and config.
-- [ ] Model ingestion state in the schema (ingestion jobs/runs, a review queue /
-      draft-record concept) — new migrations; refine the domain schema as needed.
-- [ ] Implement one end-to-end ingestion flow (manual trigger is fine) that uses
-      the configurable AI model + prompt to produce draft records with provenance
-      + confidence, landing in the review queue rather than published.
-- [ ] Integration-test the write path and ingestion against real Postgres.
+- [ ] Model the full `ingestion_*` layer as new migrations — the run tree
+      (`ingestion_run` incl. the cost ledger + `budget_exceeded`),
+      `ingestion_proposal`, `ingestion_claim` (with decision state), and
+      `ingestion_evidence`; refine the domain schema toward what publish needs.
+- [ ] Implement the **single canonical writer + publish mapper** (claims →
+      canonical, partial-apply, the required-field `blocked` guard, supersession),
+      shared by human admin CRUD and proposal publish.
+- [ ] Ring 1 deterministic tests: unit pure-logic (publish mapper, status machine,
+      budget math, dedup) + integration of the write/publish path against real
+      Postgres. No live model.
 
-### S7 [Admin]: Admin App and Auth
+### S7 [Data]: Research Agent & One End-to-End Flow
+
+Status: Not started
+
+The AI layer: the orchestrator-worker agent behind a provider port, producing real
+proposals/claims/evidence through to the gate on **one** target — the walking
+skeleton that proves the architecture. Needs S6.
+
+Tasks:
+
+- [ ] Wire the **agent behind a port** on the Vercel AI SDK (provider-agnostic,
+      configurable model/prompt/guardrails, mockable for tests).
+- [ ] Implement the **hybrid orchestrator-worker** flow: a discovery run, a durable
+      `spawn_subtarget` (BullMQ-backed), and an extraction sub-agent that researches
+      one entity via provider web tools and emits structured, contract-validated
+      proposals + field-level claims + evidence.
+- [ ] Add the **groundedness/judge step** (claims scored against cited evidence,
+      feeding confidence + the risk roll-up) and enforce **per-run + per-cascade
+      token/cost ceilings** via the metering ledger.
+- [ ] Prove **one end-to-end flow** (manual trigger): target → proposals in the
+      gate, with provenance, confidence, and budgets recorded.
+- [ ] Ring 2 cassette tests (real-shaped output replay + contract-drift guard) and a
+      **small Ring 3 eval suite** (golden targets scored on coverage/groundedness/
+      cost), run out-of-band (`test:eval`), never gating.
+
+### S8 [Admin]: Admin App and Auth
 
 Status: Not started
 
 Stand up the separate admin application and its authentication boundary. Needs S4
-(extracted components); can start alongside S6.
+(extracted components); can start alongside the data stages (S6/S7).
 
 Tasks:
 
@@ -262,20 +312,22 @@ Tasks:
       keeping the API stateless; protect all admin routes.
 - [ ] Establish the admin shell, navigation, and protected-route pattern.
 
-### S8 [Admin]: Basic Data and Ingestion Management
+### S9 [Admin]: Basic Data and Ingestion Management
 
 Status: Not started
 
 The basic admin: enough to manage core data and drive the ingestion tool. Needs
-S6 and S7.
+S6, S7, and S8.
 
 Tasks:
 
 - [ ] CRUD over the core domain (citizenships, destinations, routes, sources,
       applicability) through the write API.
-- [ ] Trigger and observe ingestion jobs (manual run + status).
-- [ ] Review queue UI: approve/edit/reject AI-drafted records, surfacing
-      provenance, confidence, and source so reviews are honest.
+- [ ] Trigger and observe ingestion runs (manual run + status + the cost/metering
+      surface).
+- [ ] **Claim-level review queue**: a risk-ranked queue with per-claim
+      approve/reject/hold/edit and bulk-clear, surfacing honest provenance (value +
+      diff + confidence + judge score + cited source/snapshot).
 - [ ] Tests for the admin slice (component + e2e on the critical admin path).
 
 ## Exit Criteria (draft)
@@ -285,11 +337,14 @@ Phase 2 is done when:
 - the placeholder UI is replaced by a documented design system (Radix-based custom
   UI, dark mode) and the explorer flow is rebuilt to production UI quality;
 - the data-gathering tool has a written concept (`docs/data-gathering.md`) **and**
-  a basic working implementation: a write path, a BullMQ/Redis worker, and one
-  end-to-end ingestion flow that produces reviewable, provenance-tracked drafts
-  via a configurable AI model + prompt;
+  a walking-skeleton implementation: a write path + single canonical writer, a
+  BullMQ/Redis worker, the `ingestion_*` proposal layer, and one end-to-end
+  orchestrator-worker flow that produces reviewable, provenance- and
+  confidence-tracked **proposals/claims** via a configurable AI model + prompt,
+  within enforced token/cost budgets, guarded by Ring 1/2 tests (+ a small Ring 3
+  eval);
 - a separate `apps/admin` exists with proper cookie auth and can manage the core
-  domain and drive + review at least one ingestion flow;
+  domain, drive an ingestion run, and review its proposals **at the claim level**;
 - the API stays stateless and the Phase 1 read API still works;
 - tests, coverage, e2e, accessibility, Lighthouse, typecheck, and build still
   pass (local + CI; no deployment);
@@ -327,3 +382,18 @@ Phase 2 is done when:
   (risk-ranked queue + bulk-clear, auto-approval wired off); honest provenance
   surface; reversibility via supersession + back-link. Decision state moves onto
   `ingestion_claim`. **S2 marked Done**, with Task 2 residuals deferred to S6/Phase 3.
+- Added a **testing strategy** for the layer: shrink nondeterminism to one mocked
+  seam (model behind a port) and assert on durable `ingestion_*` rows. Ring 1
+  (deterministic machinery) + Ring 2 (cassettes / contract-drift guard) gate CI;
+  Ring 3 (a small live eval suite, scored on coverage/groundedness/cost) is
+  scaffolded in S6 but runs out-of-band and never gates. Full eval harness → Phase 3.
+- **Re-scoped the data build to match the locked S2 design.** The old single S6
+  ("basic ingestion tool", draft-record vocabulary) is split along its natural
+  seam: **S6 = Write Path, Queue & Ingestion Schema** (deterministic plumbing — no
+  AI, Ring 1) and **S7 = Research Agent & One End-to-End Flow** (the AI layer +
+  judge + budgets + Ring 2/3); admin renumbers to **S8** (app + auth) and **S9**
+  (data + claim-level ingestion management). The Phase 2 cut is a **walking
+  skeleton**: the full architecture proven on one real flow, with deep recursion,
+  scheduling/refresh, auto-approval, the full eval harness, and rich cost
+  dashboards deferred to Phase 3. Resolved Decisions and Exit Criteria updated to
+  the proposals/claims + budgets + canonical-writer framing.

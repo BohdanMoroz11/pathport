@@ -5,7 +5,8 @@ layer — the tool that populates the database. It is the deliverable of Phase 2
 stage **S2** ([plans/phase-2.md](plans/phase-2.md)).
 
 > Concept, not scope. Phase 2 builds the **basic structure** of this tool and
-> proves it works (S6). The full, recursive, scheduled version is Phase 3
+> proves it works on one flow (S6 plumbing + S7 agent). The full, recursive,
+> scheduled version is Phase 3
 > ([plans/phase-3.md](plans/phase-3.md)). The schema keeps being refined as the
 > tool and admin reveal what the model needs, so concrete tables here are
 > intent — the demo-era domain schema will be reshaped to match (the rewrite
@@ -74,7 +75,7 @@ a crash/retry never re-pays for completed work)**, parallel across workers
 spend** — which is what makes the recursive "fill/update" cascade operable
 hands-off *and* cost-safe. Why hybrid over fully-queued or in-process, and the
 deep-research grounding, are in the model & agent layer (Task 5). How much of
-"recursive" ships in S6 vs stays concept is Task 2.
+"recursive" ships in S7 vs stays concept is Task 2.
 
 ### Pipeline
 
@@ -209,7 +210,7 @@ separate worker, wired as the **hybrid orchestrator-worker** above.
   capability a heavier framework (Mastra) would have bundled as "evals"; at
   Phase-2 scope it is cheaper to own.
 
-### Token budgets & cost observability (built in from S6, not bolted on later)
+### Token budgets & cost observability (built in from the first build, not bolted on later)
 
 Because research runs fan out and run on metered models, cost control and cost
 visibility are **first-class from the first build**, not a Phase-3 afterthought:
@@ -223,7 +224,7 @@ visibility are **first-class from the first build**, not a Phase-3 afterthought:
 - **Metering on every run.** Each `ingestion_run` records tokens (in/out), call
   count, model id + per-model price, and a derived cost estimate; a parent run
   rolls up its children, so a broad target reports a **single total cost**.
-- **Observability surface.** Those numbers feed the **admin panel** (S8) — cost
+- **Observability surface.** Those numbers feed the **admin panel** (S9) — cost
   per target/run/model, running totals against budget, and the priciest
   targets — so the operator can see and tune spend without external tooling. This
   is also why we did not need a framework's bundled "observability": the
@@ -268,13 +269,13 @@ _Mostly resolved: BullMQ; manual trigger for Phase 2; idempotency via
 content-hash on evidence + `dedup_key`/`supersedes` on proposals; the durable
 orchestrator→sub-agent fan-out (above) is how "recursive fill/update" is scoped;
 budgets/ceilings bound every run and the whole cascade (Task 5). Still to settle:
-scheduled (cron) vs manual split, how much "recursive" is implemented in S6 vs
+scheduled (cron) vs manual split, how much "recursive" is implemented in S7 vs
 concept-only, and re-run/refresh cadence (refresh leans Phase 3)._
 
 ## Human-in-the-Loop Gate (S2 · Task 4)
 
 The gate is where reviewable proposals become canonical data. It is modeled here
-at the concept level; the concrete admin UI is S8. AI content reaches canonical
+at the concept level; the concrete admin UI is S9. AI content reaches canonical
 **only** through this gate, so it always lands as reviewed/published, never raw.
 
 ### The gate is a role, not a person
@@ -354,3 +355,67 @@ Claim-level review pushes decision state down onto the claim:
   (required claim unmet); its review fields become a **roll-up** of its claims
   rather than a single whole-proposal decision; keeps `applied_record_ref`,
   `supersedes_id`, and a publish timestamp.
+
+## Testing Strategy (S2)
+
+The failure mode this layer must avoid is "manually poke it to see how broken it
+is." The fix is structural: **shrink the nondeterministic surface to one seam —
+the model/agent call behind a provider port — and make everything else
+deterministic.** Two earlier decisions are what make that possible:
+
+- The dedicated **`ingestion_*` layer is durable, queryable state**, so tests
+  assert on *rows* (proposals, claims, evidence, the cost ledger, run status), not
+  on a black box. The whole intermediate state is inspectable.
+- The **model is behind a port** (Vercel AI SDK, swappable for a
+  `MockLanguageModel`), so a scripted fake model drives the *entire* pipeline —
+  discovery → durable spawn → extraction → claims/evidence → budget enforcement →
+  gate → publish — deterministically, offline, for zero tokens.
+
+That yields the split that actually answers the worry: **"does the machinery
+work" (deterministic, gates CI) vs. "is the AI any good" (evals, out-of-band).**
+The strategy maps onto the project's existing test tiers
+([testing.md](testing.md)); the model is the "true external service" we mock.
+
+### Ring 1 — Deterministic machinery (the CI gate)
+
+The bulk of the layer is plumbing and is fully testable without a live model.
+
+- **Unit (`*.test.ts`, no Docker)** — the pure logic most likely to break
+  silently: the publish mapper (claims → canonical write, partial-apply, the
+  required-field `blocked` guard), the confidence/risk roll-up, budget/ceiling
+  math, dedup (`dedup_key` / `content_hash`), contract-version validation, and the
+  claim→proposal status machine.
+- **Integration (`*.integration.test.ts`, real Postgres)** — the full pipeline
+  with the **fake model** + real DB + queue, asserting on `ingestion_*` rows:
+  idempotency (re-run a sub-target → no duplicate proposals), `budget_exceeded`
+  halts the cascade, gate-approve publishes through the **one canonical writer**, a
+  held required claim → `blocked`, supersession on refresh. This is the guard that
+  proves the mechanism on every change.
+
+### Ring 2 — Recorded fixtures (cassettes), still deterministic
+
+Record real model + web responses once and replay them, so extraction/assembly is
+tested against **real-shaped** output with no live calls in CI. This is also the
+**contract-drift guard**: when the canonical schema is reshaped, replaying fixtures
+catches ingestion breaking at the publish boundary.
+
+### Ring 3 — Live eval suite (the AI-quality guard, out-of-band)
+
+The one part that cannot be asserted exactly. A **small** curated set of golden
+targets with known-good facts, run against the real (cheap) model and **scored**,
+not equality-checked: entity coverage (did it find the right routes), groundedness
+(reusing the in-prod judge as the test instrument), confidence calibration, and
+cost-vs-budget. This replaces eyeballing with a repeatable, scored signal.
+
+- **Scaffolded in S7, run out-of-band** (`pnpm test:eval` / scheduled). It costs
+  money and is flaky, so it **never** gates `pnpm test` or PRs.
+- **Phase-2 scope is deliberately small** (a handful of targets). The full eval
+  harness — labeled judge-accuracy sets, calibration, regression dashboards — is
+  Phase 3.
+
+### What this buys
+
+Rings 1–2 prove the *mechanism* deterministically on every change; Ring 3 gives a
+scored *quality* check on demand. Between them, "is it broken?" becomes a test run
+rather than a manual inspection — and the suite doubles as live documentation of
+how the layer is meant to behave.
