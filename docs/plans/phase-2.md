@@ -125,7 +125,8 @@ Tasks:
 
 ### S2 [Data]: Data-Gathering Concept
 
-Status: In-progress
+Status: Done (Task 2 has residuals intentionally deferred to S6/Phase 3 — cron
+split, recursion depth, refresh cadence)
 
 Produce a design doc (`docs/data-gathering.md`) before building. Can run in
 parallel with S1.
@@ -151,11 +152,16 @@ Concept areas to resolve:
       the only writer of canonical data. Preserves the queue + horizontal-scaling
       principle. See
       [../data-gathering.md](../data-gathering.md#architecture--boundary-s2--task-3).
-- [~] Human-in-the-loop boundary (partly resolved): AI output lands in a dedicated
-      proposal layer and only reaches canonical after a gate; the gate is a role
-      (human now, AI-assisted later); the proposal is the atomic review unit;
-      field-level claims + confidence roll-up drive triage. Still open: the concrete
-      approve/edit/reject UX (admin, S8). See
+- [x] Human-in-the-loop boundary: AI output lands in a dedicated proposal layer and
+      only reaches canonical after a gate. The gate is a **role** (`reviewer_kind`
+      human | ai — AI seam wired for Phase 3). Review is **claim-level** (approve /
+      reject / hold / edit per field) while the **proposal is the unit of publish**
+      (partial-apply, with a required-field `blocked` guard); edits stored as a diff
+      over the AI value. **Assisted-manual** for Phase 2: risk-ranked queue +
+      bulk-clear of grounded claims, auto-approval built as a wired-OFF seam. Honest
+      provenance surface (value + diff + confidence + judge score + cited
+      source/snapshot). Reversible via `supersedes_id` + canonical back-link. Concrete
+      UI is S8. See
       [../data-gathering.md](../data-gathering.md#human-in-the-loop-gate-s2--task-4).
 - [x] Configurable model + guardrails/prompt: **BullMQ (durable spawn boundary) +
       the Vercel AI SDK agent loop**, wired as a **hybrid orchestrator-worker** —
@@ -315,3 +321,9 @@ Phase 2 is done when:
   **token/cost budgets + cost observability as first-class from S6**: per-run and
   per-cascade ceilings (`budget_exceeded`), a metering ledger on `ingestion_run`,
   dedup as a cost lever, surfaced in admin. This mostly closes Task 2 as well.
+- Task 4 (gate) resolved: gate as a role (`reviewer_kind`, AI seam off);
+  **claim-level review** (approve/reject/hold/edit per field) with the proposal as
+  the publish unit (partial-apply + required-field `blocked` guard); assisted-manual
+  (risk-ranked queue + bulk-clear, auto-approval wired off); honest provenance
+  surface; reversibility via supersession + back-link. Decision state moves onto
+  `ingestion_claim`. **S2 marked Done**, with Task 2 residuals deferred to S6/Phase 3.

@@ -87,12 +87,12 @@ target ──► discovery run ──► (BullMQ) ──► extraction runs ─�
                                                         canonical domain tables
 ```
 
-The proposal is the **atomic unit of review** — a reviewer (human now, possibly
-AI later) can approve one and reject another from the same run, or bulk-approve a
-whole run. The gate is modeled as a **role**, so an AI reviewer could fill it
-later without re-architecting (Task 4). Review must scale to near-zero effort, so
-proposals carry a confidence/risk roll-up (below) that lets well-grounded ones be
-fast-pathed.
+The proposal is the **atomic unit of publish** (one create/update to one entity),
+but **review decisions are made per claim** — the reviewer can clear well-grounded
+fields and hold shaky ones within the same proposal (Task 4). Decisions are made
+by a **role** (human now, possibly AI later) without re-architecting. Review must
+scale to near-zero effort, so claims carry confidence and roll up into a
+proposal-level risk score (below) that lets well-grounded work be fast-pathed.
 
 ### How provenance, confidence, and review status flow through
 
@@ -131,14 +131,18 @@ intent, finalized in S6.
   `tokens_out`, `call_count`, `cost_estimate` (+ the per-model price used),
   `token_budget` / `cost_ceiling` and the rolled-up child totals. *Run-tier
   provenance + the metering record.*
-- **`ingestion_proposal`** — the core artifact. `run_id`, `entity_kind` (a plain
-  string like `route` — schema-agnostic), `operation` (create | update),
+- **`ingestion_proposal`** — the atomic unit of publish. `run_id`, `entity_kind`
+  (a plain string like `route` — schema-agnostic), `operation` (create | update),
   `target_ref` (canonical id when updating), `contract_version`, `payload`
-  (assembled candidate, jsonb), `dedup_key`, `status`, `supersedes_id`, review
-  fields (`reviewed_by`, `reviewed_at`, `decision_note`, `edited_payload`/diff so
-  "what AI said" vs "what human changed" is preserved), `applied_record_ref`.
-- **`ingestion_claim`** — field-level grounding. `proposal_id`, `field_path`,
-  `value` (jsonb), `confidence`, `evidence_ids` (citations), note.
+  (assembled candidate, jsonb), `dedup_key`, `status` (`pending | approved |
+  rejected | partially_applied | blocked | applied | superseded`), `supersedes_id`,
+  a **roll-up** of its claim decisions, `applied_record_ref`, `applied_at`. The
+  per-field decisions live on the claims (below).
+- **`ingestion_claim`** — field-level grounding **and** the review-decision unit.
+  `proposal_id`, `field_path`, `value` (jsonb), `confidence`, `judge_score`,
+  `evidence_ids` (citations), note; plus the decision: `decision` (`pending |
+  approved | rejected | held | edited`), `edited_value`, `reviewed_by`,
+  `reviewer_kind` (human | ai), `reviewed_at`, `decision_note`.
 - **`ingestion_evidence`** — source-tier provenance. `run_id`, `url`,
   `source_type`, `title`, `retrieved_at`, `content_hash` (idempotency +
   change-detection), snapshot/excerpt ref, trust tier.
@@ -269,7 +273,84 @@ concept-only, and re-run/refresh cadence (refresh leans Phase 3)._
 
 ## Human-in-the-Loop Gate (S2 · Task 4)
 
-_Partly resolved: the gate is a role (human now, AI-assisted later); the proposal
-is the atomic review unit; field-level claims + confidence roll-up drive triage
-and fast-path. Still to settle: the concrete approve/edit/reject UX and how the
-review queue surfaces provenance, confidence, and sources honestly (admin, S8)._
+The gate is where reviewable proposals become canonical data. It is modeled here
+at the concept level; the concrete admin UI is S8. AI content reaches canonical
+**only** through this gate, so it always lands as reviewed/published, never raw.
+
+### The gate is a role, not a person
+
+Every decision is recorded with a **`reviewer_kind` (human | ai)**. Phase 2 only
+has a human reviewer, but modeling the decision as a role means an AI reviewer can
+later clear the easy cases with **no re-architecting** — the user's "maybe AI does
+some of the approval eventually." Because decisions are per claim (below), that
+future split is natural: AI auto-clears the green claims, a human handles the
+amber ones.
+
+### Claim-level review, proposal-level publish
+
+The reviewer acts at **claim granularity**: each proposed field can be
+**approved, rejected, held, or edited** independently, while the **proposal stays
+the unit of publish**. This fits the per-field confidence model — a mostly-solid
+proposal with one shaky figure no longer has to be approved or rejected whole.
+
+- **Publish assembles only the cleared claims.** On apply, the publish mapper
+  builds the canonical write from approved/edited claims; rejected or held claims
+  do not publish. A proposal that publishes a subset is **`partially_applied`**.
+- **Required-field guard.** If a canonical-required field's claim is rejected/held,
+  the proposal **cannot publish yet** and is surfaced as `blocked` with the missing
+  field named — honesty over a half-written record. (What is "required" is read
+  from the contract at publish time, so the boundary stays the only coupling.)
+- **Edits are diffs over the AI value.** Editing a claim before approving stores
+  `edited_value` alongside the AI's `value`, so "what AI said" vs "what the
+  reviewer changed" is never lost. An edited/human-authored field is marked so the
+  published record's provenance reflects it.
+
+### What the reviewer sees (honest by construction)
+
+The queue is **risk-ranked**, not chronological, so attention goes where it is
+needed. Each proposal expands to its claims, and each claim shows:
+
+- the **proposed value** (and, for updates, a **diff against the current canonical
+  value**);
+- its **confidence** and the **groundedness-judge score**;
+- the **cited source(s)** with a stored **excerpt/snapshot** (`ingestion_evidence`),
+  so the reviewer checks the actual basis, not just a URL;
+- whether it is AI-grounded, low-confidence, or in **source conflict**.
+
+This is the direct expression of the "be honest about uncertainty / cite official
+sources" principles: the reviewer sees exactly which fields are well-sourced and
+which are shaky, at a glance.
+
+### Assisted-manual now, auto-approval as a wired-off seam
+
+Phase 2 keeps a human approving ("approval baked in"), but the queue does the
+heavy lifting so review scales to near-zero effort:
+
+- **Risk-ranked queue** surfaces low-confidence / conflicting / required-blocked
+  items first; well-grounded ones sink.
+- **Bulk-clear** approves all high-confidence, fully-grounded claims across the
+  visible queue in one action, leaving only the amber/red claims for a human.
+- **Auto-approval is built as a seam and left OFF.** The decision record already
+  carries `reviewer_kind` and the claims already carry confidence + judge scores,
+  so a Phase-3 threshold rule (`reviewer_kind=ai` clears grounded high-confidence
+  claims) switches on without schema or flow changes. Shipping unreviewed AI
+  content into canonical is deliberately *not* a Phase-2 behavior.
+
+### Reversibility
+
+Publishing is not terminal. A later refresh run **supersedes** rather than
+silently overwriting (`supersedes_id`), and each canonical record back-links to
+the proposal/run that last published it, so any field can be traced and rolled
+back. Re-review of superseded records is a Phase-3 cadence question (Task 2).
+
+### Schema deltas this implies
+
+Claim-level review pushes decision state down onto the claim:
+
+- **`ingestion_claim`** gains a **decision** (`pending | approved | rejected |
+  held | edited`), `edited_value`, and per-claim review fields (`reviewed_by`,
+  `reviewer_kind`, `reviewed_at`, `decision_note`).
+- **`ingestion_proposal`** status gains **`partially_applied`** and **`blocked`**
+  (required claim unmet); its review fields become a **roll-up** of its claims
+  rather than a single whole-proposal decision; keeps `applied_record_ref`,
+  `supersedes_id`, and a publish timestamp.
