@@ -125,28 +125,51 @@ Tasks:
 
 ### S2 [Data]: Data-Gathering Concept
 
-Status: Not started
+Status: In-progress
 
 Produce a design doc (`docs/data-gathering.md`) before building. Can run in
 parallel with S1.
 
 Concept areas to resolve:
 
-- [ ] The ingestion model: sources → fetch → AI extraction → validated records →
-      review → publish. How provenance, confidence, and review status flow through.
-- [ ] Job model: scheduled (cron) vs manually triggered tasks on BullMQ;
-      idempotency and re-running safely; how "recursively fill/update" is scoped
-      (which citizenship × destination × route-type combinations to target, and
-      how new ones are discovered). How much of "recursive" is concept-only in
-      Phase 2 vs implemented in S6.
-- [ ] The ingestion module / worker boundary and how it stays compatible with the
-      queue + horizontal-scaling principle (separate worker process, Redis).
-- [ ] Human-in-the-loop boundary: AI output always lands in a review queue, never
-      published directly as fact.
-- [ ] How AI is used with a **configurable model and configurable
-      guardrails/prompt** (not hardcoded): extraction-to-schema strategy,
-      validation against the existing Zod/Drizzle contracts, guardrails against
-      hallucinated facts.
+- [x] The ingestion model: a target → AI agent (research + extract + self-validate)
+      → proposal → gate → publish. AI does the whole research job (no homegrown
+      crawler/parser); AI output lands in a dedicated proposal layer separate from
+      canonical tables; publish goes through a single shared domain write use-case.
+      How provenance (source + run tiers), confidence, and review status flow
+      through. Written up in [../data-gathering.md](../data-gathering.md#the-ingestion-model-s2--task-1).
+- [~] Job model (mostly resolved): BullMQ; manual trigger is fine for Phase 2;
+      idempotency via evidence content-hash + proposal `dedup_key`/`supersedes`;
+      "recursive fill/update" scoped as a durable orchestrator→sub-agent fan-out
+      with per-run + per-cascade token/cost ceilings. Still open: cron-vs-manual
+      split, how much "recursive" is implemented in S6 vs concept-only, and refresh
+      cadence (leans Phase 3). See
+      [../data-gathering.md](../data-gathering.md#job-model-s2--task-2).
+- [x] The ingestion module / worker boundary: modular NestJS `apps/api`
+      (read / write / ingestion modules) + a **separate BullMQ worker process**
+      that runs the agent and writes proposals; one shared domain write use-case is
+      the only writer of canonical data. Preserves the queue + horizontal-scaling
+      principle. See
+      [../data-gathering.md](../data-gathering.md#architecture--boundary-s2--task-3).
+- [~] Human-in-the-loop boundary (partly resolved): AI output lands in a dedicated
+      proposal layer and only reaches canonical after a gate; the gate is a role
+      (human now, AI-assisted later); the proposal is the atomic review unit;
+      field-level claims + confidence roll-up drive triage. Still open: the concrete
+      approve/edit/reject UX (admin, S8). See
+      [../data-gathering.md](../data-gathering.md#human-in-the-loop-gate-s2--task-4).
+- [x] Configurable model + guardrails/prompt: **BullMQ (durable spawn boundary) +
+      the Vercel AI SDK agent loop**, wired as a **hybrid orchestrator-worker** —
+      the lead agent decides its own fan-out (deep-research pattern), `spawn_subtarget`
+      is a durable BullMQ-backed tool, extraction sub-agents run in-process on
+      cheaper tiers with planning stratified one tier up. Provider-agnostic (Claude
+      default, not locked in); AI does research via the provider's web tools;
+      candidates validated against the Zod contracts (contract version recorded); a
+      DIY groundedness/judge step guards against hallucinated facts. **Token/cost
+      budgets and cost observability are built in from S6** (per-run + per-cascade
+      ceilings, a metering ledger on `ingestion_run`, surfaced in admin). Frameworks
+      (Managed Agents, Mastra, LangGraph) and agent apps (OpenClaw, Hermes) evaluated
+      and rejected for Phase 2. See
+      [../data-gathering.md](../data-gathering.md#model--agent-layer-s2--task-5).
 
 ### S3 [UI]: Reference Page (Style Concept)
 
@@ -275,3 +298,20 @@ Phase 2 is done when:
   ([phase-3.md](phase-3.md)).
 - First introduction of mutations, authentication, and a queue/worker (Redis) to
   the system.
+- S2 collaborative session resolved the ingestion model (Task 1) and the core
+  architecture: AI does the whole research job; output lands in a dedicated
+  `ingestion_*` proposal layer (run → proposals fan-out → field-level claims +
+  evidence); two-phase discovery→extraction fan-out on BullMQ; modular `apps/api`
+  + separate worker with one canonical writer (Task 3); provider-agnostic in-job
+  agent on the **Vercel AI SDK** with a DIY groundedness guard (Task 5). Job model
+  (Task 2) and the gate UX (Task 4) are partly resolved. Heavier frameworks and
+  agent apps (Managed Agents, Mastra, LangGraph, OpenClaw, Hermes) were evaluated
+  and rejected for Phase 2 scope, with Mastra kept as an upgrade path.
+- Follow-up session (researched current deep-research practice) refined Task 5:
+  the fan-out is an **orchestrator-worker** model where the lead agent decides its
+  own spawning (a sub-agent is a tool), realized as a **hybrid (durable by phase)**
+  — `spawn_subtarget` is a BullMQ-backed durable tool, extraction sub-agents run
+  in-process on cheaper model tiers with planning stratified one tier up. Added
+  **token/cost budgets + cost observability as first-class from S6**: per-run and
+  per-cascade ceilings (`budget_exceeded`), a metering ledger on `ingestion_run`,
+  dedup as a cost lever, surfaced in admin. This mostly closes Task 2 as well.

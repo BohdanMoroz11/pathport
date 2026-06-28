@@ -16,6 +16,7 @@ chat history.
 - [testing.md](testing.md): testing strategy, quality targets, and layers.
 - [database.md](database.md): Postgres/Drizzle setup, schema, and seeding.
 - [api.md](api.md): read-only API endpoints and shared contracts.
+- [data-gathering.md](data-gathering.md): the AI-assisted data-gathering layer concept — ingestion model, proposals, review gate, and the publish boundary.
 - [web.md](web.md): the web explorer — page flow, data boundary, and derived labels.
 - [design-direction.md](design-direction.md): the frontend visual/structural direction (mood, layout, tokens) with a working concept mockup.
 - [competitive-landscape.md](competitive-landscape.md): patterns and gaps from adjacent products.
