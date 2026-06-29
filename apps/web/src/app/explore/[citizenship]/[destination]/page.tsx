@@ -1,77 +1,82 @@
-import type { RouteSummary, RouteType } from "@pathport/contracts";
 import { notFound } from "next/navigation";
-import { Breadcrumbs } from "@/components/breadcrumbs";
-import { RouteCard } from "@/components/route-card";
-import { getCitizenships, getDestinations, getRoutes } from "@/lib/api";
-import { ROUTE_TYPE_LABELS, ROUTE_TYPE_ORDER } from "@/lib/format";
+import {
+  DestinationMedia,
+  EntryBrief,
+  FitsYou,
+  GlanceList,
+  ModuleHeading,
+} from "@/components/destination/overview";
+import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { destinationBasePath } from "@/lib/destination/sections";
 
-/** Group routes by type, preserving the domain taxonomy order. */
-function groupByType(routes: RouteSummary[]): { type: RouteType; routes: RouteSummary[] }[] {
-  return ROUTE_TYPE_ORDER.map((type) => ({
-    type,
-    routes: routes.filter((route) => route.type === type),
-  })).filter((group) => group.routes.length > 0);
-}
-
-export default async function RoutesPage({
+/**
+ * Destination Overview — the Phase 2 / S3 reference page. A real country read
+ * (description + headline metrics + a citizenship-specific fit) that orients
+ * someone before they drill into the section views via the rail. Rendered from
+ * the in-repo fixture; the shape it needs is what drives the domain schema.
+ */
+export default async function DestinationOverviewPage({
   params,
 }: {
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const [citizenships, destinations, routes] = await Promise.all([
-    getCitizenships(),
-    getDestinations(citizenship),
-    getRoutes(citizenship, destination),
-  ]);
-
-  const current = citizenships.find((c) => c.code.toLowerCase() === citizenship.toLowerCase());
-  const dest = destinations?.find((d) => d.code.toLowerCase() === destination.toLowerCase());
-  if (!current || !dest || !routes) {
+  const profile = getDestinationProfile(citizenship, destination);
+  if (!profile) {
     notFound();
   }
 
-  const groups = groupByType(routes);
-  const backToDestination = `/explore/${current.code}/${dest.code}`;
+  const basePath = destinationBasePath(profile.citizenship.code, profile.destination.code);
+  // Split the spec list into two balanced columns for wide screens.
+  const half = Math.ceil(profile.glance.length / 2);
+  const glanceColumns = [profile.glance.slice(0, half), profile.glance.slice(half)];
 
   return (
-    <div className="space-y-8">
-      <Breadcrumbs
-        items={[
-          { label: "Citizenships", href: "/" },
-          { label: current.name, href: `/explore/${current.code}` },
-          { label: dest.name },
-        ]}
-      />
+    <div className="space-y-10">
+      <header>
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-(--brand)">
+          <span aria-hidden="true">
+            {profile.citizenship.flag} → {profile.destination.flag}
+          </span>
+          Destination
+        </p>
 
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold text-(--foreground)">
-          {dest.name} routes for {current.name}
-        </h1>
-        {dest.arrivalContext && <p className="text-(--muted)">{dest.arrivalContext.summary}</p>}
+        <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_340px]">
+          <div className="space-y-5">
+            <h1 className="font-display text-4xl font-semibold tracking-[var(--tracking-display)] text-(--text) sm:text-[length:var(--fs-4xl)]">
+              {profile.destination.name}
+            </h1>
+            <p className="text-base leading-7 text-(--text-2)">{profile.destination.description}</p>
+            <EntryBrief entry={profile.entry} basePath={basePath} />
+          </div>
+
+          <DestinationMedia
+            flag={profile.destination.flag}
+            name={profile.destination.name}
+            code={profile.destination.code}
+            facts={profile.quickFacts}
+          />
+        </div>
       </header>
 
-      {groups.length === 0 ? (
-        <p className="text-(--muted)">No routes are available yet for this pairing.</p>
-      ) : (
-        groups.map((group) => (
-          <section key={group.type} className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
-              {ROUTE_TYPE_LABELS[group.type]}
-            </h2>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {group.routes.map((route) => (
-                <li key={route.id}>
-                  <RouteCard
-                    route={route}
-                    href={`/routes/${encodeURIComponent(route.id)}?from=${encodeURIComponent(backToDestination)}`}
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
-      )}
+      <section className="space-y-4">
+        <ModuleHeading emoji="⚡">At a glance</ModuleHeading>
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          {glanceColumns.map((column, i) => (
+            <GlanceList
+              // biome-ignore lint/suspicious/noArrayIndexKey: two fixed positional columns
+              key={i}
+              metrics={column}
+              basePath={basePath}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <ModuleHeading emoji="✨">This fits you if</ModuleHeading>
+        <FitsYou items={profile.fitsYouIf} />
+      </section>
     </div>
   );
 }

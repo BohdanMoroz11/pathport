@@ -1,0 +1,32 @@
+import { notFound } from "next/navigation";
+import { SectionStub } from "@/components/destination/section-stub";
+import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { sectionBySlug } from "@/lib/destination/sections";
+
+const PLANNED = [
+  "Rent by city (centre vs outer, family-size)",
+  "Groceries & eating out",
+  "Transport, utilities & internet",
+  "Income tax & social contributions",
+  "Healthcare system & access for migrants",
+  "Schooling & childcare for kids",
+  "Lifestyle (gym, leisure)",
+  "A single / couple / family monthly budget",
+];
+
+export default async function LivingPage({
+  params,
+}: {
+  params: Promise<{ citizenship: string; destination: string }>;
+}) {
+  const { citizenship, destination } = await params;
+  const profile = getDestinationProfile(citizenship, destination);
+  const section = sectionBySlug("living");
+  if (!profile || !section) {
+    notFound();
+  }
+
+  return (
+    <SectionStub section={section} destinationName={profile.destination.name} planned={PLANNED} />
+  );
+}

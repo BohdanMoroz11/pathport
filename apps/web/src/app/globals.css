@@ -66,6 +66,7 @@
   --fs-xl: 1.375rem; /* 22 */
   --fs-2xl: 1.75rem; /* 28 */
   --fs-3xl: 2.125rem; /* 34 */
+  --fs-4xl: 2.75rem; /* 44 */
   --tracking-display: -0.02em;
 
   /* Radius */
@@ -80,7 +81,7 @@
   --dur: 0.18s;
 
   /* Layout */
-  --content-max: 900px;
+  --content-max: 1200px;
 
   /* Legacy aliases for the placeholder UI; resolve to the tokens above and
      re-resolve per theme. Removed as the explorer is rebuilt (S3–S5). */
