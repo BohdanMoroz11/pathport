@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Onest, Space_Grotesk } from "next/font/google";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+
+/**
+ * Set the persisted theme before first paint so a stored light theme doesn't
+ * flash the dark default. Dark is the implicit baseline (no attribute needed).
+ */
+const themeInitScript = `(function(){try{var t=localStorage.getItem("pathport-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t;}}catch(e){}})();`;
 
 /** Body/UI typeface. */
 const onest = Onest({ subsets: ["latin"], variable: "--font-onest", display: "swap" });
@@ -24,13 +28,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${onest.variable} ${spaceGrotesk.variable}`}>
+    <html
+      lang="en"
+      className={`${onest.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">{children}</main>
-          <SiteFooter />
-        </div>
+        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: tiny static no-flash theme bootstrap */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {children}
       </body>
     </html>
   );

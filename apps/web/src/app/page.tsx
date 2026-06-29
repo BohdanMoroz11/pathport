@@ -1,4 +1,5 @@
 import type { Citizenship } from "@pathport/contracts";
+import { BrowseChrome } from "@/components/browse-chrome";
 import { CitizenshipPicker } from "@/components/citizenship-picker";
 import { Hero } from "@/components/hero";
 import { getCitizenships } from "@/lib/api";
@@ -16,15 +17,17 @@ export default async function HomePage() {
   const citizenships = withPrimaryFirst(await getCitizenships());
 
   return (
-    <div className="space-y-12">
-      <Hero />
+    <BrowseChrome>
+      <div className="space-y-12">
+        <Hero />
 
-      <section className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
-          Choose your citizenship
-        </h2>
-        <CitizenshipPicker citizenships={citizenships} />
-      </section>
-    </div>
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-(--muted)">
+            Choose your citizenship
+          </h2>
+          <CitizenshipPicker citizenships={citizenships} />
+        </section>
+      </div>
+    </BrowseChrome>
   );
 }
