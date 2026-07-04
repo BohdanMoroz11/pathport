@@ -1,4 +1,4 @@
-import type { EarningMode, IncomeLane, WorkProfile, WorkStep } from "@/lib/destination/types";
+import type { EarningMode, IncomeLane, WorkProfile } from "@/lib/destination/types";
 import {
   Block,
   Caption,
@@ -7,6 +7,7 @@ import {
   Prose,
   type SectionMeta,
   StatGrid,
+  Steps,
   TagRow,
   TakeHome,
 } from "./section-kit";
@@ -91,31 +92,6 @@ function IncomeLanes({ lanes }: { lanes: IncomeLane[] }) {
         </div>
       ))}
     </dl>
-  );
-}
-
-/** A numbered how-to sequence — getting set up as self-employed. */
-function Steps({ steps }: { steps: WorkStep[] }) {
-  return (
-    <ol className="space-y-3">
-      {steps.map((step, i) => (
-        <li
-          key={step.title}
-          className="flex gap-3 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-4"
-        >
-          <span
-            aria-hidden="true"
-            className="grid size-7 shrink-0 place-items-center rounded-full bg-(--brand-soft) font-display text-sm font-semibold text-(--brand)"
-          >
-            {i + 1}
-          </span>
-          <div>
-            <p className="text-sm font-medium text-(--text)">{step.title}</p>
-            <p className="mt-0.5 text-sm leading-6 text-(--text-2)">{step.body}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
   );
 }
 
