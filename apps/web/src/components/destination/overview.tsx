@@ -8,6 +8,7 @@ import type {
   MetricRating,
   QuickFact,
 } from "@/lib/destination/types";
+import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /**
  * Short, citizenship-specific entry read, as a brand-accented callout linking
@@ -121,33 +122,6 @@ export function DestinationMedia({
     </div>
   );
 }
-
-const TONE_BG: Record<AccentTone, string> = {
-  pos: "bg-(--pos)",
-  warn: "bg-(--warn)",
-  danger: "bg-(--danger)",
-  neutral: "bg-(--neutral)",
-  brand: "bg-(--brand)",
-  violet: "bg-(--violet)",
-};
-
-const TONE_TEXT: Record<AccentTone, string> = {
-  pos: "text-(--pos)",
-  warn: "text-(--warn)",
-  danger: "text-(--danger)",
-  neutral: "text-(--neutral)",
-  brand: "text-(--brand)",
-  violet: "text-(--violet)",
-};
-
-const TONE_BORDER: Record<AccentTone, string> = {
-  pos: "border-l-(--pos)",
-  warn: "border-l-(--warn)",
-  danger: "border-l-(--danger)",
-  neutral: "border-l-(--neutral)",
-  brand: "border-l-(--brand)",
-  violet: "border-l-(--violet)",
-};
 
 /** Good/bad indicator: a filled segment bar (`score` of `max`), tone-coloured. */
 function RatingBar({ rating }: { rating: MetricRating }) {
