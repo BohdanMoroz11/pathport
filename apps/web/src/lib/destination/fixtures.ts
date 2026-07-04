@@ -7,6 +7,7 @@ import type {
   FitSignal,
   GlanceMetric,
   LanguageForReader,
+  LivingProfile,
   QuickFact,
 } from "./types.js";
 
@@ -28,6 +29,8 @@ type DestinationEntry = DestinationIdentity & {
   quickFacts: QuickFact[];
   /** Deep country facts for the Country view; only DE is authored so far. */
   country?: CountryBase;
+  /** Cost-of-living facts for the Living view; only DE is authored so far. */
+  living?: LivingProfile;
 };
 
 const DESTINATIONS: Record<string, DestinationEntry> = {
@@ -179,6 +182,136 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         minorities:
           "A long-established country of immigration with anti-discrimination law and large Turkish, Ukrainian, Arab, and Eastern European communities. Day-to-day acceptance is high in urban areas, though far-right sentiment is a real and rising tension in parts of the east.",
       },
+    },
+    living: {
+      currency: "EUR €",
+      intro:
+        "What day-to-day life actually costs in Germany — rent by city, a realistic monthly budget, everyday prices, tax, healthcare, and schooling. Figures are typical 2025 ranges in euros; the big cities (Munich above all) run well over the national average, the east and smaller cities well under.",
+      budgets: [
+        {
+          label: "Single",
+          total: "€2,400",
+          note: "one person, mid-range 1-bed",
+          lines: [
+            { label: "Rent", value: 1050 },
+            { label: "Groceries", value: 300 },
+            { label: "Eating out & fun", value: 350 },
+            { label: "Utilities & internet", value: 260 },
+            { label: "Health insurance", value: 250 },
+            { label: "Transport", value: 60 },
+            { label: "Other", value: 130 },
+          ],
+        },
+        {
+          label: "Couple",
+          total: "€3,600",
+          note: "two earners sharing a flat",
+          lines: [
+            { label: "Rent", value: 1300 },
+            { label: "Groceries", value: 560 },
+            { label: "Eating out & fun", value: 560 },
+            { label: "Utilities & internet", value: 300 },
+            { label: "Health insurance", value: 500 },
+            { label: "Transport", value: 120 },
+            { label: "Other", value: 260 },
+          ],
+        },
+        {
+          label: "Family of four",
+          total: "€5,300",
+          note: "two adults, two kids, incl. childcare",
+          lines: [
+            { label: "Rent", value: 1900 },
+            { label: "Groceries", value: 950 },
+            { label: "Eating out & fun", value: 600 },
+            { label: "Utilities & internet", value: 380 },
+            { label: "Health insurance", value: 620 },
+            { label: "Transport", value: 200 },
+            { label: "Other", value: 650 },
+          ],
+        },
+      ],
+      rent: {
+        note: "Monthly rent for an unfurnished flat. City centres command a large premium, and Munich is in a league of its own; the east (Leipzig, Dresden) is far cheaper.",
+        rows: [
+          { city: "Munich", centre: 1500, outer: 1150, family: 2800, note: "priciest" },
+          { city: "Berlin", centre: 1250, outer: 950, family: 2300 },
+          { city: "Hamburg", centre: 1150, outer: 880, family: 2100 },
+          { city: "Cologne", centre: 1050, outer: 820, family: 1950 },
+          { city: "Leipzig", centre: 780, outer: 620, family: 1450, note: "cheapest major city" },
+        ],
+      },
+      groceries: [
+        { label: "Milk (1 L)", value: "€1.10" },
+        { label: "Bread (loaf)", value: "€1.80" },
+        { label: "Eggs (12)", value: "€2.60" },
+        { label: "Chicken breast (1 kg)", value: "€9.00" },
+        { label: "Apples (1 kg)", value: "€2.70" },
+        { label: "Weekly shop", value: "€55–70", note: "one person" },
+      ],
+      eatingOut: [
+        { label: "Cappuccino", value: "€3.30" },
+        { label: "Beer (0.5 L, bar)", value: "€4.50" },
+        { label: "Lunch (Imbiss / menu)", value: "€12" },
+        { label: "Dinner for two", value: "€60", note: "mid-range" },
+        { label: "Fast-food combo", value: "€10" },
+      ],
+      essentials: [
+        {
+          label: "Transport pass",
+          value: "€58/mo",
+          note: "Deutschlandticket, nationwide",
+          tone: "pos",
+        },
+        { label: "Utilities (85 m²)", value: "€280/mo", note: "heat, power, water" },
+        { label: "Internet (fibre)", value: "€35/mo" },
+        { label: "Mobile plan", value: "€15–30/mo" },
+      ],
+      tax: {
+        grossLabel: "On €4,000/mo gross · single, no church tax",
+        gross: 4000,
+        net: 2594,
+        deductions: [
+          { label: "Income tax", value: "€560" },
+          { label: "Pension", value: "€372" },
+          { label: "Health insurance", value: "€330" },
+          { label: "Long-term care", value: "€92" },
+          { label: "Unemployment", value: "€52" },
+        ],
+        note: "Germany taxes progressively, from 0% up to 45%. Roughly 35–40% of a mid-range salary goes to tax and social insurance — but that funds your healthcare, pension, and unemployment cover. Your employer pays a matching share on top.",
+      },
+      healthcare: {
+        summary:
+          "Healthcare is universal, mostly through public 'statutory' insurance (GKV) that about 90% of residents use. Contributions are a percentage of your pay, split with your employer, and cover your spouse and children at no extra cost. Care is high quality and access is broad, though non-urgent specialist appointments can mean a wait. Temporary-protection status includes coverage.",
+        stats: [
+          { label: "System", value: "Public (GKV)", tone: "pos" },
+          { label: "Your share", value: "~7.3% of pay", note: "employer matches" },
+          { label: "Covers", value: "You + family", tone: "pos" },
+          { label: "GP wait", value: "Days" },
+          { label: "Specialist wait", value: "Weeks", tone: "warn" },
+          { label: "Emergency", value: "112" },
+        ],
+      },
+      schooling: {
+        summary:
+          "State schools are free and generally good, and schooling is compulsory from age six. Teaching is in German, so younger children adapt fastest while teenagers often start in 'Willkommensklassen' welcome classes. Public childcare (Kita) is heavily subsidised but places are scarce and waitlisted; international schools exist in the big cities at private-school prices.",
+        stats: [
+          { label: "State school", value: "Free", tone: "pos" },
+          { label: "Language", value: "German" },
+          { label: "Childcare (Kita)", value: "€0–300/mo", note: "income-based" },
+          { label: "International school", value: "€10k–25k/yr", tone: "warn" },
+          { label: "Compulsory", value: "Age 6–18" },
+          { label: "University", value: "Free (public)", tone: "pos" },
+        ],
+      },
+      lifestyle: [
+        { label: "Gym membership", value: "€25–40/mo" },
+        { label: "Cinema ticket", value: "€12" },
+        { label: "Streaming (std)", value: "€13/mo" },
+        { label: "Haircut", value: "€25" },
+        { label: "Museum entry", value: "€10" },
+        { label: "Public pool", value: "€5" },
+      ],
     },
   },
   PT: {
@@ -400,13 +533,14 @@ export function getDestinationProfile(
     return null;
   }
 
-  const { quickFacts, country: countryBase, ...destination } = destinationEntry;
+  const { quickFacts, country: countryBase, living, ...destination } = destinationEntry;
   const pair = PAIR_CONTENT[`${citizenship.code}/${destination.code}`] ?? synthesizePair();
   const { language, ...overview } = pair;
 
   // Country facts are destination-level; only the language read is per-citizen,
-  // so it is folded in here. Absent country facts leave the view a graceful stub.
+  // so it is folded in here. Absent country/living facts leave those views a
+  // graceful stub.
   const country = countryBase ? { ...countryBase, language } : undefined;
 
-  return { citizenship, destination, quickFacts, ...overview, country };
+  return { citizenship, destination, quickFacts, ...overview, country, living };
 }

@@ -86,6 +86,8 @@ export type DestinationProfile = {
   fitsYouIf: FitSignal[];
   /** Deep country profile for the Country view; absent while being gathered. */
   country?: CountryProfile;
+  /** Cost-of-living profile for the Living view; absent while being gathered. */
+  living?: LivingProfile;
 };
 
 /* ------------------------------------------------------------------ *
@@ -153,3 +155,60 @@ export type CountryBase = {
 
 /** Full Country profile = destination facts + the reader's language read. */
 export type CountryProfile = CountryBase & { language: LanguageForReader };
+
+/* ------------------------------------------------------------------ *
+ * Living view — the cost-of-living and practical-life section: monthly
+ * budgets, rent by city, everyday prices, tax, healthcare, schooling,
+ * and lifestyle. Destination-level facts, authored in the fixture.
+ * ------------------------------------------------------------------ */
+
+/** A reference price: an item and its display-ready cost. */
+export type PriceItem = { label: string; value: string; note?: string };
+
+/** A monthly-budget persona (single / couple / family) with its breakdown. */
+export type BudgetPersona = {
+  label: string;
+  /** Display-ready monthly total, e.g. "€2,400". */
+  total: string;
+  note?: string;
+  /** Category lines (rent, food, …) as euro amounts, for the bars + total. */
+  lines: ShareDatum[];
+};
+
+/** Rent for one city: the headline 1-bed centre (the bar) plus comparisons. */
+export type RentRow = {
+  city: string;
+  /** 1-bed, city centre — €/mo, the headline magnitude. */
+  centre: number;
+  /** 1-bed, outside centre — €/mo. */
+  outer: number;
+  /** 3-bed family flat, city centre — €/mo. */
+  family: number;
+  note?: string;
+};
+
+/** Take-home breakdown: what a sample gross salary nets after deductions. */
+export type TaxBreakdown = {
+  /** Context line, e.g. "On €4,000/mo gross for a single earner". */
+  grossLabel: string;
+  gross: number;
+  net: number;
+  /** The deductions that make up the gap (income tax, health, pension, …). */
+  deductions: PriceItem[];
+  note: string;
+};
+
+export type LivingProfile = {
+  currency: string;
+  intro: string;
+  budgets: BudgetPersona[];
+  rent: { note: string; rows: RentRow[] };
+  groceries: PriceItem[];
+  eatingOut: PriceItem[];
+  /** Recurring essentials (transport pass, utilities, internet, mobile). */
+  essentials: CountryStat[];
+  tax: TaxBreakdown;
+  healthcare: { summary: string; stats: CountryStat[] };
+  schooling: { summary: string; stats: CountryStat[] };
+  lifestyle: PriceItem[];
+};
