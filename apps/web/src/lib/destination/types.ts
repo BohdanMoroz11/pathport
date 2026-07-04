@@ -72,10 +72,32 @@ export type EntryBrief = {
   facts: QuickFact[];
 };
 
+/**
+ * The full Entry view: how you first arrive, read from the visitor's
+ * citizenship. Unlike the mostly destination-level Country/Living/Work/Family
+ * facts, arrival rules turn on *your* passport — so this is authored per
+ * pairing, alongside the Overview's EntryBrief teaser that links here.
+ */
+export type EntryProfile = {
+  intro: string;
+  /** The headline: how you legally cross the border right now. */
+  arrival: { summary: string; stats: CountryStat[] };
+  /** What to carry — a border/settling document checklist. */
+  documents: { summary: string; items: string[] };
+  /** Special status where it applies (e.g. temporary protection). Optional. */
+  protection?: { summary: string; stats: CountryStat[] };
+  /** What you may and may not do the moment you land. */
+  onArrival: { can: string[]; cannot: string[]; note: string };
+  /** The first things to do after you land, in order. */
+  firstSteps: WorkStep[];
+};
+
 export type DestinationProfile = {
   citizenship: CitizenshipIdentity;
   destination: DestinationIdentity;
   entry: EntryBrief;
+  /** Full Entry view; absent while being gathered (falls back to the stub). */
+  entryDetail?: EntryProfile;
   quickFacts: QuickFact[];
   /**
    * Headline metrics as a spec list: the route count plus quality-of-life and

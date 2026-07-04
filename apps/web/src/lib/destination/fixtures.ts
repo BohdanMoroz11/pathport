@@ -4,6 +4,7 @@ import type {
   DestinationIdentity,
   DestinationProfile,
   EntryBrief,
+  EntryProfile,
   FamilyProfile,
   FitSignal,
   GlanceMetric,
@@ -609,6 +610,8 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
 /** Per-pairing content: the citizenship-specific read of a destination. */
 type PairContent = {
   entry: EntryBrief;
+  /** Full Entry view; only UKR/DE is authored so far. */
+  entryDetail?: EntryProfile;
   glance: GlanceMetric[];
   fitsYouIf: FitSignal[];
   /** The main language read from this citizen's point of view. */
@@ -633,6 +636,83 @@ const PAIR_CONTENT: Record<string, PairContent> = {
       facts: [
         { label: "Visa-free", value: "90 days" },
         { label: "Status", value: "Temporary protection" },
+      ],
+    },
+    entryDetail: {
+      intro:
+        "How you first arrive in Germany as a Ukrainian — the visa-free terms, what to carry across the border, and the temporary-protection status that turns a 90-day visit into the immediate right to stay, work, and study. Arrival is the one thing you sort before anything else, so the order of the first steps matters.",
+      arrival: {
+        summary:
+          "With a biometric Ukrainian passport you enter the Schengen area visa-free for up to 90 days in any 180 — no visa and no pre-registration. You don't have to rely on that clock, though: activating temporary protection replaces it with a renewable residence permit, so most people cross as a visitor and switch to protected status within days.",
+        stats: [
+          { label: "Visa-free stay", value: "90 / 180 days", tone: "pos" },
+          { label: "Visa needed", value: "No", tone: "pos" },
+          { label: "Passport", value: "Biometric", note: "or emergency travel doc" },
+          { label: "Pre-registration", value: "None", tone: "pos" },
+          { label: "Internal borders", value: "No checks", note: "Schengen" },
+          { label: "Onward ticket", value: "Not enforced", note: "for protection seekers" },
+        ],
+      },
+      documents: {
+        summary:
+          "Carry originals where you can — German offices run on documents, and replacing them later is slow. Anything for children and any professional or academic certificates are worth bringing even if you won't need them at the border.",
+        items: [
+          "Biometric passport, or an emergency travel document",
+          "Proof of Ukrainian citizenship or residence",
+          "Children's passports and birth certificates",
+          "Marriage certificate, if reuniting as a couple",
+          "Vaccination records (needed for school and Kita)",
+          "Diplomas and qualification certificates, for later recognition",
+        ],
+      },
+      protection: {
+        summary:
+          "Temporary protection is the fast lane, and it's what almost everyone uses. Under the EU directive first activated in 2022 and extended into 2027, Ukrainians receive a residence permit (§24) without going through the asylum process — the immediate right to live, work, and study, public healthcare, benefits, and school places for children. It's issued for a fixed period and renewed as the EU extends the scheme.",
+        stats: [
+          { label: "Status", value: "Temporary protection", note: "§24 permit", tone: "pos" },
+          { label: "Right to work", value: "Immediate", tone: "pos" },
+          { label: "Healthcare", value: "Included", tone: "pos" },
+          { label: "Benefits", value: "Bürgergeld", note: "if you need it", tone: "pos" },
+          { label: "Extended to", value: "Mar 2027", note: "EU-wide, renewable", tone: "pos" },
+          { label: "Apply at", value: "Ausländerbehörde" },
+        ],
+      },
+      onArrival: {
+        can: [
+          "Stay up to 90 days visa-free while you sort your status",
+          "Register your address (Anmeldung)",
+          "Apply for temporary protection right away",
+          "Enrol your children in school",
+          "Open a bank account once registered",
+        ],
+        cannot: [
+          "Take a job before your status is registered",
+          "Draw long-term benefits before registering",
+          "Stay past 90 days without applying for protection or a permit",
+        ],
+        note: "The order is the whole game: register your address first, then apply for protection — nearly everything downstream (work, benefits, banking, school) depends on both being done.",
+      },
+      firstSteps: [
+        {
+          title: "Find somewhere to stay",
+          body: "Arrival centres and municipalities can place you; a private address lets you register straight away and skips the shared-accommodation step.",
+        },
+        {
+          title: "Register your address (Anmeldung)",
+          body: "At the local Bürgeramt. This single step unlocks everything downstream — your status, a bank account, benefits, and school places.",
+        },
+        {
+          title: "Apply for temporary protection",
+          body: "At the Ausländerbehörde (foreigners' office). You're issued a residence permit under §24, with the right to work from day one.",
+        },
+        {
+          title: "Register for benefits and healthcare",
+          body: "Sign up at the Jobcenter for Bürgergeld if you need it, and you're assigned public (GKV) health insurance.",
+        },
+        {
+          title: "Enrol children and start German",
+          body: "Register kids for school or a Kita place, and sign up for an integration or language course toward the B1 you'll need later.",
+        },
       ],
     },
     glance: [
