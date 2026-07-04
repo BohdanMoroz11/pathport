@@ -3,7 +3,7 @@ import { LivingView } from "@/components/destination/living";
 import { SectionIntro } from "@/components/destination/section-intro";
 import { SectionStub } from "@/components/destination/section-stub";
 import { getDestinationProfile } from "@/lib/destination/fixtures";
-import { sectionBySlug } from "@/lib/destination/sections";
+import { destinationBasePath, sectionBySlug, sectionHref } from "@/lib/destination/sections";
 
 const PLANNED = [
   "Rent by city (centre vs outer, family-size)",
@@ -48,7 +48,14 @@ export default async function LivingPage({
         title={`Living in ${profile.destination.name}`}
         lead={profile.living.intro}
       />
-      <LivingView living={profile.living} />
+      <LivingView
+        living={profile.living}
+        takeHome={profile.work?.incomeTax.takeHome}
+        workHref={sectionHref(
+          destinationBasePath(profile.citizenship.code, profile.destination.code),
+          "work",
+        )}
+      />
     </div>
   );
 }

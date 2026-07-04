@@ -9,6 +9,7 @@ import type {
   LanguageForReader,
   LivingProfile,
   QuickFact,
+  WorkProfile,
 } from "./types.js";
 
 /**
@@ -31,6 +32,8 @@ type DestinationEntry = DestinationIdentity & {
   country?: CountryBase;
   /** Cost-of-living facts for the Living view; only DE is authored so far. */
   living?: LivingProfile;
+  /** Work & income facts for the Work view; only DE is authored so far. */
+  work?: WorkProfile;
 };
 
 const DESTINATIONS: Record<string, DestinationEntry> = {
@@ -267,19 +270,6 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         { label: "Internet (fibre)", value: "€35/mo" },
         { label: "Mobile plan", value: "€15–30/mo" },
       ],
-      tax: {
-        grossLabel: "On €4,000/mo gross · single, no church tax",
-        gross: 4000,
-        net: 2594,
-        deductions: [
-          { label: "Income tax", value: "€560" },
-          { label: "Pension", value: "€372" },
-          { label: "Health insurance", value: "€330" },
-          { label: "Long-term care", value: "€92" },
-          { label: "Unemployment", value: "€52" },
-        ],
-        note: "Germany taxes progressively, from 0% up to 45%. Roughly 35–40% of a mid-range salary goes to tax and social insurance — but that funds your healthcare, pension, and unemployment cover. Your employer pays a matching share on top.",
-      },
       healthcare: {
         summary:
           "Healthcare is universal, mostly through public 'statutory' insurance (GKV) that about 90% of residents use. Contributions are a percentage of your pay, split with your employer, and cover your spouse and children at no extra cost. Care is high quality and access is broad, though non-urgent specialist appointments can mean a wait. Temporary-protection status includes coverage.",
@@ -312,6 +302,164 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         { label: "Museum entry", value: "€10" },
         { label: "Public pool", value: "€5" },
       ],
+    },
+    work: {
+      intro:
+        "How you actually earn a living in Germany — the ways to work, how each is taxed, getting registered, finding a job, and getting your qualifications recognised. It is a deep, formal labour market with strong protections and a serious skills shortage, but it runs on paperwork and, often, on German.",
+      rightToWork: {
+        summary:
+          "Whether you can work depends on your status, not your job. EU citizens work freely. Ukrainians under temporary protection have the immediate right to take any employment or go self-employed. Most work visas (Blue Card, Skilled Worker) tie the permit to qualifying employment, while asylum seekers face a waiting period. Once you hold a settlement permit, the restrictions fall away.",
+        stats: [
+          {
+            label: "Temporary protection",
+            value: "Work allowed",
+            note: "immediate, any job",
+            tone: "pos",
+          },
+          { label: "EU Blue Card", value: "Tied to job", note: "above salary threshold" },
+          { label: "Job-seeker visa", value: "6 months", note: "to find a role" },
+          { label: "Minimum wage", value: "€12.82/hr", tone: "pos" },
+        ],
+      },
+      modes: [
+        {
+          label: "Employee (Angestellt)",
+          tagline: "The default — a contract, payroll, and full social cover.",
+          taxNote: "Income tax and social contributions are withheld at source; most never file.",
+          setupNote: "Just a contract and a tax ID — your employer handles the registration.",
+          pros: [
+            "Strong protections & notice",
+            "Health, pension, unemployment included",
+            "No bookkeeping",
+          ],
+          cons: ["Less flexibility", "Higher effective tax than some setups"],
+        },
+        {
+          label: "Freelancer (Freiberufler)",
+          tagline: "Independent professionals — devs, doctors, designers, writers.",
+          taxNote: "Income tax + VAT, with quarterly prepayments; no trade tax.",
+          setupNote: "Register with the Finanzamt for a tax number — no trade licence needed.",
+          pros: ["Low setup, no trade tax", "Keep your own clients", "Deduct expenses"],
+          cons: ["You arrange your own insurance", "Bookkeeping + VAT filings", "Lumpy income"],
+        },
+        {
+          label: "Trade / sole trader (Gewerbe)",
+          tagline: "Commercial self-employment — shops, trades, e-commerce.",
+          taxNote: "Income tax + VAT + trade tax (Gewerbesteuer) above an allowance.",
+          setupNote: "Register a Gewerbe at the local trade office, then the Finanzamt.",
+          pros: ["Straightforward to start", "Full control"],
+          cons: ["Trade tax", "Chamber of commerce fees", "More admin"],
+        },
+        {
+          label: "Company owner (GmbH / UG)",
+          tagline: "A limited company — for scale, a liability shield, or hiring.",
+          taxNote:
+            "Corporate + trade tax on profit (~30%), then tax on the salary/dividends you draw.",
+          setupNote: "Notarised formation; €25k capital for a GmbH (€1 for a UG).",
+          pros: ["Limited liability", "Credible for clients & investors", "Can employ others"],
+          cons: ["Formation cost & notary", "Double-entry accounts", "Needs a tax adviser"],
+        },
+        {
+          label: "Remote for a foreign employer",
+          tagline: "Keep an overseas job while living here.",
+          taxNote:
+            "Usually taxable in Germany once resident; often run through an Employer of Record.",
+          setupNote: "Check tax-residency and social-security rules before you move.",
+          pros: ["Keep your salary & role", "No local job hunt"],
+          cons: ["Tax & social-security complexity", "Employer must be willing", "Grey areas"],
+        },
+      ],
+      incomeTax: {
+        summary:
+          "Germany taxes worldwide income progressively, from 0% up to 45%, plus social insurance. How much you keep depends on how you are set up: employees have everything withheld, while the self-employed pay quarterly and fund their own insurance and VAT.",
+        takeHome: {
+          grossLabel: "On €4,000/mo gross · employee, single, no church tax",
+          gross: 4000,
+          net: 2594,
+          deductions: [
+            { label: "Income tax", value: "€560" },
+            { label: "Pension", value: "€372" },
+            { label: "Health insurance", value: "€330" },
+            { label: "Long-term care", value: "€92" },
+            { label: "Unemployment", value: "€52" },
+          ],
+          note: "Roughly 35–40% of a mid-range salary goes to tax and social insurance — but that funds your healthcare, pension, and unemployment cover, and your employer pays a matching share on top.",
+        },
+        lanes: [
+          { mode: "Employee", burden: "≈35–40%", note: "tax + social, withheld at source" },
+          {
+            mode: "Freelancer",
+            burden: "≈25–42%",
+            note: "income tax; you fund your own insurance",
+          },
+          {
+            mode: "GmbH owner",
+            burden: "≈30% + draw",
+            note: "corporate + trade, then tax on pay/dividends",
+          },
+        ],
+        accounting:
+          "Employees rarely file. The self-employed must keep books, charge and remit VAT (unless small-business exempt), and file quarterly prepayments plus an annual return — most hire a Steuerberater (tax adviser) for €1,000–3,000 a year. Online filing goes through the ELSTER portal.",
+      },
+      finding: {
+        summary:
+          "The market rewards German and recognised qualifications, but English-only roles are common in tech, startups, and international firms. Applications are formal — a tailored CV, often a cover letter, and certificates matter.",
+        channels: [
+          "StepStone",
+          "Indeed",
+          "LinkedIn / Xing",
+          "Make-it-in-Germany",
+          "Bundesagentur für Arbeit",
+          "Company career pages",
+          "Recruiters (IT & engineering)",
+        ],
+      },
+      setup: [
+        {
+          title: "Register your address (Anmeldung)",
+          body: "Everything downstream — tax ID, bank account, contracts — depends on your registered address.",
+        },
+        {
+          title: "Get your tax number",
+          body: "The Finanzamt issues a Steuernummer; freelancers complete the Fragebogen zur steuerlichen Erfassung.",
+        },
+        {
+          title: "Register a trade, if needed",
+          body: "Gewerbe activities register at the Gewerbeamt first; pure freelancers skip this step.",
+        },
+        {
+          title: "Sort your insurance",
+          body: "Health insurance is mandatory; add liability and pension cover suited to your work.",
+        },
+        {
+          title: "Set up bookkeeping",
+          body: "Choose invoicing/accounting software or a Steuerberater before you send the first invoice.",
+        },
+      ],
+      credentials: {
+        summary:
+          "Regulated professions — doctors, nurses, teachers, lawyers, many trades — require formal recognition (Anerkennung) of your foreign qualification before you can practise. Non-regulated fields don't strictly need it, but recognition (or an ANABIN assessment) strengthens applications and pay. Ukrainians have streamlined recognition support.",
+        stats: [
+          { label: "Regulated jobs", value: "Recognition required", tone: "warn" },
+          { label: "Portal", value: "anerkennung-in-deutschland.de" },
+          { label: "Degree check", value: "ANABIN database" },
+          { label: "Typical time", value: "3–6 months", tone: "warn" },
+        ],
+      },
+      demand: {
+        inDemand: [
+          "Nurses & care workers",
+          "Doctors",
+          "Software & IT",
+          "Engineers",
+          "Skilled trades",
+          "Truck & bus drivers",
+          "STEM teachers",
+          "Hospitality",
+        ],
+        saturated: ["Generalist admin", "Media & journalism", "Junior marketing", "Pure academia"],
+        note: "An ageing workforce means chronic shortages in health, care, engineering, IT, and the skilled trades — these carry the fastest visa routes and the best bargaining power. Creative and generalist office roles are far more competitive and usually need fluent German.",
+      },
     },
   },
   PT: {
@@ -533,14 +681,14 @@ export function getDestinationProfile(
     return null;
   }
 
-  const { quickFacts, country: countryBase, living, ...destination } = destinationEntry;
+  const { quickFacts, country: countryBase, living, work, ...destination } = destinationEntry;
   const pair = PAIR_CONTENT[`${citizenship.code}/${destination.code}`] ?? synthesizePair();
   const { language, ...overview } = pair;
 
   // Country facts are destination-level; only the language read is per-citizen,
-  // so it is folded in here. Absent country/living facts leave those views a
-  // graceful stub.
+  // so it is folded in here. Absent country/living/work facts leave those views
+  // a graceful stub.
   const country = countryBase ? { ...countryBase, language } : undefined;
 
-  return { citizenship, destination, quickFacts, ...overview, country, living };
+  return { citizenship, destination, quickFacts, ...overview, country, living, work };
 }

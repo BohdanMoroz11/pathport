@@ -88,6 +88,8 @@ export type DestinationProfile = {
   country?: CountryProfile;
   /** Cost-of-living profile for the Living view; absent while being gathered. */
   living?: LivingProfile;
+  /** Work & income profile for the Work view; absent while being gathered. */
+  work?: WorkProfile;
 };
 
 /* ------------------------------------------------------------------ *
@@ -207,8 +209,51 @@ export type LivingProfile = {
   eatingOut: PriceItem[];
   /** Recurring essentials (transport pass, utilities, internet, mobile). */
   essentials: CountryStat[];
-  tax: TaxBreakdown;
   healthcare: { summary: string; stats: CountryStat[] };
   schooling: { summary: string; stats: CountryStat[] };
   lifestyle: PriceItem[];
+};
+
+/* ------------------------------------------------------------------ *
+ * Work & income view — arguably the core of the app: the ways to earn
+ * (employee → business owner), how each is taxed, getting registered,
+ * finding work, credential recognition, and what's in demand. Owns the
+ * income/tax-by-mode detail; the Living view links here for it.
+ * ------------------------------------------------------------------ */
+
+/** One way to earn a living, with its tax/setup shape and trade-offs. */
+export type EarningMode = {
+  label: string;
+  tagline: string;
+  /** How this mode is taxed, in a sentence. */
+  taxNote: string;
+  /** How you set it up / register, in a sentence. */
+  setupNote: string;
+  pros: string[];
+  cons: string[];
+};
+
+/** A titled step in a how-to sequence (getting set up as self-employed). */
+export type WorkStep = { title: string; body: string };
+
+/** Effective tax burden for one earning mode, for the by-mode comparison. */
+export type IncomeLane = { mode: string; burden: string; note: string };
+
+export type WorkProfile = {
+  intro: string;
+  rightToWork: { summary: string; stats: CountryStat[] };
+  modes: EarningMode[];
+  incomeTax: {
+    summary: string;
+    /** Canonical employee take-home example (the Living view links here). */
+    takeHome: TaxBreakdown;
+    /** Effective burden across earning modes. */
+    lanes: IncomeLane[];
+    accounting: string;
+  };
+  finding: { summary: string; channels: string[] };
+  /** Getting set up as self-employed, in order. */
+  setup: WorkStep[];
+  credentials: { summary: string; stats: CountryStat[] };
+  demand: { inDemand: string[]; saturated: string[]; note: string };
 };

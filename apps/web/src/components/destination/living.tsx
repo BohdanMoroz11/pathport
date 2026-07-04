@@ -1,15 +1,11 @@
-import type {
-  BudgetPersona,
-  LivingProfile,
-  PriceItem,
-  RentRow,
-  TaxBreakdown,
-} from "@/lib/destination/types";
+import Link from "next/link";
+import type { BudgetPersona, LivingProfile, RentRow, TaxBreakdown } from "@/lib/destination/types";
 import {
   Block,
   Caption,
   ContentMap,
   Panel,
+  PriceList,
   ProportionBars,
   Prose,
   type SectionMeta,
@@ -20,7 +16,6 @@ const SECTIONS = [
   { id: "budget", emoji: "💶", title: "Monthly budget" },
   { id: "rent", emoji: "🏠", title: "Rent by city" },
   { id: "prices", emoji: "🛒", title: "Everyday prices" },
-  { id: "tax", emoji: "🧾", title: "Tax & take-home" },
   { id: "healthcare", emoji: "⚕️", title: "Healthcare" },
   { id: "schooling", emoji: "🎒", title: "Schooling & childcare" },
   { id: "lifestyle", emoji: "🎟️", title: "Lifestyle" },
@@ -30,25 +25,6 @@ const S = Object.fromEntries(SECTIONS.map((s) => [s.id, s])) as Record<
   (typeof SECTIONS)[number]["id"],
   SectionMeta
 >;
-
-/** Reference-price list: item → cost, in a bordered divided panel. */
-function PriceList({ items }: { items: PriceItem[] }) {
-  return (
-    <dl className="divide-y divide-(--border) overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
-      {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between gap-4 px-4 py-2.5">
-          <dt className="text-sm text-(--text-2)">
-            {item.label}
-            {item.note && <span className="ml-1.5 text-xs text-(--text-3)">{item.note}</span>}
-          </dt>
-          <dd className="shrink-0 font-display text-sm font-medium tabular-nums text-(--text)">
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
 /** One persona's monthly spend: a headline total and a category breakdown. */
 function BudgetCard({ persona }: { persona: BudgetPersona }) {
@@ -68,6 +44,30 @@ function BudgetCard({ persona }: { persona: BudgetPersona }) {
         <ProportionBars data={persona.lines} prefix="€" />
       </div>
     </Panel>
+  );
+}
+
+/**
+ * Compact take-home pointer: the net-pay headline for budgeting, linking into
+ * the Work & income view — which owns the full tax and accounting detail.
+ */
+function TakeHomePointer({ takeHome, workHref }: { takeHome: TaxBreakdown; workHref: string }) {
+  return (
+    <Link
+      href={workHref}
+      className="group flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3 transition-colors hover:border-(--brand)"
+    >
+      <span className="text-sm text-(--text-2)">
+        Take-home pay{" "}
+        <span className="font-display font-semibold text-(--text)">
+          €{takeHome.net.toLocaleString("en-US")}
+        </span>{" "}
+        on €{takeHome.gross.toLocaleString("en-US")} gross
+      </span>
+      <span className="text-xs font-medium text-(--brand)">
+        Full tax picture in Work &amp; income →
+      </span>
+    </Link>
   );
 }
 
@@ -111,46 +111,17 @@ function RentTable({ rows }: { rows: RentRow[] }) {
   );
 }
 
-/** Take-home split: what a sample gross nets after tax + social insurance. */
-function TakeHome({ tax }: { tax: TaxBreakdown }) {
-  const deductions = tax.gross - tax.net;
-  const netPct = (tax.net / tax.gross) * 100;
-  return (
-    <Panel>
-      <Caption>{tax.grossLabel}</Caption>
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs text-(--text-3)">Take-home</p>
-          <p className="font-display text-2xl font-semibold text-(--brand)">
-            €{tax.net.toLocaleString("en-US")}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-(--text-3)">Tax & insurance</p>
-          <p className="font-display text-lg font-semibold text-(--text-2)">
-            €{deductions.toLocaleString("en-US")}
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 flex h-3 gap-0.5">
-        <div
-          className="rounded-l-(--radius-pill) bg-(--brand)"
-          style={{ width: `${netPct}%` }}
-          role="img"
-          aria-label={`Take-home €${tax.net}`}
-        />
-        <div className="flex-1 rounded-r-(--radius-pill) bg-(--neutral)" aria-hidden="true" />
-      </div>
-      <p className="mt-1.5 text-xs text-(--text-3)">
-        of €{tax.gross.toLocaleString("en-US")} gross · ≈
-        {Math.round((deductions / tax.gross) * 100)}% to tax & social insurance
-      </p>
-    </Panel>
-  );
-}
-
 /** The cost-of-living profile — the "Living" section body. */
-export function LivingView({ living }: { living: LivingProfile }) {
+export function LivingView({
+  living,
+  takeHome,
+  workHref,
+}: {
+  living: LivingProfile;
+  /** Employee take-home from the Work view, shown as a compact budgeting tile. */
+  takeHome?: TaxBreakdown;
+  workHref: string;
+}) {
   return (
     <div className="space-y-10">
       <ContentMap sections={SECTIONS} />
@@ -165,6 +136,7 @@ export function LivingView({ living }: { living: LivingProfile }) {
             <BudgetCard key={persona.label} persona={persona} />
           ))}
         </div>
+        {takeHome && <TakeHomePointer takeHome={takeHome} workHref={workHref} />}
       </Block>
 
       <Block {...S.rent}>
@@ -182,7 +154,7 @@ export function LivingView({ living }: { living: LivingProfile }) {
             <PriceList items={living.groceries} />
           </div>
           <div className="space-y-2">
-            <Caption>Eating & drinking out</Caption>
+            <Caption>Eating &amp; drinking out</Caption>
             <PriceList items={living.eatingOut} />
           </div>
         </div>
@@ -190,17 +162,6 @@ export function LivingView({ living }: { living: LivingProfile }) {
           <Caption>Monthly essentials</Caption>
           <StatGrid stats={living.essentials} />
         </div>
-      </Block>
-
-      <Block {...S.tax}>
-        <div className="grid items-start gap-4 lg:grid-cols-[1.15fr_1fr]">
-          <TakeHome tax={living.tax} />
-          <div className="space-y-2">
-            <Caption>Where it goes</Caption>
-            <PriceList items={living.tax.deductions} />
-          </div>
-        </div>
-        <Prose>{living.tax.note}</Prose>
       </Block>
 
       <Block {...S.healthcare}>

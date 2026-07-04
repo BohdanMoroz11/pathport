@@ -38,6 +38,12 @@ export const DESTINATION_SECTIONS: DestinationSection[] = [
     blurb: "Every long-term route, compared on the same scales.",
   },
   {
+    slug: "work",
+    label: "Work & income",
+    emoji: "\u{1F4BC}",
+    blurb: "Ways to earn, how each is taxed, finding work, and getting set up.",
+  },
+  {
     slug: "living",
     label: "Living",
     emoji: "\u{1F3E0}",
