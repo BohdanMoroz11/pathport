@@ -1,10 +1,12 @@
 import type {
   CitizenshipIdentity,
+  CountryBase,
   DestinationIdentity,
   DestinationProfile,
   EntryBrief,
   FitSignal,
   GlanceMetric,
+  LanguageForReader,
   QuickFact,
 } from "./types.js";
 
@@ -22,7 +24,13 @@ const CITIZENSHIPS: Record<string, CitizenshipIdentity> = {
   UKR: { code: "UKR", name: "Ukraine", flag: "\u{1F1FA}\u{1F1E6}" },
 };
 
-const DESTINATIONS: Record<string, DestinationIdentity & { quickFacts: QuickFact[] }> = {
+type DestinationEntry = DestinationIdentity & {
+  quickFacts: QuickFact[];
+  /** Deep country facts for the Country view; only DE is authored so far. */
+  country?: CountryBase;
+};
+
+const DESTINATIONS: Record<string, DestinationEntry> = {
   DE: {
     code: "DE",
     name: "Germany",
@@ -38,6 +46,140 @@ const DESTINATIONS: Record<string, DestinationIdentity & { quickFacts: QuickFact
       { label: "Population", value: "84M" },
       { label: "EU member", value: "Yes" },
     ],
+    country: {
+      geography: {
+        location:
+          "Central Europe, sharing land borders with nine countries — more than any other EU state — from the North and Baltic Seas down to the Alps.",
+        climate:
+          "Temperate and maritime-to-continental: mild, grey, wet winters and warm summers. Snow is common in the south and east; extremes are rare.",
+        borders: [
+          "Poland",
+          "Czechia",
+          "Austria",
+          "Switzerland",
+          "France",
+          "Luxembourg",
+          "Belgium",
+          "Netherlands",
+          "Denmark",
+        ],
+        stats: [
+          { label: "Area", value: "357,600 km²", note: "≈ Montana" },
+          { label: "Terrain", value: "Lowlands → Alps", note: "flat north, alpine south" },
+          { label: "Coastline", value: "North & Baltic Seas" },
+          { label: "Time zone", value: "CET (UTC+1)" },
+        ],
+        cities: [
+          { label: "Berlin", value: 3.7, note: "capital" },
+          { label: "Hamburg", value: 1.9 },
+          { label: "Munich", value: 1.5 },
+          { label: "Cologne", value: 1.1 },
+          { label: "Frankfurt", value: 0.77, note: "financial hub" },
+        ],
+      },
+      people: {
+        stats: [
+          { label: "Population", value: "84M", tone: "neutral" },
+          { label: "Density", value: "232 /km²" },
+          { label: "Median age", value: "45", note: "among the world's oldest", tone: "warn" },
+          { label: "Life expectancy", value: "81 yrs", tone: "pos" },
+          { label: "Urban", value: "78%" },
+          { label: "Foreign-born", value: "≈19%", note: "highly international", tone: "pos" },
+        ],
+        ageBands: [
+          { label: "0–14", value: 14 },
+          { label: "15–64", value: 64 },
+          { label: "65+", value: 22, note: "ageing" },
+        ],
+        religions: [
+          { label: "Unaffiliated", value: 43 },
+          { label: "Catholic", value: 26 },
+          { label: "Protestant", value: 23 },
+          { label: "Muslim", value: 5 },
+          { label: "Other", value: 3 },
+        ],
+      },
+      economy: {
+        summary:
+          "The EU's industrial engine — the fourth-largest economy in the world, built on exports of cars, machinery, and chemicals rather than a single boom sector. Growth has been flat in recent years, but wages are solid, unemployment is low, and an ageing workforce means real, sustained demand for skilled migrants across trades, engineering, health, and IT.",
+        stats: [
+          { label: "GDP", value: "$4.5T", note: "4th largest", tone: "pos" },
+          { label: "GDP per capita", value: "$54,000", tone: "pos" },
+          { label: "Unemployment", value: "≈6%", tone: "pos" },
+          { label: "Median gross pay", value: "€4,300/mo" },
+          { label: "Minimum wage", value: "€12.82/hr", note: "statutory" },
+          { label: "Growth", value: "≈0%", note: "stagnant since 2023", tone: "warn" },
+        ],
+        industries: [
+          "Automotive",
+          "Machinery & engineering",
+          "Chemicals & pharma",
+          "Electrical & electronics",
+          "IT & software",
+          "Healthcare & care work",
+          "Skilled trades",
+          "Logistics",
+        ],
+      },
+      government: {
+        summary:
+          "A stable federal parliamentary democracy with strong institutions, an independent judiciary, and a free press. Power is shared between the federal government and sixteen states, and coalition government is the norm. A resurgent far right is the sharpest tension in current politics, strongest in the east.",
+        system: "Federal parliamentary republic",
+        memberships: ["EU", "Eurozone", "Schengen", "NATO", "UN", "OECD", "G7"],
+        stats: [
+          { label: "Democracy Index", value: "8.8 / 10", note: "full democracy", tone: "pos" },
+          { label: "Corruption (CPI)", value: "Top 15", note: "low corruption", tone: "pos" },
+          { label: "Press freedom", value: "High", tone: "pos" },
+          { label: "Rule of law", value: "Strong", tone: "pos" },
+        ],
+      },
+      culture: {
+        summary:
+          "Order, planning, and privacy run deep. People value directness, punctuality, and a firm line between work and private life — long holidays are taken seriously and out-of-hours emails are not. Newcomers meet a warm, reliable society once past an initially reserved and rule-bound surface.",
+        notes: [
+          {
+            title: "Punctuality is respect",
+            body: "Being on time is expected socially and professionally; five minutes late warrants a message.",
+          },
+          {
+            title: "Sundays are quiet",
+            body: "Most shops close and 'Ruhezeit' quiet hours limit noise — no drilling or loud laundry. Stock up on Saturday.",
+          },
+          {
+            title: "Cash still matters",
+            body: "Cards are increasingly accepted, but many bakeries, bars, and small shops remain cash-only. Carry some.",
+          },
+          {
+            title: "Recycling is a system",
+            body: "Waste is sorted into several bins, and bottles carry a 'Pfand' deposit you reclaim at the machine.",
+          },
+          {
+            title: "Directness isn't rudeness",
+            body: "People say what they mean plainly. It reads as blunt at first but is meant as honesty, not hostility.",
+          },
+          {
+            title: "Register everything",
+            body: "Life runs on paperwork — the 'Anmeldung' address registration unlocks bank accounts, tax IDs, and contracts.",
+          },
+        ],
+      },
+      safety: {
+        summary:
+          "One of the safer large countries in the world. Violent crime is low and policing is trusted; the everyday risks are pickpocketing around transit hubs and tourist areas rather than personal danger.",
+        stats: [
+          { label: "Overall safety", value: "High", tone: "pos" },
+          { label: "Violent crime", value: "Low", tone: "pos" },
+          { label: "Petty theft", value: "Moderate", note: "transit hubs", tone: "warn" },
+          { label: "Emergency", value: "112", note: "police & ambulance" },
+        ],
+      },
+      rights: {
+        lgbtq:
+          "Legally strong and socially accepting, especially in cities. Same-sex marriage has been legal since 2017, discrimination is banned, and a 2024 self-determination law lets people change their legal gender by declaration.",
+        minorities:
+          "A long-established country of immigration with anti-discrimination law and large Turkish, Ukrainian, Arab, and Eastern European communities. Day-to-day acceptance is high in urban areas, though far-right sentiment is a real and rising tension in parts of the east.",
+      },
+    },
   },
   PT: {
     code: "PT",
@@ -74,10 +216,26 @@ const DESTINATIONS: Record<string, DestinationIdentity & { quickFacts: QuickFact
 };
 
 /** Per-pairing content: the citizenship-specific read of a destination. */
-type PairContent = { entry: EntryBrief; glance: GlanceMetric[]; fitsYouIf: FitSignal[] };
+type PairContent = {
+  entry: EntryBrief;
+  glance: GlanceMetric[];
+  fitsYouIf: FitSignal[];
+  /** The main language read from this citizen's point of view. */
+  language: LanguageForReader;
+};
 
 const PAIR_CONTENT: Record<string, PairContent> = {
   "UKR/DE": {
+    language: {
+      official: ["German"],
+      difficulty: {
+        label: "Moderately hard",
+        rating: { score: 2, max: 5, tone: "warn" },
+        note: "German is Germanic and unrelated to Ukrainian or Russian, so grammar and vocabulary start unfamiliar. But it shares the Latin alphabet, and any English you have shares roots with German — a real head start on words like Haus, Buch, and Wasser.",
+      },
+      english:
+        "English gets you far in Berlin, big cities, universities, and tech, but German runs everyday bureaucracy, healthcare, and most jobs. Plan to reach B1 for permanent residence and citizenship.",
+    },
     entry: {
       summary:
         "You can enter the Schengen area visa-free for 90 days — and as a Ukrainian, activate temporary protection for the immediate right to live, work, and study.",
@@ -198,6 +356,15 @@ const PAIR_CONTENT: Record<string, PairContent> = {
 
 function synthesizePair(): PairContent {
   return {
+    language: {
+      official: [],
+      difficulty: {
+        label: "Being gathered",
+        rating: { score: 0, max: 5, tone: "neutral" },
+        note: "The language read for your citizenship is still being gathered.",
+      },
+      english: "Being gathered.",
+    },
     entry: {
       summary: "Entry rules for your citizenship are still being gathered.",
       facts: [],
@@ -233,8 +400,13 @@ export function getDestinationProfile(
     return null;
   }
 
-  const { quickFacts, ...destination } = destinationEntry;
+  const { quickFacts, country: countryBase, ...destination } = destinationEntry;
   const pair = PAIR_CONTENT[`${citizenship.code}/${destination.code}`] ?? synthesizePair();
+  const { language, ...overview } = pair;
 
-  return { citizenship, destination, quickFacts, ...pair };
+  // Country facts are destination-level; only the language read is per-citizen,
+  // so it is folded in here. Absent country facts leave the view a graceful stub.
+  const country = countryBase ? { ...countryBase, language } : undefined;
+
+  return { citizenship, destination, quickFacts, ...overview, country };
 }

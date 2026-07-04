@@ -84,4 +84,72 @@ export type DestinationProfile = {
    */
   glance: GlanceMetric[];
   fitsYouIf: FitSignal[];
+  /** Deep country profile for the Country view; absent while being gathered. */
+  country?: CountryProfile;
 };
+
+/* ------------------------------------------------------------------ *
+ * Country view — the deep destination profile (geography, people,
+ * economy, government, language, culture, safety, rights). Most of it
+ * is destination-level fact; only `language` is read from the visitor's
+ * citizenship. Authored in the fixture FE-first, same as the Overview.
+ * ------------------------------------------------------------------ */
+
+/** A key/value stat for the Country stat grids, with an optional good/bad tone. */
+export type CountryStat = { label: string; value: string; note?: string; tone?: AccentTone };
+
+/** One labelled bar in a proportion chart (city size, age band, religion, …). */
+export type ShareDatum = { label: string; value: number; note?: string };
+
+/**
+ * The main language read from the visitor's point of view: not "is English
+ * spoken" but *which* language runs daily life, how hard it is to learn given
+ * the reader's probable native languages, and how far English alone carries.
+ */
+export type LanguageForReader = {
+  official: string[];
+  /** Difficulty of the main language *for this reader*, as a good/bad meter. */
+  difficulty: { label: string; rating: MetricRating; note: string };
+  /** How much English alone gets done day to day. */
+  english: string;
+};
+
+/** A single cultural/everyday-life note (etiquette, rhythm, a local quirk). */
+export type CultureNote = { title: string; body: string };
+
+/** Destination-level country facts (everything except the reader's language). */
+export type CountryBase = {
+  geography: {
+    location: string;
+    climate: string;
+    borders: string[];
+    stats: CountryStat[];
+    /** Largest cities by population (millions), for a magnitude bar. */
+    cities: ShareDatum[];
+  };
+  people: {
+    stats: CountryStat[];
+    /** Age bands as shares of the whole (percent). */
+    ageBands: ShareDatum[];
+    /** Religious affiliation as shares of the whole (percent). */
+    religions: ShareDatum[];
+  };
+  economy: {
+    summary: string;
+    stats: CountryStat[];
+    /** Sectors actively hiring / where the jobs are. */
+    industries: string[];
+  };
+  government: {
+    summary: string;
+    system: string;
+    memberships: string[];
+    stats: CountryStat[];
+  };
+  culture: { summary: string; notes: CultureNote[] };
+  safety: { summary: string; stats: CountryStat[] };
+  rights: { lgbtq: string; minorities: string };
+};
+
+/** Full Country profile = destination facts + the reader's language read. */
+export type CountryProfile = CountryBase & { language: LanguageForReader };

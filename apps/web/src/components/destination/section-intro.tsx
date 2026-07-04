@@ -10,7 +10,8 @@ export function SectionIntro({
 }: {
   eyebrow: React.ReactNode;
   title: string;
-  lead: string;
+  /** Optional lead paragraph; omitted where the section opens on its own nav. */
+  lead?: string;
 }) {
   return (
     <header className="space-y-3">
@@ -20,7 +21,7 @@ export function SectionIntro({
       <h1 className="font-display text-3xl font-semibold text-(--text) sm:text-[length:var(--fs-3xl)]">
         {title}
       </h1>
-      <p className="max-w-2xl text-(--text-2)">{lead}</p>
+      {lead && <p className="max-w-2xl text-(--text-2)">{lead}</p>}
     </header>
   );
 }
