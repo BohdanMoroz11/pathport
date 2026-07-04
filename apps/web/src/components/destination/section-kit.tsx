@@ -1,4 +1,10 @@
-import type { CountryStat, MetricRating, ShareDatum } from "@/lib/destination/types";
+import type {
+  CountryStat,
+  MetricRating,
+  PriceItem,
+  ShareDatum,
+  TaxBreakdown,
+} from "@/lib/destination/types";
 import { ModuleHeading } from "./overview";
 import { TONE_BG, TONE_TEXT } from "./tone";
 
@@ -169,6 +175,67 @@ export function TagRow({ items }: { items: string[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Reference-price list: item → cost, in a bordered divided panel. */
+export function PriceList({ items }: { items: PriceItem[] }) {
+  return (
+    <dl className="divide-y divide-(--border) overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
+      {items.map((item) => (
+        <div key={item.label} className="flex items-center justify-between gap-4 px-4 py-2.5">
+          <dt className="text-sm text-(--text-2)">
+            {item.label}
+            {item.note && <span className="ml-1.5 text-xs text-(--text-3)">{item.note}</span>}
+          </dt>
+          <dd className="shrink-0 font-display text-sm font-medium tabular-nums text-(--text)">
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * Take-home split: what a sample gross nets after tax + social insurance, drawn
+ * as a two-part bar (net vs. deductions). Owned by the Work & income view; the
+ * Living view links to it rather than repeating the detail.
+ */
+export function TakeHome({ tax }: { tax: TaxBreakdown }) {
+  const deductions = tax.gross - tax.net;
+  const netPct = (tax.net / tax.gross) * 100;
+  return (
+    <Panel>
+      <Caption>{tax.grossLabel}</Caption>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs text-(--text-3)">Take-home</p>
+          <p className="font-display text-2xl font-semibold text-(--brand)">
+            €{tax.net.toLocaleString("en-US")}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-(--text-3)">Tax & insurance</p>
+          <p className="font-display text-lg font-semibold text-(--text-2)">
+            €{deductions.toLocaleString("en-US")}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 flex h-3 gap-0.5">
+        <div
+          className="rounded-l-(--radius-pill) bg-(--brand)"
+          style={{ width: `${netPct}%` }}
+          role="img"
+          aria-label={`Take-home €${tax.net}`}
+        />
+        <div className="flex-1 rounded-r-(--radius-pill) bg-(--neutral)" aria-hidden="true" />
+      </div>
+      <p className="mt-1.5 text-xs text-(--text-3)">
+        of €{tax.gross.toLocaleString("en-US")} gross · ≈
+        {Math.round((deductions / tax.gross) * 100)}% to tax & social insurance
+      </p>
+    </Panel>
   );
 }
 
