@@ -4,6 +4,7 @@ import type {
   DestinationIdentity,
   DestinationProfile,
   EntryBrief,
+  FamilyProfile,
   FitSignal,
   GlanceMetric,
   LanguageForReader,
@@ -34,6 +35,8 @@ type DestinationEntry = DestinationIdentity & {
   living?: LivingProfile;
   /** Work & income facts for the Work view; only DE is authored so far. */
   work?: WorkProfile;
+  /** Family & pets facts for the Family view; only DE is authored so far. */
+  family?: FamilyProfile;
 };
 
 const DESTINATIONS: Record<string, DestinationEntry> = {
@@ -461,6 +464,113 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         note: "An ageing workforce means chronic shortages in health, care, engineering, IT, and the skilled trades — these carry the fastest visa routes and the best bargaining power. Creative and generalist office roles are far more competitive and usually need fluent German.",
       },
     },
+    family: {
+      intro:
+        "Who you can bring with you, and on what terms — plus how to move a pet. Germany lets residents reunite with their closest family (a spouse and minor children) with work rights that follow the sponsor, but bringing parents or adult children is reserved for genuine hardship. Cats, dogs, and ferrets travel on a microchip, a rabies shot, and the right paperwork, with no quarantine for compliant animals.",
+      reunification: {
+        summary:
+          "Family reunification (Familiennachzug) is a legal right for your core family once you hold a residence permit — usually a spouse and unmarried children under 18, whose permits and work rights are tied to yours. You generally need to show you can house and support them without state help, and a spouse often needs basic German (A1) before arrival, though Blue Card holders, EU citizens, and Ukrainians under temporary protection are exempt from the language test.",
+        stats: [
+          { label: "Core family", value: "Spouse + minor kids", tone: "pos" },
+          { label: "Their work rights", value: "Follow the sponsor", tone: "pos" },
+          { label: "Spouse German", value: "A1", note: "waived in many cases" },
+          { label: "Income proof", value: "Required", note: "support without benefits" },
+          { label: "Adequate housing", value: "Required" },
+          { label: "Processing", value: "3–12 months", tone: "warn" },
+        ],
+      },
+      members: [
+        {
+          label: "Spouse or registered partner",
+          feasibility: "yes",
+          tagline: "A husband, wife, or registered life partner.",
+          conditions: [
+            "Marriage or partnership recognised in Germany",
+            "Both partners usually 18 or older",
+            "Basic German (A1) before arrival — waived for Blue Card, EU, and protection cases",
+          ],
+        },
+        {
+          label: "Children under 18",
+          feasibility: "yes",
+          tagline: "Your unmarried minor children.",
+          conditions: [
+            "Under 18 and unmarried",
+            "Custody or the other parent's consent",
+            "Travel on their own passport",
+          ],
+        },
+        {
+          label: "Unmarried or same-sex partner",
+          feasibility: "maybe",
+          tagline: "A partner you're not married to (yet).",
+          conditions: [
+            "Much harder without marriage or a registered partnership",
+            "Same-sex couples: marry or register a partnership to qualify",
+            "Assessed case by case",
+          ],
+        },
+        {
+          label: "Parents or adult children",
+          feasibility: "no",
+          tagline: "Your own or your spouse's parents; grown-up kids.",
+          conditions: [
+            "No general right for adults",
+            "Only in exceptional hardship (extraordinary dependency)",
+            "An accompanying minor's sole parent is a narrow exception",
+          ],
+        },
+      ],
+      perks: {
+        summary:
+          "Reuniting family are not just along for the ride — a spouse gets the unrestricted right to work, children slot straight into free schooling, and the whole household is covered by your public health insurance at no extra cost. Families also draw child benefit and some of the most generous parental leave in Europe.",
+        stats: [
+          { label: "Spouse work", value: "Unrestricted", tone: "pos" },
+          { label: "Kids' schooling", value: "Free & compulsory", tone: "pos" },
+          { label: "Health cover", value: "Family included", note: "public GKV", tone: "pos" },
+          { label: "Child benefit", value: "€255/child/mo", note: "Kindergeld", tone: "pos" },
+          { label: "Parental leave", value: "Up to 3 yrs", tone: "pos" },
+          { label: "First residence", value: "Tied to sponsor" },
+        ],
+      },
+      pets: {
+        summary:
+          "Bringing a cat, dog, or ferret from within the EU is simple: an ISO microchip, a valid rabies vaccination, and an EU pet passport. From outside the EU you swap the passport for an official vet health certificate and, from some countries, add a rabies antibody blood test. Compliant animals face no quarantine — but four dog breeds are banned from import, and other breed rules vary by federal state.",
+        checklist: [
+          {
+            title: "Microchip first",
+            body: "Your pet needs an ISO-standard (11784/11785) microchip, fitted before the rabies shot so the vaccination is linked to the animal.",
+          },
+          {
+            title: "Rabies vaccination",
+            body: "A valid rabies vaccination given at least 21 days before travel — the microchip must already be in place when it's administered.",
+          },
+          {
+            title: "Passport or health certificate",
+            body: "EU pets travel on an EU pet passport from any vet; from outside the EU you need an official veterinary health certificate, plus a rabies antibody titre test from higher-risk countries.",
+          },
+          {
+            title: "Register and pay dog tax",
+            body: "No quarantine for compliant animals. Once you settle, register a dog with your city and pay the annual Hundesteuer dog tax.",
+          },
+        ],
+        stats: [
+          { label: "Quarantine", value: "None", note: "if compliant", tone: "pos" },
+          { label: "Microchip", value: "Required", note: "ISO 11784/11785" },
+          { label: "Rabies vaccine", value: "21+ days before" },
+          { label: "Pets per person", value: "Up to 5" },
+          { label: "EU pet passport", value: "From any EU vet", tone: "pos" },
+          { label: "Dog tax", value: "€90–190/yr", note: "varies by city", tone: "warn" },
+        ],
+        restricted: [
+          "Pit Bull Terrier",
+          "American Staffordshire Terrier",
+          "Staffordshire Bull Terrier",
+          "Bull Terrier",
+        ],
+        note: "These four 'category 1' breeds are banned from import into Germany, and rules for other breeds (and any crossbreeds) differ by federal state — check the Bundesland you're moving to before you travel. Exotic, wild, and endangered species carry separate CITES and animal-welfare rules.",
+      },
+    },
   },
   PT: {
     code: "PT",
@@ -681,14 +791,21 @@ export function getDestinationProfile(
     return null;
   }
 
-  const { quickFacts, country: countryBase, living, work, ...destination } = destinationEntry;
+  const {
+    quickFacts,
+    country: countryBase,
+    living,
+    work,
+    family,
+    ...destination
+  } = destinationEntry;
   const pair = PAIR_CONTENT[`${citizenship.code}/${destination.code}`] ?? synthesizePair();
   const { language, ...overview } = pair;
 
   // Country facts are destination-level; only the language read is per-citizen,
-  // so it is folded in here. Absent country/living/work facts leave those views
-  // a graceful stub.
+  // so it is folded in here. Absent country/living/work/family facts leave those
+  // views a graceful stub.
   const country = countryBase ? { ...countryBase, language } : undefined;
 
-  return { citizenship, destination, quickFacts, ...overview, country, living, work };
+  return { citizenship, destination, quickFacts, ...overview, country, living, work, family };
 }

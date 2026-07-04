@@ -90,6 +90,8 @@ export type DestinationProfile = {
   living?: LivingProfile;
   /** Work & income profile for the Work view; absent while being gathered. */
   work?: WorkProfile;
+  /** Family & pets profile for the Family view; absent while being gathered. */
+  family?: FamilyProfile;
 };
 
 /* ------------------------------------------------------------------ *
@@ -256,4 +258,41 @@ export type WorkProfile = {
   setup: WorkStep[];
   credentials: { summary: string; stats: CountryStat[] };
   demand: { inDemand: string[]; saturated: string[]; note: string };
+};
+
+/* ------------------------------------------------------------------ *
+ * Family & pets view — who you can bring (partner, children, parents),
+ * on what conditions, what family gets once here, and how to move an
+ * animal (microchip, rabies, passport, quarantine, restricted breeds).
+ * Destination-level policy, authored in the fixture FE-first.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Someone you might bring under family reunification. `feasibility` reuses the
+ * Overview yes/maybe/no read — a clear right, a qualified case, or effectively
+ * closed — and drives the marker; `conditions` are what you must satisfy.
+ */
+export type FamilyMember = {
+  label: string;
+  feasibility: "yes" | "maybe" | "no";
+  tagline: string;
+  conditions: string[];
+};
+
+export type FamilyProfile = {
+  intro: string;
+  reunification: { summary: string; stats: CountryStat[] };
+  /** Who you can bring, most-feasible first. */
+  members: FamilyMember[];
+  /** What family members get once here (work, school, healthcare, benefits). */
+  perks: { summary: string; stats: CountryStat[] };
+  pets: {
+    summary: string;
+    /** The import sequence in order — microchip → rabies → papers → arrival. */
+    checklist: WorkStep[];
+    stats: CountryStat[];
+    /** Restricted / banned dog breeds. */
+    restricted: string[];
+    note: string;
+  };
 };
