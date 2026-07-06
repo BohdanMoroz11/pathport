@@ -4,10 +4,12 @@ import type {
   PriceItem,
   ShareDatum,
   TaxBreakdown,
+  TimelineEntry,
+  TrendDirection,
   WorkStep,
 } from "@/lib/destination/types";
 import { ModuleHeading } from "./overview";
-import { TONE_BG, TONE_TEXT } from "./tone";
+import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /**
  * Shared building blocks for the deep destination sections (Country, Living, …):
@@ -181,6 +183,59 @@ export function Steps({ steps }: { steps: WorkStep[] }) {
           <div>
             <p className="text-sm font-medium text-(--text)">{step.title}</p>
             <p className="mt-0.5 text-sm leading-6 text-(--text-2)">{step.body}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+const TREND_META: Record<
+  TrendDirection,
+  { glyph: string; tone: "pos" | "danger" | "neutral"; text: string }
+> = {
+  improving: { glyph: "↑", tone: "pos", text: "Improving" },
+  worsening: { glyph: "↓", tone: "danger", text: "Worsening" },
+  stable: { glyph: "→", tone: "neutral", text: "Stable" },
+};
+
+/**
+ * A direction-of-travel badge (improving / worsening / stable). A status signal,
+ * so it always pairs the tone with an arrow and a word — never colour alone.
+ */
+export function TrendBadge({ direction }: { direction: TrendDirection }) {
+  const meta = TREND_META[direction];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border bg-(--surface) px-2.5 py-1 text-xs font-medium ${TONE_BORDER[meta.tone]} ${TONE_TEXT[meta.tone]}`}
+    >
+      <span aria-hidden="true">{meta.glyph}</span>
+      {meta.text}
+    </span>
+  );
+}
+
+/** A vertical recent-history timeline: dotted rail, period + label + note. */
+export function Timeline({ entries }: { entries: TimelineEntry[] }) {
+  return (
+    <ol>
+      {entries.map((entry, i) => (
+        <li key={entry.period} className="flex gap-4">
+          <div className="flex flex-col items-center">
+            <span
+              aria-hidden="true"
+              className="mt-1.5 size-2.5 shrink-0 rounded-full bg-(--brand)"
+            />
+            {i < entries.length - 1 && (
+              <span aria-hidden="true" className="w-px flex-1 bg-(--border)" />
+            )}
+          </div>
+          <div className="pb-5">
+            <p className="font-display text-sm font-semibold text-(--text)">
+              {entry.label}
+              <span className="ml-2 text-xs font-normal text-(--text-3)">{entry.period}</span>
+            </p>
+            {entry.note && <p className="mt-0.5 text-xs leading-5 text-(--text-2)">{entry.note}</p>}
           </div>
         </li>
       ))}

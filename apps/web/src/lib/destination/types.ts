@@ -145,17 +145,71 @@ export type LanguageForReader = {
 /** A single cultural/everyday-life note (etiquette, rhythm, a local quirk). */
 export type CultureNote = { title: string; body: string };
 
+/** One season's typical weather, for the climate breakdown. */
+export type ClimateSeason = {
+  label: string;
+  /** Which months this covers, e.g. "Dec–Feb". */
+  months: string;
+  /** Typical temperature range, display-ready, e.g. "−2 to 4°C". */
+  temp: string;
+  /** Rain/snow character, e.g. "Wet & grey, some snow". */
+  precip: string;
+  note?: string;
+};
+
+/** A captioned image placeholder for the geography gallery (no asset yet). */
+export type GeoImage = { caption: string };
+
+/** One point in a metric's time series (year → value). */
+export type TrendPoint = { year: string; value: number };
+
+/**
+ * A single switchable metric for the economy trend chart: a time series plotted
+ * as a single-hue line, with display affixes and a one-line read of the trend.
+ */
+export type TrendSeries = {
+  id: string;
+  label: string;
+  /** Display prefix (e.g. "$", "€") and suffix (e.g. "T", "%", "/mo"). */
+  prefix?: string;
+  unit?: string;
+  points: TrendPoint[];
+  /** A sentence describing this metric's trend, shown under the chart. */
+  note: string;
+};
+
+/** A share of parliament/vote for one political force (magnitude bar). */
+export type PartyShare = { label: string; value: number; note?: string };
+
+/** One entry in a recent-history timeline (governments, eras). */
+export type TimelineEntry = { period: string; label: string; note?: string };
+
+/** Direction of a good/bad trend over time. */
+export type TrendDirection = "improving" | "worsening" | "stable";
+
+/** A qualitative note about how something varies by region. */
+export type RegionNote = { label: string; note: string; tone?: AccentTone };
+
 /** Destination-level country facts (everything except the reader's language). */
 export type CountryBase = {
   geography: {
     location: string;
-    climate: string;
     borders: string[];
     stats: CountryStat[];
     /** Largest cities by population (millions), for a magnitude bar. */
     cities: ShareDatum[];
+    /** Captioned image placeholders for the geography gallery. */
+    images: GeoImage[];
+    climate: {
+      summary: string;
+      /** How predictable the weather is (extremes, seasonality). */
+      stability: string;
+      seasons: ClimateSeason[];
+    };
   };
   people: {
+    /** Narrative overview, in the rhythm of the other sections. */
+    summary: string;
     stats: CountryStat[];
     /** Age bands as shares of the whole (percent). */
     ageBands: ShareDatum[];
@@ -165,17 +219,32 @@ export type CountryBase = {
   economy: {
     summary: string;
     stats: CountryStat[];
-    /** Sectors actively hiring / where the jobs are. */
-    industries: string[];
+    /** Switchable time-series metrics (GDP, pay, unemployment, …). */
+    trends: TrendSeries[];
   };
   government: {
     summary: string;
     system: string;
     memberships: string[];
     stats: CountryStat[];
+    /** Main political forces by share of parliament. */
+    parties: PartyShare[];
+    /** Who governs right now, in a sentence. */
+    currentGovernment: string;
+    /** When the next scheduled national vote falls due. */
+    nextElection: string;
+    /** Recent governing eras, most-recent first. */
+    timeline: TimelineEntry[];
   };
   culture: { summary: string; notes: CultureNote[] };
-  safety: { summary: string; stats: CountryStat[] };
+  safety: {
+    summary: string;
+    stats: CountryStat[];
+    /** Where the trend is heading, with a supporting sentence. */
+    trend: { direction: TrendDirection; note: string };
+    /** How safety varies across the country. */
+    regional: { summary: string; areas: RegionNote[] };
+  };
   rights: { lgbtq: string; minorities: string };
 };
 
@@ -276,6 +345,8 @@ export type WorkProfile = {
     accounting: string;
   };
   finding: { summary: string; channels: string[] };
+  /** Sectors actively hiring / where the jobs are (moved from Country). */
+  industries: string[];
   /** Getting set up as self-employed, in order. */
   setup: WorkStep[];
   credentials: { summary: string; stats: CountryStat[] };

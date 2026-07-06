@@ -1,4 +1,12 @@
-import type { CountryProfile, CultureNote, LanguageForReader } from "@/lib/destination/types";
+import type {
+  ClimateSeason,
+  CountryProfile,
+  CultureNote,
+  GeoImage,
+  LanguageForReader,
+  RegionNote,
+} from "@/lib/destination/types";
+import { EconomyTrend } from "./economy-trend";
 import {
   Block,
   Caption,
@@ -10,7 +18,10 @@ import {
   type SectionMeta,
   StatGrid,
   TagRow,
+  Timeline,
+  TrendBadge,
 } from "./section-kit";
+import { TONE_BG } from "./tone";
 
 /**
  * The Country view's sections, in order — the single source for both the
@@ -20,7 +31,7 @@ import {
 const SECTIONS = [
   { id: "geography", emoji: "🗺️", title: "Geography & climate" },
   { id: "people", emoji: "👥", title: "People" },
-  { id: "economy", emoji: "💶", title: "Economy & jobs" },
+  { id: "economy", emoji: "💶", title: "Economy" },
   { id: "government", emoji: "🏛️", title: "Government" },
   { id: "rights", emoji: "🤝", title: "Rights & inclusion" },
   { id: "language", emoji: "🗣️", title: "Language" },
@@ -32,6 +43,75 @@ const S = Object.fromEntries(SECTIONS.map((s) => [s.id, s])) as Record<
   (typeof SECTIONS)[number]["id"],
   SectionMeta
 >;
+
+/** Captioned image placeholders — real photography is a known asset upgrade. */
+function ImageGallery({ images }: { images: GeoImage[] }) {
+  return (
+    <ul className="grid grid-cols-2 gap-3">
+      {images.map((image) => (
+        <li
+          key={image.caption}
+          className="overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)"
+        >
+          <div
+            aria-hidden="true"
+            className="grid aspect-[16/10] place-items-center bg-(--surface-2) text-2xl text-(--text-3)"
+          >
+            🏞️
+          </div>
+          <p className="px-3 py-2 text-xs leading-5 text-(--text-2)">{image.caption}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Seasonal weather breakdown — temperature and rain/snow across the year. */
+function ClimateSeasons({ seasons }: { seasons: ClimateSeason[] }) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {seasons.map((season) => (
+        <li
+          key={season.label}
+          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-4"
+        >
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="font-display text-sm font-semibold text-(--text)">{season.label}</p>
+            <p className="text-xs text-(--text-3)">{season.months}</p>
+          </div>
+          <p className="mt-2 font-display text-lg font-semibold tabular-nums text-(--text)">
+            {season.temp}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-(--text-2)">{season.precip}</p>
+          {season.note && <p className="mt-1 text-[11px] text-(--text-3)">{season.note}</p>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** How safety varies by area — a tone-dotted list, not a whole-region verdict. */
+function RegionAreas({ areas }: { areas: RegionNote[] }) {
+  return (
+    <ul className="space-y-2">
+      {areas.map((area) => (
+        <li
+          key={area.label}
+          className="flex gap-3 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3"
+        >
+          <span
+            aria-hidden="true"
+            className={`mt-1.5 size-2 shrink-0 rounded-full ${TONE_BG[area.tone ?? "neutral"]}`}
+          />
+          <span className="min-w-0">
+            <span className="text-sm font-medium text-(--text)">{area.label}</span>
+            <span className="mt-0.5 block text-sm leading-6 text-(--text-2)">{area.note}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 /**
  * Language read from the visitor's point of view: which language runs daily
@@ -99,53 +179,83 @@ function RightsBlock({ lgbtq, minorities }: { lgbtq: string; minorities: string 
 
 /** The deep country profile — the "Country" section body. */
 export function CountryView({ country }: { country: CountryProfile }) {
+  const { geography, people, economy, government, safety } = country;
   return (
     <div className="space-y-10">
       <ContentMap sections={SECTIONS} />
 
       <Block {...S.geography}>
-        <Prose>{country.geography.location}</Prose>
-        <StatGrid stats={country.geography.stats} />
+        <Prose>{geography.location}</Prose>
+        <ImageGallery images={geography.images} />
+        <StatGrid stats={geography.stats} />
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
           <Panel caption="Largest cities · million people">
-            <ProportionBars data={country.geography.cities} unit="M" />
+            <ProportionBars data={geography.cities} unit="M" />
           </Panel>
           <div className="space-y-3">
-            <Caption>Borders {country.geography.borders.length} countries</Caption>
-            <TagRow items={country.geography.borders} />
-            <Prose>{country.geography.climate}</Prose>
+            <Caption>Borders {geography.borders.length} countries</Caption>
+            <TagRow items={geography.borders} />
           </div>
+        </div>
+        <div className="space-y-4">
+          <Caption>Climate</Caption>
+          <Prose>{geography.climate.summary}</Prose>
+          <ClimateSeasons seasons={geography.climate.seasons} />
+          <p className="max-w-2xl text-sm leading-6 text-(--text-3)">
+            {geography.climate.stability}
+          </p>
         </div>
       </Block>
 
       <Block {...S.people}>
-        <StatGrid stats={country.people.stats} />
+        <Prose>{people.summary}</Prose>
+        <StatGrid stats={people.stats} />
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel caption="Age distribution · % of population">
-            <ProportionBars data={country.people.ageBands} unit="%" max={100} />
+            <ProportionBars data={people.ageBands} unit="%" max={100} />
           </Panel>
           <Panel caption="Religious affiliation · % of population">
-            <ProportionBars data={country.people.religions} unit="%" max={100} />
+            <ProportionBars data={people.religions} unit="%" max={100} />
           </Panel>
         </div>
       </Block>
 
       <Block {...S.economy}>
-        <Prose>{country.economy.summary}</Prose>
-        <StatGrid stats={country.economy.stats} />
-        <div className="space-y-2">
-          <Caption>Where the jobs are</Caption>
-          <TagRow items={country.economy.industries} />
+        <Prose>{economy.summary}</Prose>
+        <StatGrid stats={economy.stats} />
+        <div className="space-y-3">
+          <Caption>Trends over time</Caption>
+          <EconomyTrend series={economy.trends} />
         </div>
       </Block>
 
       <Block {...S.government}>
-        <Prose>{country.government.summary}</Prose>
+        <Prose>{government.summary}</Prose>
         <div className="space-y-2">
-          <Caption>{country.government.system} · member of</Caption>
-          <TagRow items={country.government.memberships} />
+          <Caption>{government.system} · member of</Caption>
+          <TagRow items={government.memberships} />
         </div>
-        <StatGrid stats={country.government.stats} />
+        <StatGrid stats={government.stats} />
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <Panel caption="Parliament · % of seats">
+            <ProportionBars data={government.parties} unit="%" max={100} />
+          </Panel>
+          <div className="space-y-4">
+            <div className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5">
+              <Caption>In power now</Caption>
+              <p className="mt-2 text-sm leading-6 text-(--text-2)">
+                {government.currentGovernment}
+              </p>
+              <p className="mt-3 inline-flex rounded-[var(--radius-pill)] border border-(--border) bg-(--surface-2) px-3 py-1 text-xs font-medium text-(--text-2)">
+                🗳️ {government.nextElection}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <Caption>Recent governments</Caption>
+          <Timeline entries={government.timeline} />
+        </div>
       </Block>
 
       <Block {...S.rights}>
@@ -157,8 +267,18 @@ export function CountryView({ country }: { country: CountryProfile }) {
       </Block>
 
       <Block {...S.safety}>
-        <Prose>{country.safety.summary}</Prose>
-        <StatGrid stats={country.safety.stats} />
+        <div className="flex flex-wrap items-center gap-3">
+          <TrendBadge direction={safety.trend.direction} />
+          <p className="text-sm text-(--text-3)">Recent trend</p>
+        </div>
+        <Prose>{safety.summary}</Prose>
+        <StatGrid stats={safety.stats} />
+        <p className="max-w-2xl text-sm leading-6 text-(--text-2)">{safety.trend.note}</p>
+        <div className="space-y-3">
+          <Caption>How it varies by area</Caption>
+          <Prose>{safety.regional.summary}</Prose>
+          <RegionAreas areas={safety.regional.areas} />
+        </div>
       </Block>
 
       <Block {...S.culture}>

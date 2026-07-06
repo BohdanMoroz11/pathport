@@ -60,8 +60,6 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
       geography: {
         location:
           "Central Europe, sharing land borders with nine countries — more than any other EU state — from the North and Baltic Seas down to the Alps.",
-        climate:
-          "Temperate and maritime-to-continental: mild, grey, wet winters and warm summers. Snow is common in the south and east; extremes are rare.",
         borders: [
           "Poland",
           "Czechia",
@@ -86,8 +84,50 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Cologne", value: 1.1 },
           { label: "Frankfurt", value: 0.77, note: "financial hub" },
         ],
+        images: [
+          { caption: "Berlin skyline along the Spree" },
+          { caption: "The Bavarian Alps in the south" },
+          { caption: "North Sea coast & Wadden tidal flats" },
+          { caption: "Rhine valley vineyards" },
+        ],
+        climate: {
+          summary:
+            "Temperate, sitting between mild Atlantic weather in the west and drier continental weather in the east — four distinct seasons, long grey winters, and warm rather than hot summers.",
+          stability:
+            "Predictable and moderate: damaging extremes are rare. But summers are trending hotter and drier, and heatwaves now arrive most years.",
+          seasons: [
+            {
+              label: "Winter",
+              months: "Dec–Feb",
+              temp: "−2 to 4°C",
+              precip: "Grey & wet; snow in the south and east",
+              note: "Short daylight",
+            },
+            {
+              label: "Spring",
+              months: "Mar–May",
+              temp: "4 to 18°C",
+              precip: "Mild, showery",
+            },
+            {
+              label: "Summer",
+              months: "Jun–Aug",
+              temp: "18 to 28°C",
+              precip: "Warm, the odd heatwave",
+              note: "Long evenings",
+            },
+            {
+              label: "Autumn",
+              months: "Sep–Nov",
+              temp: "6 to 16°C",
+              precip: "Cool, damp, foggy",
+            },
+          ],
+        },
       },
       people: {
+        summary:
+          "Germany is Europe's most populous country and one of its oldest — a median age in the mid-forties, low birth rates, and a workforce shrinking as the boomer generation retires, which is exactly why it recruits so hard abroad. It has long been a country of immigration: nearly a fifth of residents were born abroad, with large Turkish, Ukrainian, Polish, Arab, and Southern-European communities concentrated in the cities.",
         stats: [
           { label: "Population", value: "84M", tone: "neutral" },
           { label: "Density", value: "232 /km²" },
@@ -120,15 +160,69 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Minimum wage", value: "€12.82/hr", note: "statutory" },
           { label: "Growth", value: "≈0%", note: "stagnant since 2023", tone: "warn" },
         ],
-        industries: [
-          "Automotive",
-          "Machinery & engineering",
-          "Chemicals & pharma",
-          "Electrical & electronics",
-          "IT & software",
-          "Healthcare & care work",
-          "Skilled trades",
-          "Logistics",
+        trends: [
+          {
+            id: "gdp",
+            label: "GDP",
+            prefix: "$",
+            unit: "T",
+            points: [
+              { year: "2018", value: 3.97 },
+              { year: "2019", value: 3.96 },
+              { year: "2020", value: 3.89 },
+              { year: "2021", value: 4.28 },
+              { year: "2022", value: 4.08 },
+              { year: "2023", value: 4.46 },
+              { year: "2024", value: 4.53 },
+            ],
+            note: "Nominal output has kept climbing, but real growth has been flat since 2022 — an energy shock, weak exports, and soft industrial demand have left the economy stagnant rather than shrinking.",
+          },
+          {
+            id: "pay",
+            label: "Median pay",
+            prefix: "€",
+            unit: "/mo",
+            points: [
+              { year: "2018", value: 3450 },
+              { year: "2019", value: 3550 },
+              { year: "2020", value: 3600 },
+              { year: "2021", value: 3750 },
+              { year: "2022", value: 3900 },
+              { year: "2023", value: 4100 },
+              { year: "2024", value: 4300 },
+            ],
+            note: "Gross wages have risen steadily and jumped after 2022 as unions won inflation catch-up deals — though real (after-inflation) pay only recovered its 2021 level in 2024.",
+          },
+          {
+            id: "unemployment",
+            label: "Unemployment",
+            unit: "%",
+            points: [
+              { year: "2018", value: 5.2 },
+              { year: "2019", value: 5.0 },
+              { year: "2020", value: 6.0 },
+              { year: "2021", value: 5.7 },
+              { year: "2022", value: 5.3 },
+              { year: "2023", value: 5.7 },
+              { year: "2024", value: 6.0 },
+            ],
+            note: "Low and stable by international standards. It rose modestly through the 2020s slowdown but never spiked — the deeper story is a labour shortage, not a jobs shortage.",
+          },
+          {
+            id: "inflation",
+            label: "Inflation",
+            unit: "%",
+            points: [
+              { year: "2018", value: 1.9 },
+              { year: "2019", value: 1.4 },
+              { year: "2020", value: 0.5 },
+              { year: "2021", value: 3.1 },
+              { year: "2022", value: 6.9 },
+              { year: "2023", value: 5.9 },
+              { year: "2024", value: 2.3 },
+            ],
+            note: "The 2022 energy crisis drove inflation to a post-reunification high near 7%, squeezing real incomes; it has since fallen back close to the ECB's 2% target.",
+          },
         ],
       },
       government: {
@@ -141,6 +235,23 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Corruption (CPI)", value: "Top 15", note: "low corruption", tone: "pos" },
           { label: "Press freedom", value: "High", tone: "pos" },
           { label: "Rule of law", value: "Strong", tone: "pos" },
+        ],
+        parties: [
+          { label: "CDU/CSU", value: 28, note: "centre-right · governing" },
+          { label: "AfD", value: 21, note: "far-right · opposition" },
+          { label: "SPD", value: 16, note: "centre-left · governing" },
+          { label: "Greens", value: 12, note: "opposition" },
+          { label: "Die Linke", value: 9, note: "left · opposition" },
+          { label: "Others", value: 14 },
+        ],
+        currentGovernment:
+          "A CDU/CSU–SPD 'grand coalition' has governed since May 2025 under Chancellor Friedrich Merz, formed after the centre-right won February 2025's snap election — called when the previous three-party 'traffic-light' coalition collapsed over the budget.",
+        nextElection: "Next federal election due by 2029",
+        timeline: [
+          { period: "2025–", label: "Merz cabinet", note: "CDU/CSU–SPD grand coalition" },
+          { period: "2021–2025", label: "Scholz cabinet", note: "SPD–Greens–FDP 'traffic light'" },
+          { period: "2005–2021", label: "Merkel era", note: "CDU-led, four terms" },
+          { period: "1998–2005", label: "Schröder cabinet", note: "SPD–Greens" },
         ],
       },
       culture: {
@@ -182,6 +293,36 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Petty theft", value: "Moderate", note: "transit hubs", tone: "warn" },
           { label: "Emergency", value: "112", note: "police & ambulance" },
         ],
+        trend: {
+          direction: "stable",
+          note: "Recorded crime ticked up in 2023 from pandemic-era lows — mostly theft and public-space offences rather than violence — but it stays far below the 1990s peak and the long-term trend is flat-to-down.",
+        },
+        regional: {
+          summary:
+            "Safety is high nationwide, and risk is about specific districts, not whole regions. The everyday concern is petty theft in a handful of big-city areas, not personal danger.",
+          areas: [
+            {
+              label: "Big-city station districts",
+              note: "Frankfurt's Bahnhofsviertel, parts of central Berlin and similar hubs see the most open drug activity and pickpocketing.",
+              tone: "warn",
+            },
+            {
+              label: "Tourist & nightlife zones",
+              note: "Crowds mean pickpockets — Oktoberfest, Christmas markets, and the main shopping streets.",
+              tone: "warn",
+            },
+            {
+              label: "Smaller cities & rural areas",
+              note: "Very low crime; the real risks out here are road safety and isolation, not people.",
+              tone: "pos",
+            },
+            {
+              label: "Late-night transit",
+              note: "Generally safe and well-used; concerns cluster around a few nightlife hubs rather than the network as a whole.",
+              tone: "neutral",
+            },
+          ],
+        },
       },
       rights: {
         lgbtq:
@@ -418,6 +559,16 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           "Recruiters (IT & engineering)",
         ],
       },
+      industries: [
+        "Automotive",
+        "Machinery & engineering",
+        "Chemicals & pharma",
+        "Electrical & electronics",
+        "IT & software",
+        "Healthcare & care work",
+        "Skilled trades",
+        "Logistics",
+      ],
       setup: [
         {
           title: "Register your address (Anmeldung)",
