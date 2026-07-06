@@ -214,7 +214,10 @@ Concept areas to resolve:
 
 ### S3 [UI]: Reference Page (Style Concept)
 
-Status: In-progress — UI done; the schema fold-down (tasks 3–4) is underway.
+Status: Done — UI reference (the full destination shell) built, and the schema
+fold-down landed: the shell now reads real data through the API, with the section
+content stored as validated JSONB. Whole pipeline green (typecheck, Biome, unit,
+db + api integration, Playwright + axe, Lighthouse ≥ 90).
 
 Build **one** real, fully-styled explorer page end to end to establish the
 overall visual style as a concrete concept — before extracting any reusable
@@ -239,12 +242,15 @@ Tasks:
       destination shell, not just one page — see above.)*
 - [x] Treat it as the style benchmark: this is where "calm, modern, useful" is
       proven visually before it is generalized.
-- [~] Let the page drive the **domain schema**: as it reveals what the surface must
+- [x] Let the page drive the **domain schema**: as it reveals what the surface must
       hold, evolve the schema + demo seed to match (starting with the
-      `destination_countries` stub if the country page is chosen). The page may
-      render against a provisional shape while the migration settles. *(In progress:
-      folding the fixtures down into contracts → API → Drizzle + seed.)*
-- [~] Record the resulting domain-schema changes and open questions in
+      `destination_countries` stub if the country page is chosen). *(Done: folded the
+      fixtures down into contracts → API → Drizzle + seed. Identity columns +
+      validated-JSONB section profiles on `destination_countries`; the pairing
+      profile broadens `arrival_context`; served at
+      `/citizenships/:c/destinations/:d/profile` and consumed via the web API client,
+      retiring the FE fixtures.)*
+- [x] Record the resulting domain-schema changes and open questions in
       [../domain-model.md](../domain-model.md) so the shape is tracked, not implicit.
 - [x] Keep it accessible and Lighthouse-clean from the start. *(Playwright + axe +
       Lighthouse ≥ 90 green.)*
