@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { ArrivalContext, DestinationSummary } from "@pathport/contracts";
+import type { ArrivalContext, DestinationProfile, DestinationSummary } from "@pathport/contracts";
 import {
   arrivalContext,
   citizenships,
@@ -9,6 +9,7 @@ import {
 } from "@pathport/db";
 import { and, asc, countDistinct, eq } from "drizzle-orm";
 import { DatabaseService } from "../database/database.service";
+import { toDestinationProfile } from "./destination-profile.mapper";
 
 @Injectable()
 export class DestinationsService {
@@ -50,6 +51,60 @@ export class DestinationsService {
       routeCount: Number(destination.routeCount),
       arrivalContext: contexts.get(destination.code) ?? null,
     }));
+  }
+
+  /**
+   * The full destination shell for a citizenship × destination: identity plus
+   * the destination-level sections and the reader-specific pairing content,
+   * assembled and validated by {@link toDestinationProfile}. 404s when either
+   * code is unknown; a known pair with no authored pairing row still resolves
+   * (the mapper degrades the reader-specific reads to a "being gathered" stub).
+   */
+  async getProfile(citizenshipCode: string, destinationCode: string): Promise<DestinationProfile> {
+    const [citizenship] = await this.database.client
+      .select({
+        id: citizenships.id,
+        code: citizenships.code,
+        name: citizenships.name,
+        flag: citizenships.flag,
+      })
+      .from(citizenships)
+      .where(eq(citizenships.code, citizenshipCode.toUpperCase()))
+      .limit(1);
+    if (!citizenship) {
+      throw new NotFoundException(`Unknown citizenship "${citizenshipCode}".`);
+    }
+
+    const [destination] = await this.database.client
+      .select({
+        id: destinationCountries.id,
+        code: destinationCountries.code,
+        name: destinationCountries.name,
+        flag: destinationCountries.flag,
+        tagline: destinationCountries.tagline,
+        region: destinationCountries.region,
+        description: destinationCountries.description,
+        profile: destinationCountries.profile,
+      })
+      .from(destinationCountries)
+      .where(eq(destinationCountries.code, destinationCode.toUpperCase()))
+      .limit(1);
+    if (!destination) {
+      throw new NotFoundException(`Unknown destination "${destinationCode}".`);
+    }
+
+    const [pairing] = await this.database.client
+      .select({ profile: arrivalContext.profile })
+      .from(arrivalContext)
+      .where(
+        and(
+          eq(arrivalContext.citizenshipId, citizenship.id),
+          eq(arrivalContext.destinationCountryId, destination.id),
+        ),
+      )
+      .limit(1);
+
+    return toDestinationProfile({ citizenship, destination, pairing: pairing ?? null });
   }
 
   private async arrivalContextsByDestination(

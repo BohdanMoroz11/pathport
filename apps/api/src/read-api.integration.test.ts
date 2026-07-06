@@ -1,4 +1,9 @@
-import type { DestinationSummary, RouteDetail, RouteSummary } from "@pathport/contracts";
+import type {
+  DestinationProfile,
+  DestinationSummary,
+  RouteDetail,
+  RouteSummary,
+} from "@pathport/contracts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type ApiTestContext, startApiTestContext, stopApiTestContext } from "./testing/test-app";
 
@@ -91,6 +96,51 @@ describe("Read API", () => {
         confidence: "medium",
         isDemo: true,
       });
+    });
+  });
+
+  describe("GET /citizenships/:code/destinations/:code/profile", () => {
+    it("assembles the authored Germany shell with destination + pairing content", async () => {
+      const response = await http().get("/citizenships/UKR/destinations/DE/profile").expect(200);
+      const profile = response.body as DestinationProfile;
+
+      expect(profile.destination).toMatchObject({ code: "DE", name: "Germany" });
+      expect(profile.destination.tagline).not.toBe("");
+      expect(profile.citizenship.code).toBe("UKR");
+      expect(profile.quickFacts.length).toBeGreaterThan(0);
+      // Destination-level sections are present…
+      expect(profile.country).toBeDefined();
+      expect(profile.living).toBeDefined();
+      expect(profile.work).toBeDefined();
+      expect(profile.family).toBeDefined();
+      // …and the reader-specific pairing (UKR → DE is the fully authored one).
+      expect(profile.country?.language.official).toContain("German");
+      expect(profile.entryDetail).toBeDefined();
+      expect(profile.glance.length).toBeGreaterThan(0);
+    });
+
+    it("degrades a known pair with no authored pairing to the 'being gathered' stub", async () => {
+      // Portugal has no destination-level profile and no pairing rows carry one.
+      const response = await http().get("/citizenships/USA/destinations/PT/profile").expect(200);
+      const profile = response.body as DestinationProfile;
+
+      expect(profile.destination.code).toBe("PT");
+      expect(profile.country).toBeUndefined();
+      expect(profile.entry.summary).toMatch(/being gathered/i);
+      expect(profile.fitsYouIf.length).toBeGreaterThan(0);
+    });
+
+    it("is case-insensitive on both codes", async () => {
+      await http().get("/citizenships/ukr/destinations/de/profile").expect(200);
+    });
+
+    it("404s for an unknown citizenship or destination", async () => {
+      await http().get("/citizenships/ZZZ/destinations/DE/profile").expect(404);
+      await http().get("/citizenships/USA/destinations/ZZ/profile").expect(404);
+    });
+
+    it("400s for a malformed code", async () => {
+      await http().get("/citizenships/USA/destinations/not-a-code/profile").expect(400);
     });
   });
 
