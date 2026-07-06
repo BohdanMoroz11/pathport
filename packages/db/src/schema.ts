@@ -1,3 +1,4 @@
+import type { DestinationDetail, DestinationPairing } from "@pathport/contracts";
 import {
   boolean,
   index,
@@ -76,6 +77,8 @@ export const citizenships = pgTable("citizenships", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: varchar("code", { length: 3 }).notNull().unique(),
   name: text("name").notNull(),
+  // Flag emoji placeholder shown in the destination shell; see docs/domain-model.md.
+  flag: text("flag"),
   ...timestamps,
 });
 
@@ -83,6 +86,20 @@ export const destinationCountries = pgTable("destination_countries", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: varchar("code", { length: 2 }).notNull().unique(),
   name: text("name").notNull(),
+
+  // Destination identity shown across the shell (rail + Overview).
+  flag: text("flag"),
+  tagline: text("tagline"),
+  region: text("region"),
+  description: text("description"),
+
+  // Destination-level section content (Country / Living / Work / Family +
+  // quick facts) as validated JSONB — the shape and its runtime validation live
+  // in @pathport/contracts. Kept as JSONB while the section shapes are volatile;
+  // see docs/domain-model.md.
+  profile: jsonb("profile").$type<DestinationDetail>().notNull().default({}),
+
+  ...contentMetadata,
   ...timestamps,
 });
 
@@ -163,6 +180,13 @@ export const arrivalContext = pgTable(
       .references(() => destinationCountries.id, { onDelete: "cascade" }),
     visaFreeDays: integer("visa_free_days"),
     summary: text("summary").notNull(),
+
+    // Pairing-level, reader-specific section content (language read, entry
+    // brief + detail, glance metrics, fits-you-if) as validated JSONB. This
+    // broadens arrival_context into the citizenship × destination pairing
+    // record; see docs/domain-model.md.
+    profile: jsonb("profile").$type<DestinationPairing>().notNull().default({}),
+
     ...contentMetadata,
     ...timestamps,
   },

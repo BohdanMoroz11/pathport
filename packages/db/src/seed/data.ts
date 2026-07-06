@@ -1,3 +1,4 @@
+import type { DestinationDetail, DestinationPairing } from "@pathport/contracts";
 import type { RouteDetails } from "../route-details.js";
 import type {
   confidenceEnum,
@@ -7,11 +8,26 @@ import type {
   sourceTypeEnum,
   workPermissionEnum,
 } from "../schema.js";
+import { germanyDetail, germanyPairings } from "./destination-profiles.js";
 
 type EnumValue<T extends { enumValues: readonly string[] }> = T["enumValues"][number];
 
-export type SeedCitizenship = { code: string; name: string };
-export type SeedDestination = { code: string; name: string };
+export type SeedCitizenship = { code: string; name: string; flag?: string };
+
+/**
+ * A demo destination. Identity fields and the destination-level `profile`
+ * (Country / Living / Work / Family + quick facts) flesh out the Phase 1
+ * `code + name` stub; only Germany is authored so far (see destination-profiles.ts).
+ */
+export type SeedDestination = {
+  code: string;
+  name: string;
+  flag?: string;
+  tagline?: string;
+  region?: string;
+  description?: string;
+  profile?: DestinationDetail;
+};
 
 export type SeedSource = {
   type: EnumValue<typeof sourceTypeEnum>;
@@ -57,6 +73,8 @@ export type SeedArrivalContext = {
   destination: string;
   visaFreeDays?: number;
   summary: string;
+  /** Pairing-level, reader-specific section content (language, entry, glance, …). */
+  profile?: DestinationPairing;
   reviewStatus?: EnumValue<typeof reviewStatusEnum>;
   confidence?: EnumValue<typeof confidenceEnum>;
 };
@@ -85,11 +103,20 @@ const BOTH = [USA, UKR];
  */
 export const demoSeedData: SeedData = {
   citizenships: [
-    { code: USA, name: "United States" },
-    { code: UKR, name: "Ukraine" },
+    { code: USA, name: "United States", flag: "\u{1F1FA}\u{1F1F8}" },
+    { code: UKR, name: "Ukraine", flag: "\u{1F1FA}\u{1F1E6}" },
   ],
   destinations: [
-    { code: "DE", name: "Germany" },
+    {
+      code: "DE",
+      name: "Germany",
+      flag: "\u{1F1E9}\u{1F1EA}",
+      region: "Western Europe",
+      tagline: "Western Europe · strong labour market · EU member",
+      description:
+        "Germany is the European Union's largest economy and most populous member state, anchoring central Europe with a deep industrial and engineering base and a skills shortage that keeps demand for foreign workers high. It runs a social-market system — universal healthcare, tuition-free public universities, generous parental leave, and strong worker protections — paid for by high taxes and social contributions. Life is orderly and well-served: reliable public transport, walkable cities, and broad legal protections, balanced against a famously thorough bureaucracy that rewards patience and paperwork. German still does most of the day-to-day heavy lifting, though English carries you a long way in larger cities, universities, and the tech sector. The climate is temperate — grey, mild winters and warm summers — and the country is well connected to the rest of Europe by rail and air.",
+      profile: germanyDetail,
+    },
     { code: "PT", name: "Portugal" },
     { code: "ES", name: "Spain" },
   ],
@@ -745,6 +772,7 @@ export const demoSeedData: SeedData = {
       visaFreeDays: 90,
       summary:
         "US citizens can enter the Schengen area visa-free for up to 90 days in any 180-day period.",
+      profile: germanyPairings["USA/DE"],
       confidence: "medium",
     },
     {
@@ -769,6 +797,7 @@ export const demoSeedData: SeedData = {
       visaFreeDays: 90,
       summary:
         "Ukrainian biometric-passport holders can enter the Schengen area visa-free for up to 90 days in any 180-day period.",
+      profile: germanyPairings["UKR/DE"],
       confidence: "medium",
     },
     {

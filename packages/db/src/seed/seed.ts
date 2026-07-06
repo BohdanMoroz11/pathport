@@ -1,3 +1,4 @@
+import { parseDestinationDetail, parseDestinationPairing } from "@pathport/contracts";
 import type { DatabaseClient } from "../client.js";
 import { parseRouteDetails } from "../route-details.js";
 import {
@@ -35,7 +36,7 @@ export async function seedDatabase(
     const row = insertedRow(
       await db
         .insert(citizenships)
-        .values({ code: citizenship.code, name: citizenship.name })
+        .values({ code: citizenship.code, name: citizenship.name, flag: citizenship.flag })
         .returning(),
     );
     citizenshipIds.set(citizenship.code, row.id);
@@ -46,7 +47,17 @@ export async function seedDatabase(
     const row = insertedRow(
       await db
         .insert(destinationCountries)
-        .values({ code: destination.code, name: destination.name })
+        .values({
+          code: destination.code,
+          name: destination.name,
+          flag: destination.flag,
+          tagline: destination.tagline,
+          region: destination.region,
+          description: destination.description,
+          // Validate on write so no malformed profile blob can reach the column.
+          profile: destination.profile ? parseDestinationDetail(destination.profile) : {},
+          isDemo: true,
+        })
         .returning(),
     );
     destinationIds.set(destination.code, row.id);
@@ -123,6 +134,8 @@ export async function seedDatabase(
       destinationCountryId,
       visaFreeDays: context.visaFreeDays,
       summary: context.summary,
+      // Validate on write so no malformed pairing blob can reach the column.
+      profile: context.profile ? parseDestinationPairing(context.profile) : {},
       reviewStatus: context.reviewStatus ?? "needs_review",
       confidence: context.confidence ?? "low",
       isDemo: true,
