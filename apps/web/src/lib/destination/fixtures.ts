@@ -973,7 +973,7 @@ const PAIR_CONTENT: Record<string, PairContent> = {
     },
     entryDetail: {
       intro:
-        "How you first arrive in Germany as a Ukrainian — the visa-free terms, what to carry across the border, and the temporary-protection status that turns a 90-day visit into the immediate right to stay, work, and study. Arrival is the one thing you sort before anything else, so the order of the first steps matters.",
+        "How you first arrive in Germany as a Ukrainian, then the path from the border to a residence permit. Crossing the border turns on your passport; which permit you end up with turns on your route — so this walks the shared first steps and then points you into the specific routes.",
       arrival: {
         summary:
           "With a biometric Ukrainian passport you enter the Schengen area visa-free for up to 90 days in any 180 — no visa and no pre-registration. You don't have to rely on that clock, though: activating temporary protection replaces it with a renewable residence permit, so most people cross as a visitor and switch to protected status within days.",
@@ -998,55 +998,69 @@ const PAIR_CONTENT: Record<string, PairContent> = {
           "Diplomas and qualification certificates, for later recognition",
         ],
       },
-      protection: {
-        summary:
-          "Temporary protection is the fast lane, and it's what almost everyone uses. Under the EU directive first activated in 2022 and extended into 2027, Ukrainians receive a residence permit (§24) without going through the asylum process — the immediate right to live, work, and study, public healthcare, benefits, and school places for children. It's issued for a fixed period and renewed as the EU extends the scheme.",
-        stats: [
-          { label: "Status", value: "Temporary protection", note: "§24 permit", tone: "pos" },
-          { label: "Right to work", value: "Immediate", tone: "pos" },
-          { label: "Healthcare", value: "Included", tone: "pos" },
-          { label: "Benefits", value: "Bürgergeld", note: "if you need it", tone: "pos" },
-          { label: "Extended to", value: "Mar 2027", note: "EU-wide, renewable", tone: "pos" },
-          { label: "Apply at", value: "Ausländerbehörde" },
-        ],
-      },
       onArrival: {
         can: [
           "Stay up to 90 days visa-free while you sort your status",
           "Register your address (Anmeldung)",
-          "Apply for temporary protection right away",
+          "Apply for the residence permit that fits your route",
           "Enrol your children in school",
           "Open a bank account once registered",
         ],
         cannot: [
           "Take a job before your status is registered",
           "Draw long-term benefits before registering",
-          "Stay past 90 days without applying for protection or a permit",
+          "Stay past 90 days without applying for a permit",
         ],
-        note: "The order is the whole game: register your address first, then apply for protection — nearly everything downstream (work, benefits, banking, school) depends on both being done.",
+        note: "The order is the whole game: register your address first, then apply for the permit your route needs — nearly everything downstream (work, benefits, banking, school) depends on both being done.",
       },
-      firstSteps: [
-        {
-          title: "Find somewhere to stay",
-          body: "Arrival centres and municipalities can place you; a private address lets you register straight away and skips the shared-accommodation step.",
-        },
-        {
-          title: "Register your address (Anmeldung)",
-          body: "At the local Bürgeramt. This single step unlocks everything downstream — your status, a bank account, benefits, and school places.",
-        },
-        {
-          title: "Apply for temporary protection",
-          body: "At the Ausländerbehörde (foreigners' office). You're issued a residence permit under §24, with the right to work from day one.",
-        },
-        {
-          title: "Register for benefits and healthcare",
-          body: "Sign up at the Jobcenter for Bürgergeld if you need it, and you're assigned public (GKV) health insurance.",
-        },
-        {
-          title: "Enrol children and start German",
-          body: "Register kids for school or a Kita place, and sign up for an integration or language course toward the B1 you'll need later.",
-        },
-      ],
+      toPermit: {
+        summary:
+          "Arrival gets you into the country; a residence permit is what lets you stay, work, and settle. Which permit you apply for depends on your situation — for most Ukrainians temporary protection is the fast default, but a work, study, or family route may fit you better. The shared first move is always the same: register where you live, then apply for the route that fits.",
+        steps: [
+          {
+            title: "Register your address (Anmeldung)",
+            body: "At the local Bürgeramt. This single step unlocks everything downstream — your permit, a bank account, benefits, and school places.",
+          },
+          {
+            title: "Choose the route that fits you",
+            body: "Temporary protection, a work permit, study, or family reunion each lead to a different permit. Compare them in Routes on cost, timeline, and complexity.",
+          },
+          {
+            title: "Apply for that route's permit",
+            body: "Book an appointment at the Ausländerbehörde (foreigners' office) — or, for some routes, a German mission abroad — and submit that route's documents.",
+          },
+          {
+            title: "Set up healthcare, banking, and benefits",
+            body: "Once registered you're assigned public (GKV) health insurance, can open a bank account, and can claim Bürgergeld support if you're eligible.",
+          },
+          {
+            title: "Enrol children and start German",
+            body: "Register kids for school or a Kita place, and sign up for an integration or language course toward the B1 you'll need for permanent residence later.",
+          },
+        ],
+        paths: [
+          {
+            label: "Temporary protection",
+            forWhom: "If you're fleeing the war",
+            note: "The fastest route — a §24 permit with the immediate right to live and work, issued at the foreigners' office.",
+          },
+          {
+            label: "Work or Blue Card",
+            forWhom: "If you have a job offer",
+            note: "A work permit tied to qualifying employment; the Blue Card is the fast track for degree-holders above a salary threshold.",
+          },
+          {
+            label: "Study",
+            forWhom: "If you're enrolling",
+            note: "A student residence permit that can convert to a work route after you graduate.",
+          },
+          {
+            label: "Family reunion",
+            forWhom: "If a relative already lives here",
+            note: "Join a resident sponsor, with work rights that follow them.",
+          },
+        ],
+      },
     },
     glance: [
       { label: "Routes available", value: "7 · 5 categories", section: "routes" },

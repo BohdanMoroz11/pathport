@@ -72,24 +72,37 @@ export type EntryBrief = {
   facts: QuickFact[];
 };
 
+/** One route-to-permit option surfaced from Entry, linking into the Routes view. */
+export type PermitPath = {
+  label: string;
+  /** Who this path fits, e.g. "If you have a job offer". */
+  forWhom: string;
+  note: string;
+};
+
 /**
- * The full Entry view: how you first arrive, read from the visitor's
- * citizenship. Unlike the mostly destination-level Country/Living/Work/Family
- * facts, arrival rules turn on *your* passport — so this is authored per
- * pairing, alongside the Overview's EntryBrief teaser that links here.
+ * The full Entry view: a generalized step-by-step journey from the border to a
+ * residence permit, read from the visitor's citizenship. Arrival rules turn on
+ * *your* passport, but the shape is the same for everyone — get in, settle the
+ * first days, then apply for the permit your route needs. The final stage
+ * branches by route and links into the Routes view rather than hard-coding one
+ * status. Authored per pairing, alongside the Overview's EntryBrief teaser.
  */
 export type EntryProfile = {
   intro: string;
-  /** The headline: how you legally cross the border right now. */
+  /** Stage 1 — how you legally cross the border right now. */
   arrival: { summary: string; stats: CountryStat[] };
-  /** What to carry — a border/settling document checklist. */
+  /** Stage 2 — what to carry: a border/settling document checklist. */
   documents: { summary: string; items: string[] };
-  /** Special status where it applies (e.g. temporary protection). Optional. */
-  protection?: { summary: string; stats: CountryStat[] };
-  /** What you may and may not do the moment you land. */
+  /** Stage 3 — what you may and may not do the moment you land. */
   onArrival: { can: string[]; cannot: string[]; note: string };
-  /** The first things to do after you land, in order. */
-  firstSteps: WorkStep[];
+  /** Stage 4 — from arrival to a permit: the shared spine, then branch by route. */
+  toPermit: {
+    summary: string;
+    steps: WorkStep[];
+    /** Route options that link into the Routes section. */
+    paths: PermitPath[];
+  };
 };
 
 export type DestinationProfile = {

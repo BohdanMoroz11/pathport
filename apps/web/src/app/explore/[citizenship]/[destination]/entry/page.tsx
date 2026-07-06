@@ -3,14 +3,14 @@ import { EntryView } from "@/components/destination/entry";
 import { SectionIntro } from "@/components/destination/section-intro";
 import { SectionStub } from "@/components/destination/section-stub";
 import { getDestinationProfile } from "@/lib/destination/fixtures";
-import { sectionBySlug } from "@/lib/destination/sections";
+import { destinationBasePath, sectionBySlug } from "@/lib/destination/sections";
 
 const PLANNED = [
   "Visa-free / visitor entry terms",
   "Passport & document rules",
-  "Temporary protection (where it applies)",
   "What you can do on arrival",
-  "First steps after you land",
+  "The step-by-step path to a permit",
+  "Which route fits your situation",
 ];
 
 export default async function EntryPage({
@@ -46,7 +46,10 @@ export default async function EntryPage({
         title={`Getting into ${profile.destination.name}`}
         lead={profile.entryDetail.intro}
       />
-      <EntryView entry={profile.entryDetail} />
+      <EntryView
+        entry={profile.entryDetail}
+        basePath={destinationBasePath(citizenship, destination)}
+      />
     </div>
   );
 }
