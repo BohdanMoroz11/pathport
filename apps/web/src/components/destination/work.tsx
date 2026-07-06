@@ -1,4 +1,11 @@
-import type { EarningMode, IncomeLane, WorkProfile } from "@/lib/destination/types";
+import type {
+  DemandField,
+  EarningMode,
+  IncomeLane,
+  SetupTrack,
+  WorkProfile,
+} from "@/lib/destination/types";
+import { EconomyTrend } from "./economy-trend";
 import {
   Block,
   Caption,
@@ -95,19 +102,44 @@ function IncomeLanes({ lanes }: { lanes: IncomeLane[] }) {
   );
 }
 
-/** Positive-tinted tag list, for the in-demand professions. */
-function DemandTags({ items }: { items: string[] }) {
+/** In-demand fields as detail cards: why it's short-staffed and typical pay. */
+function DemandFields({ fields }: { fields: DemandField[] }) {
   return (
-    <ul className="flex flex-wrap gap-2">
-      {items.map((item) => (
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {fields.map((field) => (
         <li
-          key={item}
-          className="rounded-[var(--radius-pill)] bg-(--pos-soft) px-3 py-1 text-sm font-medium text-(--pos)"
+          key={field.label}
+          className="rounded-[var(--radius-md)] border border-(--border) border-l-[3px] border-l-(--pos) bg-(--surface) p-4"
         >
-          {item}
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="font-display text-sm font-semibold text-(--text)">{field.label}</p>
+            {field.pay && (
+              <p className="shrink-0 font-display text-xs font-medium tabular-nums text-(--pos)">
+                {field.pay}
+              </p>
+            )}
+          </div>
+          <p className="mt-1 text-sm leading-6 text-(--text-2)">{field.why}</p>
         </li>
       ))}
     </ul>
+  );
+}
+
+/** The setup tracks per earning mode: a labelled sub-sequence of steps. */
+function SetupTracks({ tracks }: { tracks: SetupTrack[] }) {
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {tracks.map((track) => (
+        <div key={track.mode} className="space-y-3">
+          <div>
+            <p className="font-display text-sm font-semibold text-(--text)">{track.mode}</p>
+            <p className="mt-0.5 text-xs leading-5 text-(--text-3)">{track.note}</p>
+          </div>
+          <Steps steps={track.steps} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -143,6 +175,10 @@ export function WorkView({ work }: { work: WorkProfile }) {
           <Caption>Effective burden by earning mode</Caption>
           <IncomeLanes lanes={work.incomeTax.lanes} />
         </div>
+        <div className="space-y-3">
+          <Caption>How the tax burden has moved</Caption>
+          <EconomyTrend series={work.incomeTax.trends} />
+        </div>
         <Prose>{work.incomeTax.accounting}</Prose>
       </Block>
 
@@ -155,8 +191,16 @@ export function WorkView({ work }: { work: WorkProfile }) {
       </Block>
 
       <Block {...S.setup}>
-        <div className="max-w-2xl">
-          <Steps steps={work.setup} />
+        <Prose>{work.setup.summary}</Prose>
+        <div className="space-y-3">
+          <Caption>Everyone does this first</Caption>
+          <div className="max-w-2xl">
+            <Steps steps={work.setup.general} />
+          </div>
+        </div>
+        <div className="space-y-3">
+          <Caption>Then, depending on how you work</Caption>
+          <SetupTracks tracks={work.setup.byMode} />
         </div>
       </Block>
 
@@ -166,15 +210,18 @@ export function WorkView({ work }: { work: WorkProfile }) {
       </Block>
 
       <Block {...S.demand}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Caption>In demand</Caption>
-            <DemandTags items={work.demand.inDemand} />
-          </div>
-          <div className="space-y-2">
-            <Caption>More competitive</Caption>
-            <TagRow items={work.demand.saturated} />
-          </div>
+        <Prose>{work.demand.summary}</Prose>
+        <div className="space-y-2">
+          <Caption>Sectors hiring</Caption>
+          <TagRow items={work.industries} />
+        </div>
+        <div className="space-y-2">
+          <Caption>Most-wanted roles</Caption>
+          <DemandFields fields={work.demand.inDemand} />
+        </div>
+        <div className="space-y-2">
+          <Caption>More competitive</Caption>
+          <TagRow items={work.demand.saturated} />
         </div>
         <Prose>{work.demand.note}</Prose>
       </Block>

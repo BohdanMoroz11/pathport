@@ -332,6 +332,12 @@ export type WorkStep = { title: string; body: string };
 /** Effective tax burden for one earning mode, for the by-mode comparison. */
 export type IncomeLane = { mode: string; burden: string; note: string };
 
+/** An in-demand field with why it's short-staffed and a typical pay hint. */
+export type DemandField = { label: string; why: string; pay?: string };
+
+/** A setup checklist specific to one earning mode (employee, freelancer, …). */
+export type SetupTrack = { mode: string; note: string; steps: WorkStep[] };
+
 export type WorkProfile = {
   intro: string;
   rightToWork: { summary: string; stats: CountryStat[] };
@@ -342,15 +348,23 @@ export type WorkProfile = {
     takeHome: TaxBreakdown;
     /** Effective burden across earning modes. */
     lanes: IncomeLane[];
+    /** How the tax burden has moved over time (switchable series). */
+    trends: TrendSeries[];
     accounting: string;
   };
   finding: { summary: string; channels: string[] };
   /** Sectors actively hiring / where the jobs are (moved from Country). */
   industries: string[];
-  /** Getting set up as self-employed, in order. */
-  setup: WorkStep[];
+  /** Getting set up: what everyone does, then per-mode specifics. */
+  setup: { summary: string; general: WorkStep[]; byMode: SetupTrack[] };
   credentials: { summary: string; stats: CountryStat[] };
-  demand: { inDemand: string[]; saturated: string[]; note: string };
+  demand: {
+    summary: string;
+    /** In-demand fields with why + typical pay, most-wanted first. */
+    inDemand: DemandField[];
+    saturated: string[];
+    note: string;
+  };
 };
 
 /* ------------------------------------------------------------------ *

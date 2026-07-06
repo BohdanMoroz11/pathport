@@ -543,6 +543,38 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
             note: "corporate + trade, then tax on pay/dividends",
           },
         ],
+        trends: [
+          {
+            id: "single",
+            label: "Single earner",
+            unit: "%",
+            points: [
+              { year: "2018", value: 49.5 },
+              { year: "2019", value: 49.4 },
+              { year: "2020", value: 49.0 },
+              { year: "2021", value: 48.1 },
+              { year: "2022", value: 47.8 },
+              { year: "2023", value: 47.9 },
+              { year: "2024", value: 47.9 },
+            ],
+            note: "The tax wedge on a single average earner — total income tax and social contributions as a share of labour cost — is among the OECD's highest, near 48%. It has drifted down slightly as tax thresholds were adjusted for inflation.",
+          },
+          {
+            id: "family",
+            label: "One-earner family",
+            unit: "%",
+            points: [
+              { year: "2018", value: 34.3 },
+              { year: "2019", value: 34.0 },
+              { year: "2020", value: 32.7 },
+              { year: "2021", value: 32.7 },
+              { year: "2022", value: 32.9 },
+              { year: "2023", value: 33.0 },
+              { year: "2024", value: 33.1 },
+            ],
+            note: "A one-earner couple with two children pays far less — around a third — thanks to joint filing (Ehegattensplitting) and child allowances. The gap between single and family taxation is one of the widest in Europe.",
+          },
+        ],
         accounting:
           "Employees rarely file. The self-employed must keep books, charge and remit VAT (unless small-business exempt), and file quarterly prepayments plus an annual return — most hire a Steuerberater (tax adviser) for €1,000–3,000 a year. Online filing goes through the ELSTER portal.",
       },
@@ -569,28 +601,76 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         "Skilled trades",
         "Logistics",
       ],
-      setup: [
-        {
-          title: "Register your address (Anmeldung)",
-          body: "Everything downstream — tax ID, bank account, contracts — depends on your registered address.",
-        },
-        {
-          title: "Get your tax number",
-          body: "The Finanzamt issues a Steuernummer; freelancers complete the Fragebogen zur steuerlichen Erfassung.",
-        },
-        {
-          title: "Register a trade, if needed",
-          body: "Gewerbe activities register at the Gewerbeamt first; pure freelancers skip this step.",
-        },
-        {
-          title: "Sort your insurance",
-          body: "Health insurance is mandatory; add liability and pension cover suited to your work.",
-        },
-        {
-          title: "Set up bookkeeping",
-          body: "Choose invoicing/accounting software or a Steuerberater before you send the first invoice.",
-        },
-      ],
+      setup: {
+        summary:
+          "Whatever you do, the first moves are the same — register where you live and get into the tax system. From there the path forks: an employer handles most of it for an employee, while the self-employed take on registration, insurance, and bookkeeping themselves.",
+        general: [
+          {
+            title: "Register your address (Anmeldung)",
+            body: "Within two weeks of moving in, register at the Bürgeramt. Everything downstream — tax ID, bank account, contracts — depends on it.",
+          },
+          {
+            title: "Get your tax ID and a bank account",
+            body: "A tax identification number (Steuer-ID) is posted to your registered address; open a German bank account to receive pay and set up direct debits.",
+          },
+          {
+            title: "Sort health insurance",
+            body: "Cover is mandatory for everyone. Employees are enrolled in a public fund automatically; the self-employed choose public (GKV) or private (PKV) themselves.",
+          },
+        ],
+        byMode: [
+          {
+            mode: "Employee",
+            note: "Your employer does most of the paperwork.",
+            steps: [
+              {
+                title: "Hand over your details",
+                body: "Give your employer your tax ID, bank details, and social-security number; they register you for tax and social insurance.",
+              },
+              {
+                title: "Check your first payslip",
+                body: "Tax class, church tax, and deductions are withheld at source — verify your tax class is right, as it sets your take-home.",
+              },
+            ],
+          },
+          {
+            mode: "Freelancer (Freiberufler)",
+            note: "You register yourself, but skip the trade office.",
+            steps: [
+              {
+                title: "Register with the Finanzamt",
+                body: "Complete the Fragebogen zur steuerlichen Erfassung to get a tax number; no trade licence is needed for genuine liberal professions.",
+              },
+              {
+                title: "Arrange your own insurance",
+                body: "You fund your own health cover and, if you want it, pension and liability insurance.",
+              },
+              {
+                title: "Set up invoicing and VAT",
+                body: "Choose accounting software or a Steuerberater, and decide on small-business VAT exemption before your first invoice.",
+              },
+            ],
+          },
+          {
+            mode: "Sole trader / business (Gewerbe)",
+            note: "One extra step: the trade office.",
+            steps: [
+              {
+                title: "Register a Gewerbe",
+                body: "Register the trade at the Gewerbeamt first; they notify the Finanzamt, which sends the tax questionnaire.",
+              },
+              {
+                title: "Join the chamber (IHK/HWK)",
+                body: "Commercial activities carry mandatory chamber-of-commerce membership and a small annual fee.",
+              },
+              {
+                title: "Handle trade tax and books",
+                body: "Budget for Gewerbesteuer above the allowance and keep proper books — most owners use a Steuerberater.",
+              },
+            ],
+          },
+        ],
+      },
       credentials: {
         summary:
           "Regulated professions — doctors, nurses, teachers, lawyers, many trades — require formal recognition (Anerkennung) of your foreign qualification before you can practise. Non-regulated fields don't strictly need it, but recognition (or an ANABIN assessment) strengthens applications and pay. Ukrainians have streamlined recognition support.",
@@ -602,18 +682,42 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
         ],
       },
       demand: {
+        summary:
+          "An ageing workforce and a deep industrial base drive chronic shortages in a handful of fields — these are where hiring is fastest, visa routes are smoothest, and you have the most bargaining power. The most-wanted roles below carry official 'shortage occupation' advantages; the more competitive ones usually need fluent German and face a crowded market.",
         inDemand: [
-          "Nurses & care workers",
-          "Doctors",
-          "Software & IT",
-          "Engineers",
-          "Skilled trades",
-          "Truck & bus drivers",
-          "STEM teachers",
-          "Hospitality",
+          {
+            label: "Nurses & care workers",
+            why: "A rapidly ageing population and a structural care shortage; recognition support is streamlined.",
+            pay: "€3,000–4,200/mo",
+          },
+          {
+            label: "Doctors",
+            why: "Persistent gaps in hospitals and rural practices; a recognised licence (Approbation) is the gate.",
+            pay: "€5,500–9,000/mo",
+          },
+          {
+            label: "Software & IT",
+            why: "Broad demand across industry and startups, with the most English-friendly roles.",
+            pay: "€4,500–7,500/mo",
+          },
+          {
+            label: "Engineers",
+            why: "Mechanical, electrical, and civil engineers underpin the export economy.",
+            pay: "€4,500–7,000/mo",
+          },
+          {
+            label: "Skilled trades",
+            why: "Electricians, plumbers, welders, and construction trades are short everywhere.",
+            pay: "€2,800–4,500/mo",
+          },
+          {
+            label: "Truck & bus drivers",
+            why: "Logistics and public transport face an acute driver shortage.",
+            pay: "€2,600–3,600/mo",
+          },
         ],
         saturated: ["Generalist admin", "Media & journalism", "Junior marketing", "Pure academia"],
-        note: "An ageing workforce means chronic shortages in health, care, engineering, IT, and the skilled trades — these carry the fastest visa routes and the best bargaining power. Creative and generalist office roles are far more competitive and usually need fluent German.",
+        note: "Creative and generalist office roles are far more competitive and almost always need fluent German. If your field is here, expect a longer search and lean on networking over cold applications.",
       },
     },
     family: {
