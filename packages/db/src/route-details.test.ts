@@ -13,6 +13,10 @@ describe("parseRouteDetails", () => {
       eligibilityNotes: [],
       stepNotes: [],
       caveats: [],
+      complexity: "moderate",
+      stepsOverview: "",
+      keyRisks: [],
+      permitWalkthrough: [],
     });
   });
 
@@ -23,7 +27,15 @@ describe("parseRouteDetails", () => {
       eligibilityNotes: [],
       stepNotes: [],
       caveats: [],
+      complexity: "moderate",
+      stepsOverview: "",
+      keyRisks: [],
+      permitWalkthrough: [],
     });
+  });
+
+  it("rejects an out-of-range complexity value", () => {
+    expect(() => parseRouteDetails({ complexity: "trivial" })).toThrow();
   });
 
   it("rejects a malformed requirement group (validation actually runs)", () => {

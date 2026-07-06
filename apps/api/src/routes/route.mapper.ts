@@ -10,11 +10,18 @@ type RouteSourceRow = typeof routeSources.$inferSelect;
  * emits a range when every part of it is present.
  */
 export function toRouteSummary(route: RouteRow): RouteSummary {
+  // The comparison-card signals (complexity, steps overview, key risks) are
+  // authored in the flexible JSONB detail blob and lifted onto the normalized
+  // summary here, so the list endpoint carries them without a dedicated column.
+  const details = parseRouteDetails(route.details);
   return {
     id: route.id,
     type: route.type,
     title: route.title,
     summary: route.summary,
+    complexity: details.complexity,
+    stepsOverview: details.stepsOverview,
+    keyRisks: details.keyRisks,
     cost:
       route.costMin !== null && route.costMax !== null && route.costCurrency !== null
         ? { min: route.costMin, max: route.costMax, currency: route.costCurrency }

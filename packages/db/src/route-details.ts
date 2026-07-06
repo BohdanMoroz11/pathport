@@ -14,12 +14,26 @@ export const routeRequirementGroupSchema = z.object({
   items: z.array(z.string()),
 });
 
+export const routePermitStepSchema = z.object({
+  title: z.string(),
+  body: z.string(),
+});
+
+/** Ordinal difficulty of obtaining the route, least-to-most demanding. */
+export const routeComplexitySchema = z.enum(["low", "moderate", "high", "very_high"]);
+
 export const routeDetailsSchema = z.object({
   requirementGroups: z.array(routeRequirementGroupSchema).default([]),
   documentList: z.array(z.string()).default([]),
   eligibilityNotes: z.array(z.string()).default([]),
   stepNotes: z.array(z.string()).default([]),
   caveats: z.array(z.string()).default([]),
+  // Card-level comparison signals (lifted onto the RouteSummary by the API).
+  complexity: routeComplexitySchema.default("moderate"),
+  stepsOverview: z.string().default(""),
+  keyRisks: z.array(z.string()).default([]),
+  // The comprehensive "how to actually get this permit" walkthrough.
+  permitWalkthrough: z.array(routePermitStepSchema).default([]),
 });
 
 export type RouteRequirementGroup = z.infer<typeof routeRequirementGroupSchema>;

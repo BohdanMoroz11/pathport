@@ -72,6 +72,29 @@ describe("toRouteSummary", () => {
   ])("returns a null timeline when %s is missing", (_field, override) => {
     expect(toRouteSummary({ ...baseRoute, ...override }).timeline).toBeNull();
   });
+
+  it("defaults the card signals when the JSONB omits them", () => {
+    const summary = toRouteSummary(baseRoute);
+
+    expect(summary.complexity).toBe("moderate");
+    expect(summary.stepsOverview).toBe("");
+    expect(summary.keyRisks).toEqual([]);
+  });
+
+  it("lifts authored complexity, steps overview, and key risks from the JSONB", () => {
+    const summary = toRouteSummary({
+      ...baseRoute,
+      details: {
+        complexity: "high",
+        stepsOverview: "Get a job offer, then apply from abroad.",
+        keyRisks: ["Qualification recognition is slow."],
+      },
+    });
+
+    expect(summary.complexity).toBe("high");
+    expect(summary.stepsOverview).toBe("Get a job offer, then apply from abroad.");
+    expect(summary.keyRisks).toEqual(["Qualification recognition is slow."]);
+  });
 });
 
 describe("toRouteDetail", () => {

@@ -15,6 +15,13 @@ export type WorkPermission = "none" | "limited" | "full";
 
 export type PathToPermanentResidence = "none" | "eventual" | "direct";
 
+/**
+ * How involved the route is to obtain, as an ordinal signal for the comparison
+ * card — bureaucracy, prerequisites, and how much can go wrong, not just cost or
+ * time. Ordered least-to-most demanding.
+ */
+export type RouteComplexity = "low" | "moderate" | "high" | "very_high";
+
 /** Estimated cost range. Null when the route has no cost figures yet. */
 export type CostRange = {
   min: number;
@@ -46,11 +53,23 @@ export type RouteSummary = ContentMetadata & {
   pathToPermanentResidenceNote: string | null;
   renewable: boolean;
   renewableNote: string | null;
+  /** How involved the route is to get — the headline comparison signal. */
+  complexity: RouteComplexity;
+  /** A one-line read of the steps involved, for the card. */
+  stepsOverview: string;
+  /** The main things that can go wrong / trip people up, for the card. */
+  keyRisks: string[];
 };
 
 export type RouteRequirementGroup = {
   title: string;
   items: string[];
+};
+
+/** One titled stage in the end-to-end "how to actually get this permit" walkthrough. */
+export type RoutePermitStep = {
+  title: string;
+  body: string;
 };
 
 /**
@@ -64,6 +83,8 @@ export type RouteDetailContent = {
   eligibilityNotes: string[];
   stepNotes: string[];
   caveats: string[];
+  /** End-to-end walkthrough: how you actually go from arrival to this permit. */
+  permitWalkthrough: RoutePermitStep[];
 };
 
 /** The full route page: every summary field plus detail content and sources. */

@@ -131,6 +131,36 @@ export const demoSeedData: SeedData = {
           "Proof of health insurance",
         ],
         caveats: ["Demo data — verify thresholds and recognition rules before relying on them."],
+        complexity: "high",
+        stepsOverview:
+          "Get your qualification recognized and a job offer, apply for the visa at a German mission abroad, then convert it to a residence permit after you arrive and register.",
+        keyRisks: [
+          "Qualification recognition (Anerkennung) can take months and often must finish before you apply.",
+          "The job's salary has to clear the route's threshold.",
+          "Consulate appointment waits vary a lot by country.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Get your qualification recognized",
+            body: "Have your degree or vocational training assessed for equivalence (Anerkennung / ANABIN). Regulated professions must complete this before the visa — it's the step that most often sets the timeline.",
+          },
+          {
+            title: "Secure a qualifying job offer",
+            body: "Sign an employment contract meeting the salary and skill thresholds. The employer's HR usually knows what paperwork it must supply.",
+          },
+          {
+            title: "Apply at the German mission abroad",
+            body: "Book an appointment at the embassy or consulate for a national (D) visa, submitting your contract, recognition, passport, and proof of health insurance.",
+          },
+          {
+            title: "Enter and register your address",
+            body: "On arrival, complete the Anmeldung at the local Bürgeramt within two weeks — everything downstream depends on it.",
+          },
+          {
+            title: "Collect your residence permit",
+            body: "Book an appointment at the Ausländerbehörde to have the residence permit issued, converting the entry visa into your work-and-residence title.",
+          },
+        ],
       },
       reviewStatus: "reviewed",
       confidence: "medium",
@@ -174,6 +204,32 @@ export const demoSeedData: SeedData = {
           },
         ],
         caveats: ["Demo data — salary thresholds change yearly."],
+        complexity: "moderate",
+        stepsOverview:
+          "With a degree and a job above the Blue Card salary threshold, apply at a German mission (or in-country if you're already here), then pick up the card after registering.",
+        keyRisks: [
+          "Your salary must clear the current Blue Card threshold, which is reset each year.",
+          "Your degree has to be recognized or ANABIN-listed.",
+          "The lower shortage-occupation threshold has its own eligibility rules.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Confirm your degree qualifies",
+            body: "Check your university degree is recognized in Germany or listed as comparable in the ANABIN database.",
+          },
+          {
+            title: "Land a job above the threshold",
+            body: "Get a contract paying at or above the current Blue Card salary threshold — lower for shortage occupations like IT, engineering, and health.",
+          },
+          {
+            title: "Apply for the Blue Card",
+            body: "Apply at the German mission abroad, or directly at the Ausländerbehörde if you're already legally in Germany, with your contract, degree, and passport.",
+          },
+          {
+            title: "Register and collect the card",
+            body: "After arrival complete the Anmeldung, then collect the Blue Card — it is your residence permit and speeds up settlement-permit eligibility.",
+          },
+        ],
       },
       confidence: "medium",
       applicableTo: BOTH,
@@ -203,6 +259,36 @@ export const demoSeedData: SeedData = {
           },
         ],
         caveats: ["Demo data."],
+        complexity: "moderate",
+        stepsOverview:
+          "Get admitted to a recognized program, open a blocked account to prove funds, apply for the student visa, then register and enrol on arrival.",
+        keyRisks: [
+          "A blocked account holding a year's living costs must be funded before you apply.",
+          "Work is capped at part-time during study.",
+          "You must keep progressing and re-enrol to renew the permit.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Get an admission letter",
+            body: "Secure a place — or a conditional/pathway offer — at a recognized German institution.",
+          },
+          {
+            title: "Open a blocked account",
+            body: "Deposit a year's living costs into a Sperrkonto to prove you can support yourself; it unlocks in monthly amounts once you arrive.",
+          },
+          {
+            title: "Apply for the student visa",
+            body: "Apply at the German mission with your admission letter, blocked-account proof, and health insurance.",
+          },
+          {
+            title: "Register and enrol",
+            body: "After arrival, do the Anmeldung, enrol at the university, and collect your residence permit for study.",
+          },
+          {
+            title: "Switch to work after graduating",
+            body: "On completion you can take an 18-month permit to find qualified work, then move to a Blue Card or Skilled Worker permit.",
+          },
+        ],
       },
       applicableTo: BOTH,
     },
@@ -233,6 +319,36 @@ export const demoSeedData: SeedData = {
           },
         ],
         caveats: ["Demo data — language requirements may apply to spouses."],
+        complexity: "high",
+        stepsOverview:
+          "Prove your relationship and that your sponsor can house and support you (a spouse may need basic German), apply at a German mission, then register on arrival.",
+        keyRisks: [
+          "A joining spouse often needs A1 German first — waived for Blue Card, EU, and protection cases.",
+          "The sponsor must show adequate housing and income without relying on benefits.",
+          "Legalizing and translating certificates can be slow.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Confirm the sponsor's status",
+            body: "The family member in Germany must hold a residence or settlement permit that allows reunification.",
+          },
+          {
+            title: "Gather proof of relationship",
+            body: "Marriage or birth certificates, usually legalized/apostilled and translated into German.",
+          },
+          {
+            title: "Meet the language and support tests",
+            body: "A joining spouse typically shows A1 German; the sponsor demonstrates adequate housing and income to support the family without benefits.",
+          },
+          {
+            title: "Apply at the German mission",
+            body: "The joining family member applies for a family-reunion visa at the embassy in their home country.",
+          },
+          {
+            title: "Register and get work rights",
+            body: "After arrival, complete the Anmeldung and collect a residence permit; a spouse's permit generally carries the right to work.",
+          },
+        ],
       },
       applicableTo: BOTH,
     },
@@ -258,6 +374,32 @@ export const demoSeedData: SeedData = {
           "For qualified professionals who want to search for a job on the ground.",
         ],
         caveats: ["Demo data — no employment is allowed until a work permit is granted."],
+        complexity: "moderate",
+        stepsOverview:
+          "Prove your qualifications and savings, get a six-month job-seeker visa, then convert it to a work permit the moment you sign a contract — you can't work until then.",
+        keyRisks: [
+          "No work is allowed until you convert to a work permit.",
+          "The visa lasts up to six months and generally can't be extended.",
+          "You must show enough savings to support yourself while searching.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Show qualifications and funds",
+            body: "Prove a recognized degree and enough savings to live on while you look for work.",
+          },
+          {
+            title: "Get the job-seeker visa",
+            body: "Apply at the German mission for the six-month job-seeker visa.",
+          },
+          {
+            title: "Search on the ground",
+            body: "Job-hunt inside Germany; you may attend interviews but cannot take up employment yet.",
+          },
+          {
+            title: "Convert on a job offer",
+            body: "Once you sign a qualifying contract, switch to a Skilled Worker permit or Blue Card at the Ausländerbehörde — that's what grants the right to work.",
+          },
+        ],
       },
       applicableTo: BOTH,
     },
@@ -283,6 +425,32 @@ export const demoSeedData: SeedData = {
           "Available to displaced people covered by the EU temporary protection directive.",
         ],
         caveats: ["Demo data — scope and duration are set EU-wide and change over time."],
+        complexity: "low",
+        stepsOverview:
+          "Enter visa-free, register your address, and apply for the §24 protection permit at the foreigners' office — you can work from day one.",
+        keyRisks: [
+          "Status is time-limited and tied to the EU scheme's extensions.",
+          "It is not a direct path to permanent residence.",
+          "Benefits and housing depend on registering promptly.",
+        ],
+        permitWalkthrough: [
+          {
+            title: "Enter visa-free",
+            body: "Cross into the Schengen area on a biometric passport — no visa or pre-registration needed.",
+          },
+          {
+            title: "Find somewhere to stay and register",
+            body: "Arrange accommodation privately or via a municipality, and complete the Anmeldung at the Bürgeramt.",
+          },
+          {
+            title: "Apply for temporary protection",
+            body: "Apply for the §24 residence permit at the Ausländerbehörde; it grants the immediate right to live, work, and study.",
+          },
+          {
+            title: "Set up benefits and healthcare",
+            body: "Register at the Jobcenter for support if you need it, and get assigned public health insurance.",
+          },
+        ],
       },
       reviewStatus: "needs_review",
       confidence: "low",
