@@ -426,6 +426,45 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Specialist wait", value: "Weeks", tone: "warn" },
           { label: "Emergency", value: "112" },
         ],
+        ways: [
+          {
+            label: "Public statutory (GKV)",
+            tagline: "The default — about 90% of residents.",
+            cost: "~7.3% of pay (employer matches)",
+            quality:
+              "High standard and broad access. Contributions scale with income, and your spouse and children are covered at no extra cost. You pick a fund (TK, AOK, Barmer, …); they're broadly similar.",
+            caveats: [
+              "Non-urgent specialist appointments can mean a wait of weeks.",
+              "Some extras (private rooms, certain dental) aren't fully covered.",
+            ],
+            tone: "pos",
+          },
+          {
+            label: "Private (PKV)",
+            tagline: "For higher earners, the self-employed, and officials.",
+            cost: "Risk-based premium, from ~€300/mo",
+            quality:
+              "Faster specialist access, more choice of doctor, and better hospital comfort. Premiums are based on age and health at entry, not income, so it's cheapest for the young and healthy.",
+            caveats: [
+              "Premiums rise with age and can become expensive in retirement.",
+              "Switching back to public insurance later is hard.",
+              "Each family member pays their own premium — no free family cover.",
+            ],
+            tone: "warn",
+          },
+          {
+            label: "Covered by status",
+            tagline: "Students, job-seekers, and protection holders.",
+            cost: "Subsidised or state-paid",
+            quality:
+              "Students get low-cost public student insurance; people under temporary protection are enrolled in public cover. Everyone in Germany must hold insurance — being uninsured isn't an option.",
+            caveats: [
+              "Proof of cover is required for your visa or residence permit.",
+              "Gaps in coverage can create back-payment demands later.",
+            ],
+            tone: "neutral",
+          },
+        ],
       },
       schooling: {
         summary:
@@ -438,8 +477,46 @@ const DESTINATIONS: Record<string, DestinationEntry> = {
           { label: "Compulsory", value: "Age 6–18" },
           { label: "University", value: "Free (public)", tone: "pos" },
         ],
+        options: [
+          {
+            label: "State schools",
+            tagline: "Free, compulsory, German-language.",
+            cost: "Free",
+            quality:
+              "Generally good and the norm — most children attend. Younger kids adapt fastest; newcomers often start in 'Willkommensklassen' welcome classes to build German before joining mainstream lessons.",
+            caveats: [
+              "Teaching is in German, so teenagers face the steepest adjustment.",
+              "Quality and the academic-track (Gymnasium) split vary by state and neighbourhood.",
+            ],
+            tone: "pos",
+          },
+          {
+            label: "Private & international",
+            tagline: "Fee-paying, often English or bilingual.",
+            cost: "€10k–25k/yr",
+            quality:
+              "International schools offer English-language or IB curricula and a softer landing for a family that may move again. Concentrated in the big cities (Berlin, Munich, Frankfurt, Hamburg).",
+            caveats: [
+              "Expensive, and the best have waiting lists.",
+              "Limited choice outside major cities.",
+            ],
+            tone: "warn",
+          },
+          {
+            label: "Childcare (Kita)",
+            tagline: "Nursery & preschool, ages ~1–6.",
+            cost: "€0–300/mo, income-based",
+            quality:
+              "Heavily subsidised and good, with a legal right to a place from age one — but demand outstrips supply in cities, so effective access depends on securing a slot.",
+            caveats: [
+              "Places are scarce and waitlisted; apply early and widely.",
+              "Opening hours may not cover full-time work.",
+            ],
+            tone: "neutral",
+          },
+        ],
       },
-      lifestyle: [
+      leisure: [
         { label: "Gym membership", value: "€25–40/mo" },
         { label: "Cinema ticket", value: "€12" },
         { label: "Streaming (std)", value: "€13/mo" },

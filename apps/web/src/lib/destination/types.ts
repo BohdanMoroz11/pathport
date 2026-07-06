@@ -293,6 +293,22 @@ export type TaxBreakdown = {
   note: string;
 };
 
+/**
+ * One way to access a service (a healthcare track, a type of school): what it
+ * is, how good it is in practice, and the catches. Shared by healthcare and
+ * schooling so both read the same way.
+ */
+export type AccessOption = {
+  label: string;
+  tagline: string;
+  /** Who it's for / what it costs, display-ready. */
+  cost?: string;
+  /** How good it is in practice. */
+  quality: string;
+  caveats: string[];
+  tone?: AccentTone;
+};
+
 export type LivingProfile = {
   currency: string;
   intro: string;
@@ -300,11 +316,22 @@ export type LivingProfile = {
   rent: { note: string; rows: RentRow[] };
   groceries: PriceItem[];
   eatingOut: PriceItem[];
+  /** Leisure & fun prices — folded into the everyday-prices section. */
+  leisure: PriceItem[];
   /** Recurring essentials (transport pass, utilities, internet, mobile). */
   essentials: CountryStat[];
-  healthcare: { summary: string; stats: CountryStat[] };
-  schooling: { summary: string; stats: CountryStat[] };
-  lifestyle: PriceItem[];
+  healthcare: {
+    summary: string;
+    stats: CountryStat[];
+    /** The ways you can actually get care (public, private, …). */
+    ways: AccessOption[];
+  };
+  schooling: {
+    summary: string;
+    stats: CountryStat[];
+    /** State vs private (and childcare) options. */
+    options: AccessOption[];
+  };
 };
 
 /* ------------------------------------------------------------------ *

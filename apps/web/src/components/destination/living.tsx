@@ -1,5 +1,11 @@
 import Link from "next/link";
-import type { BudgetPersona, LivingProfile, RentRow, TaxBreakdown } from "@/lib/destination/types";
+import type {
+  AccessOption,
+  BudgetPersona,
+  LivingProfile,
+  RentRow,
+  TaxBreakdown,
+} from "@/lib/destination/types";
 import {
   Block,
   Caption,
@@ -11,6 +17,7 @@ import {
   type SectionMeta,
   StatGrid,
 } from "./section-kit";
+import { TONE_BORDER } from "./tone";
 
 const SECTIONS = [
   { id: "budget", emoji: "💶", title: "Monthly budget" },
@@ -18,7 +25,6 @@ const SECTIONS = [
   { id: "prices", emoji: "🛒", title: "Everyday prices" },
   { id: "healthcare", emoji: "⚕️", title: "Healthcare" },
   { id: "schooling", emoji: "🎒", title: "Schooling & childcare" },
-  { id: "lifestyle", emoji: "🎟️", title: "Lifestyle" },
 ] as const satisfies readonly SectionMeta[];
 
 const S = Object.fromEntries(SECTIONS.map((s) => [s.id, s])) as Record<
@@ -111,6 +117,41 @@ function RentTable({ rows }: { rows: RentRow[] }) {
   );
 }
 
+/** The ways to access a service (public/private/…): quality and the catches. */
+function AccessOptions({ options }: { options: AccessOption[] }) {
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {options.map((option) => (
+        <div
+          key={option.label}
+          className={`space-y-3 rounded-[var(--radius-lg)] border border-(--border) border-l-[3px] bg-(--surface) p-4 ${TONE_BORDER[option.tone ?? "neutral"]}`}
+        >
+          <div>
+            <p className="font-display text-sm font-semibold text-(--text)">{option.label}</p>
+            <p className="mt-0.5 text-xs text-(--text-3)">{option.tagline}</p>
+          </div>
+          {option.cost && (
+            <p className="inline-flex rounded-[var(--radius-pill)] border border-(--border) bg-(--surface-2) px-2.5 py-0.5 text-xs font-medium text-(--text-2)">
+              {option.cost}
+            </p>
+          )}
+          <p className="text-sm leading-6 text-(--text-2)">{option.quality}</p>
+          {option.caveats.length > 0 && (
+            <ul className="space-y-1 border-t border-(--border) pt-2.5">
+              {option.caveats.map((caveat) => (
+                <li key={caveat} className="flex gap-2 text-xs leading-5 text-(--text-3)">
+                  <span aria-hidden="true">•</span>
+                  {caveat}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** The cost-of-living profile — the "Living" section body. */
 export function LivingView({
   living,
@@ -148,7 +189,7 @@ export function LivingView({
       </Block>
 
       <Block {...S.prices}>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <div className="space-y-2">
             <Caption>Groceries</Caption>
             <PriceList items={living.groceries} />
@@ -156,6 +197,10 @@ export function LivingView({
           <div className="space-y-2">
             <Caption>Eating &amp; drinking out</Caption>
             <PriceList items={living.eatingOut} />
+          </div>
+          <div className="space-y-2">
+            <Caption>Leisure &amp; fun</Caption>
+            <PriceList items={living.leisure} />
           </div>
         </div>
         <div className="space-y-2">
@@ -167,16 +212,18 @@ export function LivingView({
       <Block {...S.healthcare}>
         <Prose>{living.healthcare.summary}</Prose>
         <StatGrid stats={living.healthcare.stats} />
+        <div className="space-y-3">
+          <Caption>Ways to get care</Caption>
+          <AccessOptions options={living.healthcare.ways} />
+        </div>
       </Block>
 
       <Block {...S.schooling}>
         <Prose>{living.schooling.summary}</Prose>
         <StatGrid stats={living.schooling.stats} />
-      </Block>
-
-      <Block {...S.lifestyle}>
-        <div className="max-w-xl">
-          <PriceList items={living.lifestyle} />
+        <div className="space-y-3">
+          <Caption>Your options</Caption>
+          <AccessOptions options={living.schooling.options} />
         </div>
       </Block>
     </div>
