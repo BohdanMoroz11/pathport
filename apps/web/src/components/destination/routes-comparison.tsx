@@ -5,9 +5,15 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatCost, formatTimeline, ROUTE_TYPE_LABELS } from "@/lib/format";
 import { deriveQualityLabels } from "@/lib/quality";
-import { ROUTE_SORTS, type RouteSort, routeSignals, sortRoutes } from "@/lib/route-view";
+import {
+  COMPLEXITY_META,
+  ROUTE_SORTS,
+  type RouteSort,
+  routeSignals,
+  sortRoutes,
+} from "@/lib/route-view";
 import { QualityBadges } from "../quality-badge";
-import { TONE_BG } from "./tone";
+import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /** The shared magnitude scales the whole list is plotted against. */
 type Scale = { cost: number; timeline: number };
@@ -32,7 +38,7 @@ function ScaleBar({
   display: string;
 }) {
   return (
-    <div className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 text-sm">
+    <div className="grid grid-cols-[3rem_1fr_auto] items-center gap-3 text-sm">
       <span className="text-xs font-medium uppercase tracking-[0.04em] text-(--text-3)">
         {label}
       </span>
@@ -52,6 +58,19 @@ function ScaleBar({
         {display}
       </span>
     </div>
+  );
+}
+
+/** The headline "how involved is this" signal — a filled, tone-coded pill. */
+function ComplexityBadge({ route }: { route: RouteSummary }) {
+  const meta = COMPLEXITY_META[route.complexity];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border bg-(--surface) px-2.5 py-1 text-xs font-medium ${TONE_BORDER[meta.tone]} ${TONE_TEXT[meta.tone]}`}
+    >
+      <span aria-hidden="true" className={`size-1.5 rounded-full ${TONE_BG[meta.tone]}`} />
+      {meta.label} complexity
+    </span>
   );
 }
 
@@ -87,17 +106,29 @@ function RouteRow({
       <Link
         href={`${basePath}/routes/${route.id}`}
         scroll={false}
-        className="group block space-y-4 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5 shadow-[var(--shadow-sm)] transition-colors hover:border-(--brand) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand)"
+        className="group flex h-full flex-col gap-4 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5 shadow-[var(--shadow-sm)] transition-colors hover:border-(--brand) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand)"
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1">
-            <h3 className="font-display text-base font-semibold text-(--text)">{route.title}</h3>
-            <p className="text-sm leading-6 text-(--text-2)">{route.summary}</p>
-          </div>
+          <h3 className="min-w-0 font-display text-base font-semibold text-(--text)">
+            {route.title}
+          </h3>
           <span className="shrink-0 rounded-[var(--radius-pill)] border border-(--border) px-2.5 py-0.5 text-xs font-medium text-(--text-2)">
             {ROUTE_TYPE_LABELS[route.type]}
           </span>
         </div>
+
+        <ComplexityBadge route={route} />
+
+        <p className="text-sm leading-6 text-(--text-2)">{route.summary}</p>
+
+        {route.stepsOverview && (
+          <div className="rounded-[var(--radius-md)] border border-(--border) bg-(--bg) p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-(--text-3)">
+              How it works
+            </p>
+            <p className="mt-1 text-sm leading-6 text-(--text-2)">{route.stepsOverview}</p>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <ScaleBar
@@ -114,17 +145,35 @@ function RouteRow({
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SignalPills route={route} />
-          <span className="flex items-center gap-1 text-xs font-medium text-(--brand)">
+        <SignalPills route={route} />
+
+        {route.keyRisks.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-(--warn)">
+              Watch out for
+            </p>
+            <ul className="space-y-1">
+              {route.keyRisks.map((risk) => (
+                <li key={risk} className="flex gap-2 text-xs leading-5 text-(--text-2)">
+                  <span aria-hidden="true" className="text-(--warn)">
+                    !
+                  </span>
+                  {risk}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+          <QualityBadges labels={deriveQualityLabels(route)} />
+          <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-(--brand)">
             Details
             <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
               →
             </span>
           </span>
         </div>
-
-        <QualityBadges labels={deriveQualityLabels(route)} />
       </Link>
     </li>
   );
@@ -133,9 +182,9 @@ function RouteRow({
 /**
  * The Routes section body: every long-term route for this citizenship ×
  * destination, compared on shared cost/timeline scales and tone-coded signals,
- * re-orderable in place. Selecting a route opens its detail in the peek drawer
- * (the list stays mounted underneath). Client-side because the sort is instant
- * local state over data that's already loaded.
+ * re-orderable in place. Cards sit side by side on wide viewports. Selecting a
+ * route opens its detail in the peek drawer (the list stays mounted underneath).
+ * Client-side because the sort is instant local state over already-loaded data.
  */
 export function RoutesComparison({
   routes,
@@ -184,7 +233,7 @@ export function RoutesComparison({
         })}
       </div>
 
-      <ul className="space-y-3">
+      <ul className="grid gap-3 lg:grid-cols-2">
         {sorted.map((route) => (
           <RouteRow key={route.id} route={route} basePath={basePath} scale={scale} />
         ))}

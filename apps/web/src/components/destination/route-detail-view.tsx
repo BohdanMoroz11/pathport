@@ -8,9 +8,9 @@ import {
   ROUTE_TYPE_LABELS,
 } from "@/lib/format";
 import { deriveQualityLabels } from "@/lib/quality";
-import { PR_SHORT, PR_TONE, WORK_SHORT, WORK_TONE } from "@/lib/route-view";
+import { COMPLEXITY_META, PR_SHORT, PR_TONE, WORK_SHORT, WORK_TONE } from "@/lib/route-view";
 import { QualityBadges } from "../quality-badge";
-import { Caption, StatGrid } from "./section-kit";
+import { Caption, StatGrid, Steps } from "./section-kit";
 
 const SOURCE_TYPE_LABELS: Record<RouteSource["type"], string> = {
   official: "Official",
@@ -25,6 +25,11 @@ function routeFacts(route: RouteDetail): CountryStat[] {
   return [
     { label: "Cost", value: formatCost(route.cost) },
     { label: "Timeline", value: formatTimeline(route.timeline) },
+    {
+      label: "Complexity",
+      value: COMPLEXITY_META[route.complexity].label,
+      tone: COMPLEXITY_META[route.complexity].tone,
+    },
     {
       label: "Work rights",
       value: WORK_SHORT[route.workPermission],
@@ -98,6 +103,29 @@ export function RouteDetailView({ route }: { route: RouteDetail }) {
       </header>
 
       <StatGrid stats={routeFacts(route)} />
+
+      {route.keyRisks.length > 0 && (
+        <section className="space-y-2 rounded-[var(--radius-lg)] border border-(--warn) border-l-[3px] bg-(--warn-soft) p-4">
+          <Caption>Potential problems</Caption>
+          <ul className="space-y-1.5">
+            {route.keyRisks.map((risk) => (
+              <li key={risk} className="flex gap-2 text-sm leading-6 text-(--text-2)">
+                <span aria-hidden="true" className="text-(--warn)">
+                  !
+                </span>
+                {risk}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {details.permitWalkthrough.length > 0 && (
+        <section className="space-y-3">
+          <Caption>How to get this permit</Caption>
+          <Steps steps={details.permitWalkthrough} />
+        </section>
+      )}
 
       {details.requirementGroups.length > 0 && (
         <section className="space-y-3">

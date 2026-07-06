@@ -1,4 +1,9 @@
-import type { PathToPermanentResidence, RouteSummary, WorkPermission } from "@pathport/contracts";
+import type {
+  PathToPermanentResidence,
+  RouteComplexity,
+  RouteSummary,
+  WorkPermission,
+} from "@pathport/contracts";
 import type { AccentTone } from "@/lib/destination/types";
 import { pathToPrLabel, ROUTE_TYPE_ORDER, workPermissionLabel } from "@/lib/format";
 
@@ -23,6 +28,21 @@ export const PR_TONE: Record<PathToPermanentResidence, AccentTone> = {
   direct: "pos",
   eventual: "brand",
   none: "neutral",
+};
+
+/**
+ * Route complexity → label, tone, and sort rank. Higher complexity is worse for
+ * the reader, so it runs the tone scale the other way from the ordinal signals:
+ * a low-effort route is the "greener" read.
+ */
+export const COMPLEXITY_META: Record<
+  RouteComplexity,
+  { label: string; tone: AccentTone; rank: number }
+> = {
+  low: { label: "Low", tone: "pos", rank: 0 },
+  moderate: { label: "Moderate", tone: "brand", rank: 1 },
+  high: { label: "High", tone: "warn", rank: 2 },
+  very_high: { label: "Very high", tone: "danger", rank: 3 },
 };
 
 /** Concise values for the detail fact grid, where the tile's label carries the
@@ -69,10 +89,11 @@ export function routeSignals(route: RouteSummary): RouteSignal[] {
 }
 
 /** How the comparison list can be ordered. `category` is the honest default. */
-export type RouteSort = "category" | "cheapest" | "fastest" | "pr";
+export type RouteSort = "category" | "simplest" | "cheapest" | "fastest" | "pr";
 
 export const ROUTE_SORTS: { id: RouteSort; label: string }[] = [
   { id: "category", label: "By category" },
+  { id: "simplest", label: "Simplest" },
   { id: "cheapest", label: "Cheapest" },
   { id: "fastest", label: "Fastest" },
   { id: "pr", label: "Path to PR" },
@@ -97,6 +118,7 @@ export function sortRoutes(routes: RouteSummary[], sort: RouteSort): RouteSummar
 
   const key: Record<RouteSort, (a: RouteSummary, b: RouteSummary) => number> = {
     category: byCategory,
+    simplest: (a, b) => COMPLEXITY_META[a.complexity].rank - COMPLEXITY_META[b.complexity].rank,
     cheapest: (a, b) => nullsLast(a.cost?.min ?? null) - nullsLast(b.cost?.min ?? null),
     fastest: (a, b) =>
       nullsLast(a.timeline?.minMonths ?? null) - nullsLast(b.timeline?.minMonths ?? null),
