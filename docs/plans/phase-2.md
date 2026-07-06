@@ -214,7 +214,7 @@ Concept areas to resolve:
 
 ### S3 [UI]: Reference Page (Style Concept)
 
-Status: Not started
+Status: In-progress — UI done; the schema fold-down (tasks 3–4) is underway.
 
 Build **one** real, fully-styled explorer page end to end to establish the
 overall visual style as a concrete concept — before extracting any reusable
@@ -223,19 +223,31 @@ first real test of the **domain schema**: a page is a data surface, so building 
 is where the data this surface needs becomes concrete and the schema starts to
 evolve (see the UI decision in [Resolved Decisions](#resolved-decisions)).
 
+The reference work **over-delivered past a single page**: rather than one screen,
+the whole destination shell was built to production quality — a persistent left
+rail plus Overview, Country, Living, Work & income, Family & pets, Entry, and a
+Routes comparison with an intercepting-route peek drawer. That is the concrete
+style benchmark S4/S5 derive from. It is built **FE-first against in-repo
+fixtures** (`apps/web/src/lib/destination/*`), so the remaining S3 work is the
+schema fold-down: pushing that fixture-shaped surface down into
+`@pathport/contracts` → the API → the Drizzle schema + demo seed.
+
 Tasks:
 
-- [ ] Pick the reference page and build it to production UI quality against the S1
-      tokens (real layout, typography, spacing, dark mode).
-- [ ] Treat it as the style benchmark: this is where "calm, modern, useful" is
+- [x] Pick the reference page and build it to production UI quality against the S1
+      tokens (real layout, typography, spacing, dark mode). *(Built the full
+      destination shell, not just one page — see above.)*
+- [x] Treat it as the style benchmark: this is where "calm, modern, useful" is
       proven visually before it is generalized.
-- [ ] Let the page drive the **domain schema**: as it reveals what the surface must
+- [~] Let the page drive the **domain schema**: as it reveals what the surface must
       hold, evolve the schema + demo seed to match (starting with the
       `destination_countries` stub if the country page is chosen). The page may
-      render against a provisional shape while the migration settles.
-- [ ] Record the resulting domain-schema changes and open questions in
+      render against a provisional shape while the migration settles. *(In progress:
+      folding the fixtures down into contracts → API → Drizzle + seed.)*
+- [~] Record the resulting domain-schema changes and open questions in
       [../domain-model.md](../domain-model.md) so the shape is tracked, not implicit.
-- [ ] Keep it accessible and Lighthouse-clean from the start.
+- [x] Keep it accessible and Lighthouse-clean from the start. *(Playwright + axe +
+      Lighthouse ≥ 90 green.)*
 
 ### S4 [UI]: Component Extraction
 

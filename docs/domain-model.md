@@ -14,6 +14,59 @@ The main flow has three steps:
 
 Arrival context (visa-free / visitor entry) is shown as supporting information on the destination, not as a route.
 
+## Destination Shell: The Section Surface (Phase 2 / S3)
+
+The rebuilt explorer is not a single route-comparison page but a **destination
+shell**: a persistent left rail over an Overview plus deep reference sections —
+**Country**, **Living**, **Work & income**, **Family & pets**, **Entry**, and the
+**Routes** comparison. This is a genuinely new, destination-level data surface. It
+was built FE-first against in-repo fixtures (`apps/web/src/lib/destination/*`), and
+the shape those fixtures settled into is now folded down into the real schema.
+
+The content splits cleanly along one seam, and the schema follows it:
+
+- **Destination-level facts** — the same for every visitor: identity (flag,
+  tagline, region, description), the `quickFacts` strip, and the deep **country /
+  living / work / family** section profiles. These live on
+  **`destination_countries`** (fleshing out the Phase 1 `code + name` stub).
+- **Pairing-level, reader-specific facts** — read from the visitor's citizenship:
+  the **language** read (how hard the main language is *for you*), the **entry**
+  brief + full **entryDetail** journey, the **glance** metric list, and the
+  **fitsYouIf** signals. These live on **`arrival_context`**, whose role broadens
+  from "visa-free entry facts" to **the citizenship × destination pairing record**.
+
+### How it is stored (validated JSONB, same pattern as route detail)
+
+The section profiles are deep, nested, and still volatile, so — exactly as with
+route detail — they are **validated JSONB**, not block tables. A single Zod schema
+per blob (in `packages/db`) is the source of truth: the seed validates on write and
+the API validates on read, so the compile-time `$type<>()` cast is actually
+enforced. Only the small, stable, queryable identity fields are normalized columns.
+
+- `destination_countries`: adds `flag`, `tagline`, `region`, `description` columns
+  + a `profile` JSONB `{ quickFacts, country, living, work, family }` (each
+  sub-section optional so an unfilled section degrades to its scaffold) +
+  `contentMetadata`.
+- `arrival_context`: adds a `profile` JSONB `{ language, entry, entryDetail,
+  glance, fitsYouIf }` (all optional; a missing pairing row falls back to a
+  synthesized "being gathered" stub, mirroring the old fixture `synthesizePair`).
+
+The shared **contract types** (`@pathport/contracts`) mirror the section shapes so
+the API and the web app agree without the frontend importing the DB layer, and the
+API exposes the assembled profile at
+`GET /citizenships/:c/destinations/:d/profile`. The web app reads it through
+`api.ts` like every other surface; the local fixture module is retired.
+
+### Open questions / deferred
+
+- The section JSONB is deliberately coarse for now. As real (non-demo) data lands
+  in Phase 3, repeating sub-shapes (e.g. `CountryStat`, `ShareDatum`, price rows)
+  are candidates to **normalize into block tables** — the same "normalize later
+  once the shape stops moving" bet documented for route detail below.
+- `arrival_context.summary` / `visaFreeDays` (Phase 1) now overlap conceptually
+  with the pairing `profile.entry` brief. They are kept as-is for the Phase 1 read
+  API; reconciling the two is an S5 clean-up, not an S3 gap.
+
 ## Route Taxonomy
 
 Route type is the `route_type` enum, already in the schema:
