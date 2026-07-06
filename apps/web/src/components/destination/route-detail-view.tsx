@@ -1,5 +1,4 @@
-import type { RouteDetail, RouteSource } from "@pathport/contracts";
-import type { CountryStat } from "@/lib/destination/types";
+import type { CountryStat, RouteDetail, RouteSource } from "@pathport/contracts";
 import {
   booleanLabel,
   formatCost,

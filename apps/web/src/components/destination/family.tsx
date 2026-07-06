@@ -1,4 +1,4 @@
-import type { AccentTone, FamilyMember, FamilyProfile } from "@/lib/destination/types";
+import type { AccentTone, FamilyMember, FamilyProfile } from "@pathport/contracts";
 import {
   Block,
   Caption,

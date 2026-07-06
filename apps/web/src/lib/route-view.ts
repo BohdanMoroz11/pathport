@@ -1,10 +1,10 @@
 import type {
+  AccentTone,
   PathToPermanentResidence,
   RouteComplexity,
   RouteSummary,
   WorkPermission,
 } from "@pathport/contracts";
-import type { AccentTone } from "@/lib/destination/types";
 import { pathToPrLabel, ROUTE_TYPE_ORDER, workPermissionLabel } from "@/lib/format";
 
 /**

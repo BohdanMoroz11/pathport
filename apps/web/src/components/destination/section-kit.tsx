@@ -7,7 +7,7 @@ import type {
   TimelineEntry,
   TrendDirection,
   WorkStep,
-} from "@/lib/destination/types";
+} from "@pathport/contracts";
 import { ModuleHeading } from "./overview";
 import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 

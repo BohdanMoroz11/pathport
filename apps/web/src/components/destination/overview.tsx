@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { sectionHref } from "@/lib/destination/sections";
 import type {
   AccentTone,
   EntryBrief as EntryBriefData,
@@ -7,7 +5,9 @@ import type {
   GlanceMetric,
   MetricRating,
   QuickFact,
-} from "@/lib/destination/types";
+} from "@pathport/contracts";
+import Link from "next/link";
+import { sectionHref } from "@/lib/destination/sections";
 import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /**

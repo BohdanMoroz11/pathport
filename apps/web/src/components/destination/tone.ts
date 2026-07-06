@@ -1,4 +1,4 @@
-import type { AccentTone } from "@/lib/destination/types";
+import type { AccentTone } from "@pathport/contracts";
 
 /**
  * Tailwind class maps for the functional accent tokens, shared across the

@@ -1,11 +1,11 @@
-import Link from "next/link";
 import type {
   AccessOption,
   BudgetPersona,
   LivingProfile,
   RentRow,
   TaxBreakdown,
-} from "@/lib/destination/types";
+} from "@pathport/contracts";
+import Link from "next/link";
 import {
   Block,
   Caption,

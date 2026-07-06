@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { EntryView } from "@/components/destination/entry";
 import { SectionIntro } from "@/components/destination/section-intro";
 import { SectionStub } from "@/components/destination/section-stub";
-import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { getDestinationProfile } from "@/lib/api";
 import { destinationBasePath, sectionBySlug } from "@/lib/destination/sections";
 
 const PLANNED = [
@@ -19,7 +19,7 @@ export default async function EntryPage({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = getDestinationProfile(citizenship, destination);
+  const profile = await getDestinationProfile(citizenship, destination);
   const section = sectionBySlug("entry");
   if (!profile || !section) {
     notFound();

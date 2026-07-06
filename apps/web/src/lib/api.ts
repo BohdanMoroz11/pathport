@@ -1,5 +1,6 @@
 import type {
   Citizenship,
+  DestinationProfile,
   DestinationSummary,
   RouteDetail,
   RouteSummary,
@@ -85,6 +86,24 @@ export function getRoutes(
       `/citizenships/${code(citizenship)}/destinations/${code(destination)}/routes`,
     ),
     [404],
+  );
+}
+
+/**
+ * The full destination shell (Overview + deep sections) for a citizenship ×
+ * destination, or `null` when either code is unknown (404). A known pair with no
+ * authored pairing content still resolves — the API degrades the reader-specific
+ * reads to a "being gathered" stub.
+ */
+export function getDestinationProfile(
+  citizenship: string,
+  destination: string,
+): Promise<DestinationProfile | null> {
+  return nullOnStatus(
+    fetchJson<DestinationProfile>(
+      `/citizenships/${code(citizenship)}/destinations/${code(destination)}/profile`,
+    ),
+    [400, 404],
   );
 }
 

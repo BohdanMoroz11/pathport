@@ -6,7 +6,7 @@ import {
   GlanceList,
   ModuleHeading,
 } from "@/components/destination/overview";
-import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { getDestinationProfile } from "@/lib/api";
 import { destinationBasePath } from "@/lib/destination/sections";
 
 /**
@@ -21,7 +21,7 @@ export default async function DestinationOverviewPage({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = getDestinationProfile(citizenship, destination);
+  const profile = await getDestinationProfile(citizenship, destination);
   if (!profile) {
     notFound();
   }

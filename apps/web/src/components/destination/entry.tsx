@@ -1,6 +1,6 @@
+import type { EntryProfile, PermitPath } from "@pathport/contracts";
 import Link from "next/link";
 import { sectionHref } from "@/lib/destination/sections";
-import type { EntryProfile, PermitPath } from "@/lib/destination/types";
 import {
   Block,
   Caption,

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { LivingView } from "@/components/destination/living";
 import { SectionIntro } from "@/components/destination/section-intro";
 import { SectionStub } from "@/components/destination/section-stub";
-import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { getDestinationProfile } from "@/lib/api";
 import { destinationBasePath, sectionBySlug, sectionHref } from "@/lib/destination/sections";
 
 const PLANNED = [
@@ -22,7 +22,7 @@ export default async function LivingPage({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = getDestinationProfile(citizenship, destination);
+  const profile = await getDestinationProfile(citizenship, destination);
   const section = sectionBySlug("living");
   if (!profile || !section) {
     notFound();

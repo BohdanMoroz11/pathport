@@ -1,9 +1,9 @@
 "use client";
 
+import type { CitizenshipIdentity, DestinationIdentity } from "@pathport/contracts";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DESTINATION_SECTIONS, destinationBasePath, sectionHref } from "@/lib/destination/sections";
-import type { CitizenshipIdentity, DestinationIdentity } from "@/lib/destination/types";
 import { ThemeToggle } from "./theme-toggle";
 
 type DestinationRailProps = {

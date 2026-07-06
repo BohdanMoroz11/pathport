@@ -1,7 +1,7 @@
 "use client";
 
+import type { TrendSeries } from "@pathport/contracts";
 import { useState } from "react";
-import type { TrendSeries } from "@/lib/destination/types";
 
 /** Display-ready value with the series' prefix/suffix, e.g. "$4.53T", "6%". */
 function formatValue(series: TrendSeries, value: number): string {

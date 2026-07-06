@@ -5,7 +5,7 @@ import type {
   GeoImage,
   LanguageForReader,
   RegionNote,
-} from "@/lib/destination/types";
+} from "@pathport/contracts";
 import { EconomyTrend } from "./economy-trend";
 import {
   Block,

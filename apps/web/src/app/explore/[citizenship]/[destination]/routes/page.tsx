@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { RoutesComparison } from "@/components/destination/routes-comparison";
 import { SectionIntro } from "@/components/destination/section-intro";
-import { getRoutes } from "@/lib/api";
-import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { getDestinationProfile, getRoutes } from "@/lib/api";
 import { destinationBasePath, sectionBySlug } from "@/lib/destination/sections";
 
 export default async function RoutesSectionPage({
@@ -11,7 +10,7 @@ export default async function RoutesSectionPage({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = getDestinationProfile(citizenship, destination);
+  const profile = await getDestinationProfile(citizenship, destination);
   const section = sectionBySlug("routes");
   if (!profile || !section) {
     notFound();

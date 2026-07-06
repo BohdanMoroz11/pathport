@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { DestinationRail } from "@/components/destination/destination-rail";
-import { getDestinationProfile } from "@/lib/destination/fixtures";
+import { getDestinationProfile } from "@/lib/api";
 
 /**
  * The destination app-shell (Phase 2 / S3): a persistent left rail + a centered
@@ -16,7 +16,7 @@ export default async function DestinationLayout({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = getDestinationProfile(citizenship, destination);
+  const profile = await getDestinationProfile(citizenship, destination);
   if (!profile) {
     notFound();
   }
