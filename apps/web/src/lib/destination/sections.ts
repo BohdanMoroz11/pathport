@@ -26,10 +26,10 @@ export const DESTINATION_SECTIONS: DestinationSection[] = [
     blurb: "The headline of every section, at a glance.",
   },
   {
-    slug: "country",
-    label: "Country",
-    emoji: "\u{1F30D}",
-    blurb: "Where it is, who lives there, the economy, politics, and culture.",
+    slug: "entry",
+    label: "Entry",
+    emoji: "\u{1F6C2}",
+    blurb: "How you first arrive, then step by step toward a permit.",
   },
   {
     slug: "routes",
@@ -38,16 +38,10 @@ export const DESTINATION_SECTIONS: DestinationSection[] = [
     blurb: "Every long-term route, compared on the same scales.",
   },
   {
-    slug: "work",
-    label: "Work & income",
-    emoji: "\u{1F4BC}",
-    blurb: "Ways to earn, how each is taxed, finding work, and getting set up.",
-  },
-  {
-    slug: "living",
-    label: "Living",
-    emoji: "\u{1F3E0}",
-    blurb: "Real costs by city, taxes, healthcare, and schooling for kids.",
+    slug: "country",
+    label: "Country",
+    emoji: "\u{1F30D}",
+    blurb: "Where it is, who lives there, the economy, politics, and culture.",
   },
   {
     slug: "family",
@@ -56,10 +50,16 @@ export const DESTINATION_SECTIONS: DestinationSection[] = [
     blurb: "Bringing partners, children, parents — and animals.",
   },
   {
-    slug: "entry",
-    label: "Entry",
-    emoji: "\u{1F6C2}",
-    blurb: "Visa-free terms and how you first arrive.",
+    slug: "living",
+    label: "Living",
+    emoji: "\u{1F3E0}",
+    blurb: "Real costs by city, taxes, healthcare, and schooling for kids.",
+  },
+  {
+    slug: "work",
+    label: "Work & income",
+    emoji: "\u{1F4BC}",
+    blurb: "Ways to earn, how each is taxed, finding work, and getting set up.",
   },
 ];
 
