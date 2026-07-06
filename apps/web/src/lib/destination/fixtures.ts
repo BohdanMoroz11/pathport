@@ -625,17 +625,18 @@ const PAIR_CONTENT: Record<string, PairContent> = {
       difficulty: {
         label: "Moderately hard",
         rating: { score: 2, max: 5, tone: "warn" },
-        note: "German is Germanic and unrelated to Ukrainian or Russian, so grammar and vocabulary start unfamiliar. But it shares the Latin alphabet, and any English you have shares roots with German — a real head start on words like Haus, Buch, and Wasser.",
+        note: "German is Germanic and unrelated to Ukrainian or Russian, so grammar and vocabulary start unfamiliar. But it uses the Latin alphabet, and it shares a common Germanic root with English — so if you know some English, words like Haus, Buch, and Wasser are already familiar.",
       },
       english:
         "English gets you far in Berlin, big cities, universities, and tech, but German runs everyday bureaucracy, healthcare, and most jobs. Plan to reach B1 for permanent residence and citizenship.",
     },
     entry: {
       summary:
-        "You can enter the Schengen area visa-free for 90 days — and as a Ukrainian, activate temporary protection for the immediate right to live, work, and study.",
+        "You cross the border visa-free for 90 days — no visa, no pre-registration. From there, seven long-term routes lead onward: temporary protection is the fastest for most Ukrainians, granting the immediate right to live and work, but a job offer, study, or family route may suit you better.",
       facts: [
         { label: "Visa-free", value: "90 days" },
-        { label: "Status", value: "Temporary protection" },
+        { label: "Long-term routes", value: "7" },
+        { label: "Fastest", value: "Temporary protection" },
       ],
     },
     entryDetail: {
@@ -735,7 +736,7 @@ const PAIR_CONTENT: Record<string, PairContent> = {
         label: "Rent",
         value: "~€1,250/mo",
         rating: { score: 3, max: 5, tone: "warn" },
-        note: "1-bed, city centre",
+        note: "1-bed, capital, city centre",
         section: "living",
       },
       {
@@ -786,7 +787,7 @@ const PAIR_CONTENT: Record<string, PairContent> = {
         label: "Language",
         value: "German",
         rating: { score: 2, max: 5, tone: "warn" },
-        note: "unrelated to UA/RU; your English gives a small head start",
+        note: "unrelated to Ukrainian; shares some vocabulary with English",
         section: "country",
       },
     ],
