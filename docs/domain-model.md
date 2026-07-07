@@ -64,8 +64,30 @@ API exposes the assembled profile at
   are candidates to **normalize into block tables** — the same "normalize later
   once the shape stops moving" bet documented for route detail below.
 - `arrival_context.summary` / `visaFreeDays` (Phase 1) now overlap conceptually
-  with the pairing `profile.entry` brief. They are kept as-is for the Phase 1 read
-  API; reconciling the two is an S5 clean-up, not an S3 gap.
+  with the pairing `profile.entry` brief. They are kept as-is: S5 still reads
+  `summary`/`visaFreeDays` for the destination-index card (the arrival read), so
+  both remain live and reconciling them leans Phase 3, once real data shows which
+  is canonical.
+
+## Index Surfaces: Scannable Summaries (Phase 2 / S5)
+
+Rebuilding the browse half of the explorer (home → citizenship → destination
+list) surfaced what the **index cards** need to be comparable at a glance, and the
+schema followed — this time with **no new columns**, only wider reads:
+
+- **`Citizenship`** summary gains **`flag`**. It already existed on the
+  `citizenships` table (used by the shell's identity), the list read just dropped
+  it.
+- **`DestinationSummary`** gains **`flag`**, **`region`**, and **`tagline`** — the
+  identity fields the destination list groups (by region) and scans by. All three
+  already existed on `destination_countries` (added in S3); again only the summary
+  read was widened, so `GET /citizenships/:c/destinations` now returns them.
+
+Both are surfaced through the existing services/mappers; the demo seed was
+enriched so Portugal and Spain carry `flag`/`region`/`tagline` (only Germany did
+before), keeping the index scannable rather than half-empty. All identity fields
+are nullable in the contract — a destination without an authored region falls into
+an "Other" group rather than breaking the layout.
 
 ## Route Taxonomy
 
@@ -85,8 +107,10 @@ destination ──┘                              │
                                               └── (JSONB detail fields)
 ```
 
-- **citizenship** — a passport/nationality. Code + name.
-- **destination** — a country a person can migrate to. Code + name.
+- **citizenship** — a passport/nationality. Code + name (+ flag).
+- **destination** — a country a person can migrate to. Code + name (+ flag,
+  region, tagline, description, and the section `profile`; see the destination
+  shell and index sections above).
 - **route** — one immigration path *into a single destination* (e.g. Germany Skilled Worker Visa). Carries type, summary fields, detail fields, and metadata.
 - **route_applicability** — the `route ↔ citizenship` join. A route is shown for a citizenship when a row links them. This is the join the citizenship-first UI filters on. Demo data makes US and Ukraine differ on at least some routes so the filter is exercised, not trivial.
 - **arrival_context** — keyed on `citizenship × destination`. Holds visa-free / visitor entry facts about the *pair* (e.g. "US citizens: 90 days visa-free in the Schengen area"). Not a route.

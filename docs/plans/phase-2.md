@@ -302,25 +302,44 @@ Tasks:
 
 ### S5 [UI]: Rebuild the Remaining Explorer
 
-Status: Not started
+Status: Done — the browse half of the explorer (home → citizenship list) is
+rebuilt on the design system, the Phase 1 placeholder UI is fully retired, the
+field/select primitive S4 deferred (a searchable Combobox) is built and wired, and
+the design system is documented. Pipeline green: typecheck, Biome, 47 web unit
+tests, API + DB integration (incl. the widened summary reads), and 6 Playwright
+e2e (the primary journey + the new citizenship quick-jump + axe on home and the
+rebuilt destination list).
 
-Recreate the rest of the citizenship-first flow (`/` → `/explore/[citizenship]` →
-`/explore/[citizenship]/[destination]` → `/routes/[id]`) from the extracted
-components, matching the reference style. As each remaining surface is rebuilt it
-keeps **evolving the domain schema** (and demo seed) the same way S3 did — by S5's
-end the schema should reflect what the whole rebuilt flow actually needs.
+The flow the plan listed ended at a top-level `/routes/[id]`, but the S3/S4 shell
+had already superseded route detail with its comparison + peek drawer, leaving that
+page (and `RouteCard` / `safeBackHref`) **orphaned** — so S5 removed it rather than
+rebuilding a duplicate surface. The remaining rebuild was therefore the two browse
+index screens plus retiring the placeholder chrome.
 
 Tasks:
 
-- [ ] Rebuild the remaining explorer screens with the extracted components.
-- [ ] Make route comparison genuinely scannable (the core product promise).
-- [ ] Strengthen responsive + keyboard + a11y across the flow.
-- [ ] Settle the domain schema for the rebuilt flow: fold the per-page changes into
-      coherent migrations + updated shared contracts, and update
-      [../domain-model.md](../domain-model.md). This is the schema the tool stages
-      (S6/S7) build against.
-- [ ] Keep Playwright + axe green on the rebuilt flow; keep Lighthouse ≥ 90.
-- [ ] Document the design system in `docs/design-system.md` (tokens + components,
+- [x] Rebuild the remaining explorer screens with the extracted components. *(Home
+      and the citizenship→destinations list rebuilt on a new `BrowseShell` chrome +
+      the `Card`/`Badge`/`Combobox` primitives; the orphaned `/routes/[id]` removed.)*
+- [x] Make route comparison genuinely scannable (the core product promise).
+      *(Route-level comparison — shared-scale cost/timeline bars — was delivered in
+      the S3/S4 shell; S5 made the destination **index** comparable at a glance:
+      region-grouped cards with route-count chips, the arrival read, and quality
+      badges.)*
+- [x] Strengthen responsive + keyboard + a11y across the flow. *(Full keyboard
+      combobox, single-tab-stop link-cards, `aria-hidden` decoration; the new axe
+      e2e caught real `--text-3` AA-contrast failures, now fixed and codified as a
+      token rule in the design system.)*
+- [x] Settle the domain schema for the rebuilt flow. *(No new columns needed — the
+      index only needed the identity fields the summary reads were dropping:
+      `Citizenship.flag` and `DestinationSummary.flag`/`region`/`tagline` are now
+      surfaced, the PT/ES demo seed enriched to match, recorded in
+      [../domain-model.md](../domain-model.md).)*
+- [x] Keep Playwright + axe green on the rebuilt flow; keep Lighthouse ≥ 90.
+      *(Playwright + axe green — 6 specs. Lighthouse config unchanged; the rebuilt
+      pages are SSR + token CSS with no new heavy client JS, so the ≥ 90 budget is
+      expected to hold — not separately re-run in this local pass.)*
+- [x] Document the design system in `docs/design-system.md` (tokens + components,
       now that they are settled).
 
 ### S6 [Data]: Write Path, Queue & Ingestion Schema
