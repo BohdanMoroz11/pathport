@@ -45,7 +45,7 @@ export function ExploreCard({
           {destination.flag ?? "🌐"}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-lg font-semibold text-(--text)">
+          <h2 className="truncate font-display text-lg font-semibold text-(--text)">
             <Link
               href={`/explore/${citizenshipCode}/${destination.code}`}
               className={cn(
@@ -56,7 +56,7 @@ export function ExploreCard({
             >
               {destination.name}
             </Link>
-          </h3>
+          </h2>
           {destination.region && (
             <p className="truncate text-xs text-(--text-2)">{destination.region}</p>
           )}

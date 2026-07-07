@@ -270,7 +270,7 @@ export function MapHero({
                   className={cn(
                     "pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded-(--radius-pill) px-2 py-0.5 text-xs font-medium transition-opacity",
                     active
-                      ? "bg-(--brand) text-(--on-brand) opacity-100"
+                      ? "bg-(--brand) text-(color:--on-brand) opacity-100"
                       : "bg-(--surface) text-(--text-2) opacity-0",
                   )}
                 >
@@ -284,7 +284,7 @@ export function MapHero({
 
       {/* Detail panel for the selected destination */}
       {selected && (
-        <aside className="flex flex-col rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5 shadow-[var(--shadow-sm)]">
+        <div className="flex flex-col rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5 shadow-[var(--shadow-sm)]">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
@@ -339,7 +339,7 @@ export function MapHero({
           <Link
             href={`/explore/${citizenship.code}/${selected.code}`}
             className={cn(
-              "mt-5 inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] bg-(--brand) px-4 text-sm font-medium text-(--on-brand) transition hover:brightness-95",
+              "mt-5 inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] bg-(--brand) px-4 text-sm font-medium text-(color:--on-brand) transition hover:brightness-95",
               focusRing("brand"),
             )}
           >
@@ -348,7 +348,7 @@ export function MapHero({
           <p className="mt-2 text-center text-xs text-(--text-2)">
             Hover a pin to preview · click to open
           </p>
-        </aside>
+        </div>
       )}
     </div>
   );

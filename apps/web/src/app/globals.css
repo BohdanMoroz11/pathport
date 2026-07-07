@@ -134,31 +134,38 @@
   --on-brand: #ffffff;
 }
 
-html {
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-}
+/*
+ * Element resets live in `@layer base` so Tailwind utility classes (which sit in
+ * the later `utilities` layer) win over them — e.g. a `text-(color:--on-brand)`
+ * link-button must beat the `a { color: inherit }` reset.
+ */
+@layer base {
+  html {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+  }
 
-body {
-  min-height: 100%;
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: var(--fs-md);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    min-height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  letter-spacing: var(--tracking-display);
-}
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-display);
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }

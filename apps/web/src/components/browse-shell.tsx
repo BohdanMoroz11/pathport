@@ -36,7 +36,7 @@ export function BrowseShell({
             >
               <span
                 aria-hidden="true"
-                className="grid size-7 place-items-center rounded-[var(--radius-md)] bg-(--brand) font-display text-sm font-bold text-(--on-brand)"
+                className="grid size-7 place-items-center rounded-[var(--radius-md)] bg-(--brand) font-display text-sm font-bold text-(color:--on-brand)"
               >
                 P
               </span>
