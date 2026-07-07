@@ -62,6 +62,7 @@ Committing conventions:
 
 ## Technical Preferences To Remember
 
+- Unless stated otherwise, commit each logical change along the way.
 - Prefer a stack that supports a polished demo and clean code over one optimized for premature scale.
 - Prioritize maintainability and clear data modeling, because content freshness and source tracking will matter.
 - Current technical direction is documented in `docs/architecture.md`.
