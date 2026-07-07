@@ -6,6 +6,9 @@ import type {
   TaxBreakdown,
 } from "@pathport/contracts";
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/components/ui/cn";
+import { TONE_BORDER } from "@/components/ui/tone";
 import {
   Block,
   Caption,
@@ -17,7 +20,6 @@ import {
   type SectionMeta,
   StatGrid,
 } from "./section-kit";
-import { TONE_BORDER } from "./tone";
 
 const SECTIONS = [
   { id: "budget", emoji: "💶", title: "Monthly budget" },
@@ -59,21 +61,26 @@ function BudgetCard({ persona }: { persona: BudgetPersona }) {
  */
 function TakeHomePointer({ takeHome, workHref }: { takeHome: TaxBreakdown; workHref: string }) {
   return (
-    <Link
-      href={workHref}
-      className="group flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3 transition-colors hover:border-(--brand)"
+    <Card
+      asChild
+      interactive
+      radius="md"
+      padding="none"
+      className="group flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3"
     >
-      <span className="text-sm text-(--text-2)">
-        Take-home pay{" "}
-        <span className="font-display font-semibold text-(--text)">
-          €{takeHome.net.toLocaleString("en-US")}
-        </span>{" "}
-        on €{takeHome.gross.toLocaleString("en-US")} gross
-      </span>
-      <span className="text-xs font-medium text-(--brand)">
-        Full tax picture in Work &amp; income →
-      </span>
-    </Link>
+      <Link href={workHref}>
+        <span className="text-sm text-(--text-2)">
+          Take-home pay{" "}
+          <span className="font-display font-semibold text-(--text)">
+            €{takeHome.net.toLocaleString("en-US")}
+          </span>{" "}
+          on €{takeHome.gross.toLocaleString("en-US")} gross
+        </span>
+        <span className="text-xs font-medium text-(--brand)">
+          Full tax picture in Work &amp; income →
+        </span>
+      </Link>
+    </Card>
   );
 }
 
@@ -87,31 +94,30 @@ function RentTable({ rows }: { rows: RentRow[] }) {
   return (
     <ul className="space-y-2.5">
       {rows.map((row) => (
-        <li
-          key={row.city}
-          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3"
-        >
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-sm font-medium text-(--text)">
-              {row.city}
-              {row.note && <span className="ml-1.5 text-xs text-(--text-3)">{row.note}</span>}
-            </span>
-            <span className="font-display text-base font-semibold tabular-nums text-(--text)">
-              €{row.centre.toLocaleString("en-US")}
-              <span className="text-xs font-medium text-(--text-3)"> /mo</span>
-            </span>
-          </div>
-          <div className="mt-2 h-2.5 overflow-hidden rounded-(--radius-pill) bg-(--bar-track)">
-            <div
-              className="h-full rounded-(--radius-pill) bg-(--brand)"
-              style={{ width: `${(row.centre / maxCentre) * 100}%` }}
-            />
-          </div>
-          <div className="mt-2 flex gap-4 text-xs text-(--text-3)">
-            <span>Outer ring €{row.outer.toLocaleString("en-US")}</span>
-            <span>3-bed family €{row.family.toLocaleString("en-US")}</span>
-          </div>
-        </li>
+        <Card key={row.city} asChild radius="md" padding="none" className="px-4 py-3">
+          <li>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm font-medium text-(--text)">
+                {row.city}
+                {row.note && <span className="ml-1.5 text-xs text-(--text-3)">{row.note}</span>}
+              </span>
+              <span className="font-display text-base font-semibold tabular-nums text-(--text)">
+                €{row.centre.toLocaleString("en-US")}
+                <span className="text-xs font-medium text-(--text-3)"> /mo</span>
+              </span>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-(--radius-pill) bg-(--bar-track)">
+              <div
+                className="h-full rounded-(--radius-pill) bg-(--brand)"
+                style={{ width: `${(row.centre / maxCentre) * 100}%` }}
+              />
+            </div>
+            <div className="mt-2 flex gap-4 text-xs text-(--text-3)">
+              <span>Outer ring €{row.outer.toLocaleString("en-US")}</span>
+              <span>3-bed family €{row.family.toLocaleString("en-US")}</span>
+            </div>
+          </li>
+        </Card>
       ))}
     </ul>
   );
@@ -122,9 +128,10 @@ function AccessOptions({ options }: { options: AccessOption[] }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       {options.map((option) => (
-        <div
+        <Card
           key={option.label}
-          className={`space-y-3 rounded-[var(--radius-lg)] border border-(--border) border-l-[3px] bg-(--surface) p-4 ${TONE_BORDER[option.tone ?? "neutral"]}`}
+          padding="md"
+          className={cn("space-y-3 border-l-[3px]", TONE_BORDER[option.tone ?? "neutral"])}
         >
           <div>
             <p className="font-display text-sm font-semibold text-(--text)">{option.label}</p>
@@ -146,7 +153,7 @@ function AccessOptions({ options }: { options: AccessOption[] }) {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );

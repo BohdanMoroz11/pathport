@@ -7,8 +7,11 @@ import type {
   QuickFact,
 } from "@pathport/contracts";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/components/ui/cn";
+import { TONE_BG, TONE_BORDER, TONE_TEXT } from "@/components/ui/tone";
 import { sectionHref } from "@/lib/destination/sections";
-import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /**
  * Short, citizenship-specific entry read, as a brand-accented callout linking
@@ -32,12 +35,11 @@ export function EntryBrief({ entry, basePath }: { entry: EntryBriefData; basePat
       {entry.facts.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-2">
           {entry.facts.map((fact) => (
-            <li
-              key={fact.label}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-(--border) bg-(--surface) px-3 py-1 text-sm"
-            >
-              <span className="text-(--text-3)">{fact.label}</span>
-              <span className="font-display font-medium text-(--text)">{fact.value}</span>
+            <li key={fact.label}>
+              <Badge size="md">
+                <span className="text-(--text-3)">{fact.label}</span>
+                <span className="font-display font-medium text-(--text)">{fact.value}</span>
+              </Badge>
             </li>
           ))}
         </ul>
@@ -98,7 +100,7 @@ export function DestinationMedia({
   facts: QuickFact[];
 }) {
   return (
-    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) shadow-[var(--shadow-sm)]">
+    <Card padding="none" className="overflow-hidden shadow-[var(--shadow-sm)]">
       <div className="aspect-[16/10] bg-(--surface-2) p-5">
         <CountrySilhouette code={code} name={name} />
       </div>
@@ -119,7 +121,7 @@ export function DestinationMedia({
           </div>
         ))}
       </dl>
-    </div>
+    </Card>
   );
 }
 
@@ -181,27 +183,29 @@ function MetricRow({ metric }: { metric: GlanceMetric }) {
 /** "At a glance" as a structured, deep-linkable spec list (not cards). */
 export function GlanceList({ metrics, basePath }: { metrics: GlanceMetric[]; basePath: string }) {
   return (
-    <ul className="divide-y divide-(--border) overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
-      {metrics.map((metric) => (
-        <li key={metric.label}>
-          {metric.section ? (
-            <Link
-              href={sectionHref(basePath, metric.section)}
-              className="group flex items-center transition-colors hover:bg-(--surface-2) focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-(--brand)"
-            >
-              <span className="flex-1">
-                <MetricRow metric={metric} />
-              </span>
-              <span className="pr-4">
-                <ChevronRight />
-              </span>
-            </Link>
-          ) : (
-            <MetricRow metric={metric} />
-          )}
-        </li>
-      ))}
-    </ul>
+    <Card asChild padding="none">
+      <ul className="divide-y divide-(--border) overflow-hidden">
+        {metrics.map((metric) => (
+          <li key={metric.label}>
+            {metric.section ? (
+              <Link
+                href={sectionHref(basePath, metric.section)}
+                className="group flex items-center transition-colors hover:bg-(--surface-2) focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-(--brand)"
+              >
+                <span className="flex-1">
+                  <MetricRow metric={metric} />
+                </span>
+                <span className="pr-4">
+                  <ChevronRight />
+                </span>
+              </Link>
+            ) : (
+              <MetricRow metric={metric} />
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -226,26 +230,31 @@ export function FitsYou({ items }: { items: FitSignal[] }) {
       {items.map((item) => {
         const marker = FIT_MARKER[item.match];
         return (
-          <li
+          <Card
             key={item.text}
-            className={`flex gap-3 rounded-[var(--radius-md)] border border-(--border) border-l-[3px] bg-(--surface) px-4 py-3 ${TONE_BORDER[marker.tone]}`}
+            asChild
+            radius="md"
+            padding="none"
+            className={cn("border-l-[3px] px-4 py-3", TONE_BORDER[marker.tone])}
           >
-            <span
-              aria-hidden="true"
-              className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${marker.classes}`}
-            >
-              {marker.glyph}
-            </span>
-            <span className="min-w-0">
-              <span className="sr-only">{marker.label}: </span>
-              <span className="text-sm font-medium text-(--text)">{item.text}</span>
-              {item.detail && (
-                <span className="mt-0.5 block text-xs leading-5 text-(--text-2)">
-                  {item.detail}
-                </span>
-              )}
-            </span>
-          </li>
+            <li className="flex gap-3">
+              <span
+                aria-hidden="true"
+                className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${marker.classes}`}
+              >
+                {marker.glyph}
+              </span>
+              <span className="min-w-0">
+                <span className="sr-only">{marker.label}: </span>
+                <span className="text-sm font-medium text-(--text)">{item.text}</span>
+                {item.detail && (
+                  <span className="mt-0.5 block text-xs leading-5 text-(--text-2)">
+                    {item.detail}
+                  </span>
+                )}
+              </span>
+            </li>
+          </Card>
         );
       })}
     </ul>

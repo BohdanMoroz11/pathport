@@ -5,6 +5,7 @@ import type {
   SetupTrack,
   WorkProfile,
 } from "@pathport/contracts";
+import { Card } from "@/components/ui/card";
 import { EconomyTrend } from "./economy-trend";
 import {
   Block,
@@ -37,7 +38,7 @@ const S = Object.fromEntries(SECTIONS.map((s) => [s.id, s])) as Record<
 /** One way to earn: its tax/setup shape plus the honest pros and cons. */
 function ModeCard({ mode }: { mode: EarningMode }) {
   return (
-    <div className="space-y-4 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5">
+    <Card className="space-y-4">
       <div>
         <p className="font-display text-base font-semibold text-(--text)">{mode.label}</p>
         <p className="mt-0.5 text-sm text-(--text-2)">{mode.tagline}</p>
@@ -78,7 +79,7 @@ function ModeCard({ mode }: { mode: EarningMode }) {
           ))}
         </ul>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -87,16 +88,13 @@ function IncomeLanes({ lanes }: { lanes: IncomeLane[] }) {
   return (
     <dl className="grid gap-3 sm:grid-cols-3">
       {lanes.map((lane) => (
-        <div
-          key={lane.mode}
-          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3"
-        >
+        <Card key={lane.mode} radius="md" padding="none" className="px-4 py-3">
           <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-(--text-3)">
             {lane.mode}
           </dt>
           <dd className="mt-0.5 font-display text-lg font-semibold text-(--text)">{lane.burden}</dd>
           <p className="mt-0.5 text-xs leading-4 text-(--text-3)">{lane.note}</p>
-        </div>
+        </Card>
       ))}
     </dl>
   );
@@ -107,20 +105,25 @@ function DemandFields({ fields }: { fields: DemandField[] }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {fields.map((field) => (
-        <li
+        <Card
           key={field.label}
-          className="rounded-[var(--radius-md)] border border-(--border) border-l-[3px] border-l-(--pos) bg-(--surface) p-4"
+          asChild
+          radius="md"
+          padding="md"
+          className="border-l-[3px] border-l-(--pos)"
         >
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="font-display text-sm font-semibold text-(--text)">{field.label}</p>
-            {field.pay && (
-              <p className="shrink-0 font-display text-xs font-medium tabular-nums text-(--pos)">
-                {field.pay}
-              </p>
-            )}
-          </div>
-          <p className="mt-1 text-sm leading-6 text-(--text-2)">{field.why}</p>
-        </li>
+          <li>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-display text-sm font-semibold text-(--text)">{field.label}</p>
+              {field.pay && (
+                <p className="shrink-0 font-display text-xs font-medium tabular-nums text-(--pos)">
+                  {field.pay}
+                </p>
+              )}
+            </div>
+            <p className="mt-1 text-sm leading-6 text-(--text-2)">{field.why}</p>
+          </li>
+        </Card>
       ))}
     </ul>
   );

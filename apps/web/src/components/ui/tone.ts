@@ -31,3 +31,13 @@ export const TONE_BORDER: Record<AccentTone, string> = {
   brand: "border-l-(--brand)",
   violet: "border-l-(--violet)",
 };
+
+/** Low-opacity accent fills, for soft badges and tinted callouts. */
+export const TONE_SOFT_BG: Record<AccentTone, string> = {
+  pos: "bg-(--pos-soft)",
+  warn: "bg-(--warn-soft)",
+  danger: "bg-(--danger-soft)",
+  neutral: "bg-(--neutral-soft)",
+  brand: "bg-(--brand-soft)",
+  violet: "bg-(--violet-soft)",
+};

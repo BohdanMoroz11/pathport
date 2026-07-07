@@ -2,6 +2,9 @@
 
 import type { TrendSeries } from "@pathport/contracts";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/components/ui/cn";
 
 /** Display-ready value with the series' prefix/suffix, e.g. "$4.53T", "6%". */
 function formatValue(series: TrendSeries, value: number): string {
@@ -56,27 +59,27 @@ export function EconomyTrend({ series }: { series: TrendSeries[] }) {
         {series.map((s) => {
           const on = s.id === active.id;
           return (
-            <button
+            <Button
               key={s.id}
-              type="button"
+              variant="secondary"
+              size="sm"
               aria-pressed={on}
               onClick={() => {
                 setActiveId(s.id);
                 setHover(null);
               }}
-              className={`rounded-[var(--radius-pill)] border px-3 py-1 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand) ${
-                on
-                  ? "border-(--brand) bg-(--brand-soft) text-(--text)"
-                  : "border-(--border) bg-(--surface) text-(--text-2) hover:border-(--brand) hover:text-(--text)"
-              }`}
+              className={cn(
+                "rounded-[var(--radius-pill)]",
+                on && "border-(--brand) bg-(--brand-soft) text-(--text)",
+              )}
             >
               {s.label}
-            </button>
+            </Button>
           );
         })}
       </div>
 
-      <div className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5">
+      <Card>
         <div className="mb-4 flex items-baseline justify-between gap-3">
           <div>
             <p className="font-display text-2xl font-semibold text-(--text) tabular-nums">
@@ -156,7 +159,7 @@ export function EconomyTrend({ series }: { series: TrendSeries[] }) {
             <span key={p.year}>{p.year}</span>
           ))}
         </div>
-      </div>
+      </Card>
 
       <p className="max-w-2xl text-sm leading-6 text-(--text-2)">{active.note}</p>
 

@@ -6,6 +6,8 @@ import type {
   LanguageForReader,
   RegionNote,
 } from "@pathport/contracts";
+import { Card } from "@/components/ui/card";
+import { TONE_BG } from "@/components/ui/tone";
 import { EconomyTrend } from "./economy-trend";
 import {
   Block,
@@ -21,7 +23,6 @@ import {
   Timeline,
   TrendBadge,
 } from "./section-kit";
-import { TONE_BG } from "./tone";
 
 /**
  * The Country view's sections, in order — the single source for both the
@@ -49,18 +50,17 @@ function ImageGallery({ images }: { images: GeoImage[] }) {
   return (
     <ul className="grid grid-cols-2 gap-3">
       {images.map((image) => (
-        <li
-          key={image.caption}
-          className="overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)"
-        >
-          <div
-            aria-hidden="true"
-            className="grid aspect-[16/10] place-items-center bg-(--surface-2) text-2xl text-(--text-3)"
-          >
-            🏞️
-          </div>
-          <p className="px-3 py-2 text-xs leading-5 text-(--text-2)">{image.caption}</p>
-        </li>
+        <Card key={image.caption} asChild padding="none" className="overflow-hidden">
+          <li>
+            <div
+              aria-hidden="true"
+              className="grid aspect-[16/10] place-items-center bg-(--surface-2) text-2xl text-(--text-3)"
+            >
+              🏞️
+            </div>
+            <p className="px-3 py-2 text-xs leading-5 text-(--text-2)">{image.caption}</p>
+          </li>
+        </Card>
       ))}
     </ul>
   );
@@ -71,20 +71,19 @@ function ClimateSeasons({ seasons }: { seasons: ClimateSeason[] }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {seasons.map((season) => (
-        <li
-          key={season.label}
-          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-4"
-        >
-          <div className="flex items-baseline justify-between gap-2">
-            <p className="font-display text-sm font-semibold text-(--text)">{season.label}</p>
-            <p className="text-xs text-(--text-3)">{season.months}</p>
-          </div>
-          <p className="mt-2 font-display text-lg font-semibold tabular-nums text-(--text)">
-            {season.temp}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-(--text-2)">{season.precip}</p>
-          {season.note && <p className="mt-1 text-[11px] text-(--text-3)">{season.note}</p>}
-        </li>
+        <Card key={season.label} asChild radius="md" padding="md">
+          <li>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="font-display text-sm font-semibold text-(--text)">{season.label}</p>
+              <p className="text-xs text-(--text-3)">{season.months}</p>
+            </div>
+            <p className="mt-2 font-display text-lg font-semibold tabular-nums text-(--text)">
+              {season.temp}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-(--text-2)">{season.precip}</p>
+            {season.note && <p className="mt-1 text-[11px] text-(--text-3)">{season.note}</p>}
+          </li>
+        </Card>
       ))}
     </ul>
   );
@@ -95,19 +94,18 @@ function RegionAreas({ areas }: { areas: RegionNote[] }) {
   return (
     <ul className="space-y-2">
       {areas.map((area) => (
-        <li
-          key={area.label}
-          className="flex gap-3 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3"
-        >
-          <span
-            aria-hidden="true"
-            className={`mt-1.5 size-2 shrink-0 rounded-full ${TONE_BG[area.tone ?? "neutral"]}`}
-          />
-          <span className="min-w-0">
-            <span className="text-sm font-medium text-(--text)">{area.label}</span>
-            <span className="mt-0.5 block text-sm leading-6 text-(--text-2)">{area.note}</span>
-          </span>
-        </li>
+        <Card key={area.label} asChild radius="md" padding="none" className="flex gap-3 px-4 py-3">
+          <li>
+            <span
+              aria-hidden="true"
+              className={`mt-1.5 size-2 shrink-0 rounded-full ${TONE_BG[area.tone ?? "neutral"]}`}
+            />
+            <span className="min-w-0">
+              <span className="text-sm font-medium text-(--text)">{area.label}</span>
+              <span className="mt-0.5 block text-sm leading-6 text-(--text-2)">{area.note}</span>
+            </span>
+          </li>
+        </Card>
       ))}
     </ul>
   );
@@ -145,13 +143,12 @@ function CultureNotes({ notes }: { notes: CultureNote[] }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {notes.map((note) => (
-        <li
-          key={note.title}
-          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-4"
-        >
-          <p className="font-display text-sm font-semibold text-(--text)">{note.title}</p>
-          <p className="mt-1 text-sm leading-6 text-(--text-2)">{note.body}</p>
-        </li>
+        <Card key={note.title} asChild radius="md" padding="md">
+          <li>
+            <p className="font-display text-sm font-semibold text-(--text)">{note.title}</p>
+            <p className="mt-1 text-sm leading-6 text-(--text-2)">{note.body}</p>
+          </li>
+        </Card>
       ))}
     </ul>
   );
@@ -165,13 +162,10 @@ function RightsBlock({ lgbtq, minorities }: { lgbtq: string; minorities: string 
         { label: "LGBTQ+", body: lgbtq },
         { label: "Minorities & migrants", body: minorities },
       ].map((item) => (
-        <div
-          key={item.label}
-          className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5"
-        >
+        <Card key={item.label}>
           <Caption>{item.label}</Caption>
           <p className="mt-2 text-sm leading-6 text-(--text-2)">{item.body}</p>
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -241,7 +235,7 @@ export function CountryView({ country }: { country: CountryProfile }) {
             <ProportionBars data={government.parties} unit="%" max={100} />
           </Panel>
           <div className="space-y-4">
-            <div className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5">
+            <Card>
               <Caption>In power now</Caption>
               <p className="mt-2 text-sm leading-6 text-(--text-2)">
                 {government.currentGovernment}
@@ -249,7 +243,7 @@ export function CountryView({ country }: { country: CountryProfile }) {
               <p className="mt-3 inline-flex rounded-[var(--radius-pill)] border border-(--border) bg-(--surface-2) px-3 py-1 text-xs font-medium text-(--text-2)">
                 🗳️ {government.nextElection}
               </p>
-            </div>
+            </Card>
           </div>
         </div>
         <div className="space-y-3">

@@ -1,5 +1,6 @@
 import type { EntryProfile, PermitPath } from "@pathport/contracts";
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 import { sectionHref } from "@/lib/destination/sections";
 import {
   Block,
@@ -26,19 +27,21 @@ const S = Object.fromEntries(SECTIONS.map((s) => [s.id, s])) as Record<
 /** A document checklist — a bordered, divided list with a checkbox glyph. */
 function DocList({ items }: { items: string[] }) {
   return (
-    <ul className="divide-y divide-(--border) overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
-      {items.map((item) => (
-        <li key={item} className="flex items-center gap-3 px-4 py-2.5 text-sm text-(--text-2)">
-          <span
-            aria-hidden="true"
-            className="grid size-5 shrink-0 place-items-center rounded-[6px] border border-(--border-strong) text-[11px] text-(--text-3)"
-          >
-            ☐
-          </span>
-          {item}
-        </li>
-      ))}
-    </ul>
+    <Card asChild padding="none">
+      <ul className="divide-y divide-(--border) overflow-hidden">
+        {items.map((item) => (
+          <li key={item} className="flex items-center gap-3 px-4 py-2.5 text-sm text-(--text-2)">
+            <span
+              aria-hidden="true"
+              className="grid size-5 shrink-0 place-items-center rounded-[6px] border border-(--border-strong) text-[11px] text-(--text-3)"
+            >
+              ☐
+            </span>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -46,7 +49,7 @@ function DocList({ items }: { items: string[] }) {
 function AllowList({ can, cannot }: { can: string[]; cannot: string[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="space-y-2 rounded-[var(--radius-lg)] border border-(--border) border-l-[3px] border-l-(--pos) bg-(--surface) p-5">
+      <Card className="space-y-2 border-l-[3px] border-l-(--pos)">
         <Caption>You can</Caption>
         <ul className="space-y-1.5">
           {can.map((item) => (
@@ -58,8 +61,8 @@ function AllowList({ can, cannot }: { can: string[]; cannot: string[] }) {
             </li>
           ))}
         </ul>
-      </div>
-      <div className="space-y-2 rounded-[var(--radius-lg)] border border-(--border) border-l-[3px] border-l-(--danger) bg-(--surface) p-5">
+      </Card>
+      <Card className="space-y-2 border-l-[3px] border-l-(--danger)">
         <Caption>Not yet</Caption>
         <ul className="space-y-1.5">
           {cannot.map((item) => (
@@ -71,7 +74,7 @@ function AllowList({ can, cannot }: { can: string[]; cannot: string[] }) {
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -86,20 +89,22 @@ function PermitPaths({ paths, routesHref }: { paths: PermitPath[]; routesHref: s
     <ul className="grid gap-3 sm:grid-cols-2">
       {paths.map((path) => (
         <li key={path.label}>
-          <Link
-            href={routesHref}
-            className="group flex h-full flex-col rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-4 transition-colors hover:border-(--brand) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand)"
-          >
-            <p className="text-xs font-medium text-(--brand)">{path.forWhom}</p>
-            <p className="mt-1 font-display text-sm font-semibold text-(--text)">{path.label}</p>
-            <p className="mt-1 text-sm leading-6 text-(--text-2)">{path.note}</p>
-            <span className="mt-3 flex items-center gap-1 text-xs font-medium text-(--brand)">
-              See routes
-              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
-                →
+          <Card asChild interactive padding="md" className="group flex h-full flex-col">
+            <Link href={routesHref}>
+              <p className="text-xs font-medium text-(--brand)">{path.forWhom}</p>
+              <p className="mt-1 font-display text-sm font-semibold text-(--text)">{path.label}</p>
+              <p className="mt-1 text-sm leading-6 text-(--text-2)">{path.note}</p>
+              <span className="mt-3 flex items-center gap-1 text-xs font-medium text-(--brand)">
+                See routes
+                <span
+                  aria-hidden="true"
+                  className="transition-transform group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
+          </Card>
         </li>
       ))}
     </ul>

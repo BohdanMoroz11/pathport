@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 /**
  * The peek sheet for a route's detail: a right-side panel over a dimmed backdrop,
@@ -65,14 +66,10 @@ export function Drawer({
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-(--text-3)">
             Route detail
           </span>
-          <button
-            type="button"
-            onClick={close}
-            className="grid size-8 place-items-center rounded-[var(--radius-md)] border border-(--border) text-(--text-2) transition-colors hover:bg-(--surface-2) hover:text-(--text) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand)"
-          >
+          <Button variant="secondary" size="icon" onClick={close}>
             <span aria-hidden="true">✕</span>
             <span className="sr-only">Close</span>
-          </button>
+          </Button>
         </div>
         <div className="grow overflow-y-auto px-6 py-6">{children}</div>
       </div>

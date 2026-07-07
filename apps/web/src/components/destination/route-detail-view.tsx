@@ -1,4 +1,6 @@
 import type { CountryStat, RouteDetail, RouteSource } from "@pathport/contracts";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   booleanLabel,
   formatCost,
@@ -93,9 +95,7 @@ export function RouteDetailView({ route }: { route: RouteDetail }) {
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <span className="inline-flex rounded-[var(--radius-pill)] border border-(--border) px-2.5 py-0.5 text-xs font-medium text-(--text-2)">
-          {ROUTE_TYPE_LABELS[route.type]}
-        </span>
+        <Badge>{ROUTE_TYPE_LABELS[route.type]}</Badge>
         <h2 className="font-display text-2xl font-semibold text-(--text)">{route.title}</h2>
         <p className="max-w-2xl text-[0.95rem] leading-7 text-(--text-2)">{route.summary}</p>
         <QualityBadges labels={labels} />
@@ -131,10 +131,7 @@ export function RouteDetailView({ route }: { route: RouteDetail }) {
           <Caption>Requirements</Caption>
           <div className="grid gap-3 sm:grid-cols-2">
             {details.requirementGroups.map((group) => (
-              <div
-                key={group.title}
-                className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-4"
-              >
+              <Card key={group.title} padding="md">
                 <p className="text-sm font-medium text-(--text)">{group.title}</p>
                 <ul className="mt-2 space-y-1.5">
                   {group.items.map((item) => (
@@ -146,7 +143,7 @@ export function RouteDetailView({ route }: { route: RouteDetail }) {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Card>
             ))}
           </div>
         </section>

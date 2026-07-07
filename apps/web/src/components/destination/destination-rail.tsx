@@ -3,6 +3,7 @@
 import type { CitizenshipIdentity, DestinationIdentity } from "@pathport/contracts";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { DESTINATION_SECTIONS, destinationBasePath, sectionHref } from "@/lib/destination/sections";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -70,12 +71,7 @@ export function DestinationRail({ citizenship, destination }: DestinationRailPro
         </div>
         <h2 className="mt-2 font-display text-lg font-semibold">{destination.name}</h2>
         <p className="mt-1 text-xs leading-5 text-(--rail-text-2)">{destination.tagline}</p>
-        <button
-          type="button"
-          className="mt-3 w-full rounded-[var(--radius-md)] bg-(--brand) px-3 py-2 text-sm font-semibold text-(--on-brand) transition hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand)"
-        >
-          Compare destinations
-        </button>
+        <Button className="mt-3 w-full">Compare destinations</Button>
       </div>
 
       <nav aria-label="Destination sections" className="flex-1">

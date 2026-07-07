@@ -8,8 +8,10 @@ import type {
   TrendDirection,
   WorkStep,
 } from "@pathport/contracts";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { TONE_BG, TONE_TEXT } from "@/components/ui/tone";
 import { ModuleHeading } from "./overview";
-import { TONE_BG, TONE_BORDER, TONE_TEXT } from "./tone";
 
 /**
  * Shared building blocks for the deep destination sections (Country, Living, …):
@@ -87,10 +89,7 @@ export function StatGrid({ stats }: { stats: CountryStat[] }) {
   return (
     <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-4 py-3"
-        >
+        <Card key={stat.label} radius="md" padding="none" className="px-4 py-3">
           <dd
             className={`font-display text-lg font-semibold leading-tight ${
               stat.tone ? TONE_TEXT[stat.tone] : "text-(--text)"
@@ -100,7 +99,7 @@ export function StatGrid({ stats }: { stats: CountryStat[] }) {
           </dd>
           <dt className="mt-0.5 text-xs font-medium text-(--text-2)">{stat.label}</dt>
           {stat.note && <p className="mt-0.5 text-[11px] leading-4 text-(--text-3)">{stat.note}</p>}
-        </div>
+        </Card>
       ))}
     </dl>
   );
@@ -154,14 +153,14 @@ export function ProportionBars({
 /** A bordered panel wrapper with an optional caption, for charts. */
 export function Panel({ caption, children }: { caption?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5">
+    <Card>
       {caption && (
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-(--text-3)">
           {caption}
         </p>
       )}
       {children}
-    </div>
+    </Card>
   );
 }
 
@@ -170,21 +169,20 @@ export function Steps({ steps }: { steps: WorkStep[] }) {
   return (
     <ol className="space-y-3">
       {steps.map((step, i) => (
-        <li
-          key={step.title}
-          className="flex gap-3 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-4"
-        >
-          <span
-            aria-hidden="true"
-            className="grid size-7 shrink-0 place-items-center rounded-full bg-(--brand-soft) font-display text-sm font-semibold text-(--brand)"
-          >
-            {i + 1}
-          </span>
-          <div>
-            <p className="text-sm font-medium text-(--text)">{step.title}</p>
-            <p className="mt-0.5 text-sm leading-6 text-(--text-2)">{step.body}</p>
-          </div>
-        </li>
+        <Card key={step.title} asChild radius="md" padding="md">
+          <li className="flex gap-3">
+            <span
+              aria-hidden="true"
+              className="grid size-7 shrink-0 place-items-center rounded-full bg-(--brand-soft) font-display text-sm font-semibold text-(--brand)"
+            >
+              {i + 1}
+            </span>
+            <div>
+              <p className="text-sm font-medium text-(--text)">{step.title}</p>
+              <p className="mt-0.5 text-sm leading-6 text-(--text-2)">{step.body}</p>
+            </div>
+          </li>
+        </Card>
       ))}
     </ol>
   );
@@ -206,12 +204,10 @@ const TREND_META: Record<
 export function TrendBadge({ direction }: { direction: TrendDirection }) {
   const meta = TREND_META[direction];
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border bg-(--surface) px-2.5 py-1 text-xs font-medium ${TONE_BORDER[meta.tone]} ${TONE_TEXT[meta.tone]}`}
-    >
+    <Badge tone={meta.tone}>
       <span aria-hidden="true">{meta.glyph}</span>
       {meta.text}
-    </span>
+    </Badge>
   );
 }
 
@@ -248,11 +244,8 @@ export function TagRow({ items }: { items: string[] }) {
   return (
     <ul className="flex flex-wrap gap-2">
       {items.map((item) => (
-        <li
-          key={item}
-          className="rounded-[var(--radius-pill)] border border-(--border) bg-(--surface) px-3 py-1 text-sm text-(--text-2)"
-        >
-          {item}
+        <li key={item}>
+          <Badge size="md">{item}</Badge>
         </li>
       ))}
     </ul>
@@ -262,19 +255,21 @@ export function TagRow({ items }: { items: string[] }) {
 /** Reference-price list: item → cost, in a bordered divided panel. */
 export function PriceList({ items }: { items: PriceItem[] }) {
   return (
-    <dl className="divide-y divide-(--border) overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
-      {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between gap-4 px-4 py-2.5">
-          <dt className="text-sm text-(--text-2)">
-            {item.label}
-            {item.note && <span className="ml-1.5 text-xs text-(--text-3)">{item.note}</span>}
-          </dt>
-          <dd className="shrink-0 font-display text-sm font-medium tabular-nums text-(--text)">
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <Card asChild padding="none">
+      <dl className="divide-y divide-(--border) overflow-hidden">
+        {items.map((item) => (
+          <div key={item.label} className="flex items-center justify-between gap-4 px-4 py-2.5">
+            <dt className="text-sm text-(--text-2)">
+              {item.label}
+              {item.note && <span className="ml-1.5 text-xs text-(--text-3)">{item.note}</span>}
+            </dt>
+            <dd className="shrink-0 font-display text-sm font-medium tabular-nums text-(--text)">
+              {item.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Card>
   );
 }
 

@@ -1,4 +1,8 @@
 import type { AccentTone, FamilyMember, FamilyProfile } from "@pathport/contracts";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/components/ui/cn";
+import { TONE_BORDER } from "@/components/ui/tone";
 import {
   Block,
   Caption,
@@ -8,7 +12,6 @@ import {
   StatGrid,
   Steps,
 } from "./section-kit";
-import { TONE_BORDER } from "./tone";
 
 const SECTIONS = [
   { id: "reunification", emoji: "🧩", title: "Reunification" },
@@ -46,9 +49,7 @@ const FEASIBILITY: Record<
 function MemberCard({ member }: { member: FamilyMember }) {
   const marker = FEASIBILITY[member.feasibility];
   return (
-    <div
-      className={`space-y-3 rounded-[var(--radius-lg)] border border-(--border) border-l-[3px] bg-(--surface) p-5 ${TONE_BORDER[marker.tone]}`}
-    >
+    <Card className={cn("space-y-3 border-l-[3px]", TONE_BORDER[marker.tone])}>
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
@@ -74,7 +75,7 @@ function MemberCard({ member }: { member: FamilyMember }) {
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
@@ -83,11 +84,10 @@ function RestrictedTags({ items }: { items: string[] }) {
   return (
     <ul className="flex flex-wrap gap-2">
       {items.map((item) => (
-        <li
-          key={item}
-          className="rounded-[var(--radius-pill)] bg-(--danger-soft) px-3 py-1 text-sm font-medium text-(--danger)"
-        >
-          {item}
+        <li key={item}>
+          <Badge variant="soft" tone="danger" size="md">
+            {item}
+          </Badge>
         </li>
       ))}
     </ul>
