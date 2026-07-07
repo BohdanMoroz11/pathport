@@ -86,14 +86,6 @@
 
   /* Layout */
   --content-max: 1200px;
-
-  /* Legacy aliases for the placeholder UI; resolve to the tokens above and
-     re-resolve per theme. Removed as the explorer is rebuilt (S3–S5). */
-  --background: var(--bg);
-  --foreground: var(--text);
-  --muted: var(--text-2);
-  --accent: var(--brand);
-  --accent-foreground: var(--on-brand);
 }
 
 :root[data-theme="light"] {
