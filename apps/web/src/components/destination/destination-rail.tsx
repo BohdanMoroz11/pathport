@@ -6,10 +6,11 @@ import type {
   DestinationSummary,
 } from "@pathport/contracts";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
+import { CITIZENSHIP_COOKIE } from "@/lib/citizenship";
 import { DESTINATION_SECTIONS, destinationBasePath, sectionHref } from "@/lib/destination/sections";
 
 type DestinationRailProps = {
@@ -21,11 +22,20 @@ type DestinationRailProps = {
 
 export function DestinationRail({ citizenship, destination, destinations }: DestinationRailProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const basePath = destinationBasePath(citizenship.code, destination.code);
 
   function isActive(slug: string): boolean {
     const href = sectionHref(basePath, slug);
     return slug === "" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  // The browse pages (home, /explore) read the active citizenship from a cookie;
+  // sync it to the shell's URL citizenship before heading there so they agree.
+  function goToExplore() {
+    // biome-ignore lint/suspicious/noDocumentCookie: plain cookie the RSC reads on the next GET.
+    document.cookie = `${CITIZENSHIP_COOKIE}=${encodeURIComponent(citizenship.code)}; path=/; max-age=31536000; samesite=lax`;
+    router.push("/explore");
   }
 
   return (
@@ -62,12 +72,13 @@ export function DestinationRail({ citizenship, destination, destinations }: Dest
       <p className="px-1 text-xs text-(--rail-text-2)">
         Viewing as <span aria-hidden="true">{citizenship.flag}</span>{" "}
         <span className="font-medium text-(--rail-text)">{citizenship.name}</span> ·{" "}
-        <Link
-          href={`/explore/${citizenship.code}`}
+        <button
+          type="button"
+          onClick={goToExplore}
           className="text-(--rail-active-text) hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--violet)"
         >
           change
-        </Link>
+        </button>
       </p>
 
       {/* Destination identity card */}
@@ -77,8 +88,8 @@ export function DestinationRail({ citizenship, destination, destinations }: Dest
         </div>
         <h2 className="mt-2 font-display text-lg font-semibold">{destination.name}</h2>
         <p className="mt-1 text-xs leading-5 text-(--rail-text-2)">{destination.tagline}</p>
-        <Button asChild className="mt-3 w-full">
-          <Link href={`/explore/${citizenship.code}`}>Compare destinations</Link>
+        <Button className="mt-3 w-full" onClick={goToExplore}>
+          Compare destinations
         </Button>
       </div>
 
