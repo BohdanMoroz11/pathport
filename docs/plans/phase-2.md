@@ -257,20 +257,48 @@ Tasks:
 
 ### S4 [UI]: Component Extraction
 
-Status: Not started
+Status: Done — the reusable primitive layer (`Card`, `Badge`, `Button`, plus a
+`cn`/`focusRing` util and the relocated tone maps) was pulled out of the
+destination shell over Radix, and the whole shell was refactored to compose from
+it. Pipeline green: typecheck, Biome, 53 web unit tests (incl. RTL + axe on each
+primitive), and the 4 Playwright e2e (the primary journey drives the refactored
+Overview → Routes → drawer, home axe clean).
 
-Pull the reusable component layer out of the reference page, on top of Radix, so
-the rest of the app composes from it.
+The extraction stayed scoped to the destination shell's own (S1-token) vocabulary
+— the legacy explorer (`route-card`, `destination-card`, `citizenship-picker`,
+`routes/[id]`) and its `linkCardClass`/`panelClass` are left for the S5 rebuild.
+Concretely:
+
+- `components/ui/`: `cn.ts` (class combiner + shared `focusRing`), `card.tsx`
+  (`Card`, static + `asChild`/`interactive` via Radix `Slot`), `badge.tsx`
+  (`Badge`, `outline`/`soft` × tone, optional dot), and `button.tsx` **rebuilt**
+  on the tokens (`primary`/`secondary`/`ghost` × `md`/`sm`/`icon`, `asChild`).
+  `tone.ts` moved into `ui/` (design-system concern) and gained `TONE_SOFT_BG`.
+- Consumers rewired: `section-kit` (Panel/StatGrid/Steps/PriceList/TagRow/
+  TrendBadge → Card/Badge), `overview` (media/glance/fits/entry pills),
+  `routes-comparison` (route card + complexity/signal/type badges + sort toggles),
+  `drawer` (close), `destination-rail` (primary action), `economy-trend`
+  (metric toggles + chart panel), and the section bodies (`country`, `living`,
+  `work`, `family`, `entry`, `route-detail-view`).
 
 Tasks:
 
-- [ ] Extract primitives and patterns implied by the reference page (button, link,
+- [x] Extract primitives and patterns implied by the reference page (button, link,
       card, badge, field, select, dialog, layout, etc.) as custom UI over Radix
-      behavior, driven by the S1 tokens.
-- [ ] Refactor the reference page to consume the extracted components (proving
-      they reproduce its style).
-- [ ] Keep components accessible (keyboard, focus, ARIA) and unit-tested with RTL
-      + axe; establish loading/empty/error patterns.
+      behavior, driven by the S1 tokens. *(Built `Card`/`Badge`/`Button` — the
+      patterns the shell actually uses. `dialog` already existed from S1; `layout`
+      stays composition (the shell + rail); genuine `field`/`select` have no live
+      consumer yet — the rail's country search is a disabled placeholder — so they
+      are deferred to S5's explorer rebuild rather than built unused.)*
+- [x] Refactor the reference page to consume the extracted components (proving
+      they reproduce its style). *(Overview + the whole shell now compose from the
+      primitives; the ~two dozen hand-written bordered-box / pill literals are gone.)*
+- [x] Keep components accessible (keyboard, focus, ARIA) and unit-tested with RTL
+      + axe. *(Each primitive has an RTL + axe test; `asChild` keeps link/button
+      cards a single tab stop; `interactive` adds the focus ring that a couple of
+      inline link-cards were missing.)* Dedicated loading/error state components
+      are deferred to S5 (the shell's only current empty/uncertain surfaces are
+      `notFound()` and the `section-stub` "being built" pattern).
 
 ### S5 [UI]: Rebuild the Remaining Explorer
 
