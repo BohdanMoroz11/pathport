@@ -24,8 +24,8 @@ describe("Read API", () => {
       const response = await http().get("/citizenships").expect(200);
 
       expect(response.body).toEqual([
-        { code: "UKR", name: "Ukraine" },
-        { code: "USA", name: "United States" },
+        { code: "UKR", name: "Ukraine", flag: "\u{1F1FA}\u{1F1E6}" },
+        { code: "USA", name: "United States", flag: "\u{1F1FA}\u{1F1F8}" },
       ]);
     });
   });
@@ -45,6 +45,11 @@ describe("Read API", () => {
       expect(germany?.routeCount).toBe(5);
       expect(germany?.arrivalContext?.visaFreeDays).toBe(90);
       expect(germany?.arrivalContext?.isDemo).toBe(true);
+
+      // Identity fields the destination index groups and scans by.
+      expect(germany?.flag).toBe("\u{1F1E9}\u{1F1EA}");
+      expect(germany?.region).toBe("Western Europe");
+      expect(germany?.tagline).not.toBe("");
     });
 
     it("is case-insensitive on the citizenship code", async () => {

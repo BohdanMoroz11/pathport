@@ -117,8 +117,20 @@ export const demoSeedData: SeedData = {
         "Germany is the European Union's largest economy and most populous member state, anchoring central Europe with a deep industrial and engineering base and a skills shortage that keeps demand for foreign workers high. It runs a social-market system — universal healthcare, tuition-free public universities, generous parental leave, and strong worker protections — paid for by high taxes and social contributions. Life is orderly and well-served: reliable public transport, walkable cities, and broad legal protections, balanced against a famously thorough bureaucracy that rewards patience and paperwork. German still does most of the day-to-day heavy lifting, though English carries you a long way in larger cities, universities, and the tech sector. The climate is temperate — grey, mild winters and warm summers — and the country is well connected to the rest of Europe by rail and air.",
       profile: germanyDetail,
     },
-    { code: "PT", name: "Portugal" },
-    { code: "ES", name: "Spain" },
+    {
+      code: "PT",
+      name: "Portugal",
+      flag: "\u{1F1F5}\u{1F1F9}",
+      region: "Southern Europe",
+      tagline: "Southern Europe · Atlantic coast · EU member",
+    },
+    {
+      code: "ES",
+      name: "Spain",
+      flag: "\u{1F1EA}\u{1F1F8}",
+      region: "Southern Europe",
+      tagline: "Southern Europe · Mediterranean · EU member",
+    },
   ],
   routes: [
     // --- Germany -----------------------------------------------------------

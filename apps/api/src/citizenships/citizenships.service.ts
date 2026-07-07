@@ -11,7 +11,7 @@ export class CitizenshipsService {
   /** Every citizenship the explorer can start from, alphabetical by name. */
   async list(): Promise<Citizenship[]> {
     return this.database.client
-      .select({ code: citizenships.code, name: citizenships.name })
+      .select({ code: citizenships.code, name: citizenships.name, flag: citizenships.flag })
       .from(citizenships)
       .orderBy(asc(citizenships.name));
   }

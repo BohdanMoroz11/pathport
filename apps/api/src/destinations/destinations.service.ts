@@ -27,6 +27,9 @@ export class DestinationsService {
       .select({
         code: destinationCountries.code,
         name: destinationCountries.name,
+        flag: destinationCountries.flag,
+        region: destinationCountries.region,
+        tagline: destinationCountries.tagline,
         routeCount: countDistinct(routes.id),
       })
       .from(destinationCountries)
@@ -38,7 +41,14 @@ export class DestinationsService {
           eq(routeApplicability.citizenshipId, citizenshipId),
         ),
       )
-      .groupBy(destinationCountries.id, destinationCountries.code, destinationCountries.name)
+      .groupBy(
+        destinationCountries.id,
+        destinationCountries.code,
+        destinationCountries.name,
+        destinationCountries.flag,
+        destinationCountries.region,
+        destinationCountries.tagline,
+      )
       .orderBy(asc(destinationCountries.name));
 
     const contexts = await this.arrivalContextsByDestination(citizenshipId);
@@ -46,6 +56,9 @@ export class DestinationsService {
     return destinations.map((destination) => ({
       code: destination.code,
       name: destination.name,
+      flag: destination.flag,
+      region: destination.region,
+      tagline: destination.tagline,
       // Postgres returns COUNT(...) as a string via node-postgres; coerce so the
       // contract's `number` is honest rather than a lie the type system can't see.
       routeCount: Number(destination.routeCount),

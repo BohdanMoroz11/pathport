@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { CitizenshipPicker } from "./citizenship-picker";
 
 const citizenships: Citizenship[] = [
-  { code: "USA", name: "United States" },
-  { code: "UKR", name: "Ukraine" },
+  { code: "USA", name: "United States", flag: "\u{1F1FA}\u{1F1F8}" },
+  { code: "UKR", name: "Ukraine", flag: "\u{1F1FA}\u{1F1E6}" },
 ];
 
 describe("CitizenshipPicker", () => {
