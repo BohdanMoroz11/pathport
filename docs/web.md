@@ -9,13 +9,31 @@ directly (see [architecture.md](architecture.md)).
 The explorer follows the citizenship → destination → route drill-down from the
 [domain model](domain-model.md):
 
-1. `/` — pick a citizenship. United States leads as the primary demo option.
-2. `/explore/[citizenship]` — destinations reachable by that citizenship, each
-   with a route count and arrival context.
-3. `/explore/[citizenship]/[destination]` — route summary cards grouped by route
-   type, in the taxonomy order.
-4. `/routes/[id]` — full route detail: comparable fields, requirement groups,
-   documents, eligibility, steps, caveats, and sources.
+1. `/` — the home landing for the **active citizenship**: a map hero that plots
+   the reachable destinations as pins with flight-path arcs from the passport's
+   origin and a live detail panel, followed by a destination card grid. The
+   heading and data render server-side for whoever the active citizenship is.
+2. `/explore` — the destination browser for the active citizenship: search,
+   region/route-type filters, sort, and a compare tray that opens a side-by-side
+   dialog (up to three destinations). Also server-rendered for the active
+   citizenship.
+3. `/explore/[citizenship]/[destination]` — the destination shell (Overview,
+   Routes, and other sections). The Routes section holds the route summary
+   cards; opening one peeks the full detail in a drawer.
+4. `/explore/[citizenship]/[destination]/routes/[id]` — the same route detail as
+   a full page: comparable fields, requirement groups, documents, eligibility,
+   steps, caveats, and sources.
+
+### Active citizenship
+
+The active citizenship is **cookie-persisted** (`pathport-citizenship`,
+default `USA`). A global selector in the header (next to the theme toggle)
+writes the cookie and either refreshes the current view or, on a deep
+`/explore/[citizenship]/[destination]` page, swaps the citizenship URL segment.
+The cookie is read server-side via `src/lib/citizenship.server.ts` (which owns
+the `next/headers` import); the client-safe constants and the resolver that
+falls back to the default live in `src/lib/citizenship.ts`, so the selector
+never pulls server-only code into the client bundle.
 
 Country codes in the URL are matched case-insensitively (the API does the
 matching). Unknown citizenships/destinations and unknown or malformed route ids
@@ -40,8 +58,11 @@ deferred to the real-data phase, per the phase plan.
 
 ## Testing
 
-The pure helpers (`quality`, `format`) and the presentational components
-(quality badges, citizenship picker, route card, hero) are unit-tested with
-Vitest + React Testing Library. The data-fetching server pages are covered by
-end-to-end tests (Playwright) rather than brittle unit tests, in line with
+The pure helpers (`quality`, `format`, `geo`, the citizenship resolver) and the
+presentational components (quality badges, route card, map hero, explore cards)
+are unit-tested with Vitest + React Testing Library. The data-fetching server
+pages and the cross-page journeys (home map hero → destination shell → route
+drawer, the header citizenship switch, and the explore filter/compare flow) are
+covered by end-to-end tests (Playwright, with axe accessibility assertions)
+rather than brittle unit tests, in line with
 [architecture.md](architecture.md). See [testing.md](testing.md).

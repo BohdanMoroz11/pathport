@@ -24,6 +24,18 @@ arbitrary values (`bg-(--surface)`, `text-(--text-2)`, `rounded-[var(--radius-lg
 `shadow-[var(--shadow)]`). Never hard-code a hex, a px radius, or a font stack in a
 component — reach for a token so themes and future tuning stay centralized.
 
+Two Tailwind-v4 gotchas the shell relies on:
+
+- **Colour vs length ambiguity.** `text-(--foo)` is ambiguous — Tailwind can read
+  it as a font-size *or* a colour, and when the element also carries a `text-sm`
+  the colour can get dropped. Disambiguate a token colour with the explicit
+  `text-(color:--on-brand)` form.
+- **Layered base resets.** The element resets in globals.css (`html`, `body`,
+  `a { color: inherit }`, …) live inside `@layer base` on purpose. Unlayered
+  rules beat *any* `@layer utilities` class regardless of specificity, so an
+  unlayered `a { color: inherit }` would silently override a link-button's
+  `text-(color:--on-brand)`. Keeping the resets in `base` lets utilities win.
+
 ### Colour
 
 Layered neutrals plus functional accents. See globals.css for the exact values in
@@ -39,7 +51,8 @@ both themes.
 - **Accents:** `--brand` (primary/interactive, cost bars), `--violet` (secondary,
   active nav, timeline bars, the rail's focus ring), and functional
   `--pos` / `--warn` / `--danger` / `--neutral`. Each has a low-opacity `*-soft`
-  fill for badges and tinted callouts.
+  fill for badges and tinted callouts. `--on-brand` is the text colour for a
+  `--brand` fill (see the disambiguation gotcha above).
 - **Rail:** a self-contained `--rail-*` set that stays dark in both themes.
 
 ### Typography
@@ -97,16 +110,32 @@ Small, token-driven building blocks. Each has an RTL + axe unit test.
 
 Built from the primitives, not general enough to be primitives themselves:
 
-- **`BrowseShell`** — the light index chrome (brand mark + theme toggle + footer
-  disclaimer + centered canvas) for the surfaces with no selected destination:
-  home, the citizenship list, and 404.
+- **`BrowseShell`** — the light index chrome for the surfaces with no selected
+  destination: home, `/explore`, and 404. Brand mark + an "Explore" link on the
+  left; a `headerSlot` (the citizenship selector) + theme toggle on the right;
+  footer disclaimer over a centered canvas (`wide` widens it for `/explore`).
+- **`CitizenshipSelector`** — the global passport switcher docked in the header
+  (a Radix `DropdownMenu` radio group). Selecting writes the
+  `pathport-citizenship` cookie and then refreshes the view, or on a deep
+  destination page swaps the citizenship URL segment. See [web.md](web.md).
+- **`MapHero`** (`components/home/`) — the home landing: a stylized dotted world
+  map (a coarse run-length land mask, no data dependency) with the reachable
+  destinations as pins, flight-path arcs from the passport origin, and a live
+  detail panel that previews the hovered/selected destination and links in.
+- **`DestinationExplorer`** (`components/explore/`) — the `/explore` browser:
+  search + region/route-type filters + sort over a grid of `ExploreCard`s, with
+  a fixed compare tray (up to three) that opens the `CompareDialog` — a wide
+  Radix Dialog that lines the same aggregate metrics up side by side.
 - **`DestinationRail` + the destination layout** — the persistent dark left rail
   (brand, destination search, "viewing as", the destination identity card + a
-  Compare action, and the section nav as a **view switcher** of real routes) over
-  a centered content canvas. This is the app shell for a selected destination.
-- **Index cards** (`components/index/`) — `CitizenshipCard` and `DestinationCard`:
-  scannable, comparable-at-a-glance link-cards (flag, identity, route-count chip,
-  arrival read, quality badges).
+  Compare action that jumps to `/explore`, and the section nav as a **view
+  switcher** of real routes) over a centered content canvas. This is the app
+  shell for a selected destination.
+- **Cards** — `DestinationCard` (`components/index/`, the whole card is one link)
+  on the home grid and `ExploreCard` (`components/explore/`, title-only link so
+  it can carry a Compare toggle): scannable, comparable-at-a-glance cards with
+  flag, identity, route-count chip, the cheapest/fastest/visa-free metric row,
+  route-type chips, and quality badges.
 - **`section-kit`** — the destination-section vocabulary: `Block`, `Panel`,
   `StatGrid`, `ProportionBars`, `Steps`, `Timeline`, `PriceList`, `TakeHome`,
   `TagRow`, `TrendBadge`, `ScoreBar`, `Prose`/`Caption`.
@@ -132,6 +161,8 @@ Built from the primitives, not general enough to be primitives themselves:
 
 The unified `radix-ui` package (synced primitives), **not** Radix Themes (which
 ships its own styling). Behaviour/accessibility from Radix, visuals from our
-tokens. In use today: Dialog (modals/peek drawer) and `Slot` (the `asChild`
+tokens. In use today: Dialog (modals / peek drawer / the compare dialog),
+DropdownMenu (the header citizenship selector), and `Slot` (the `asChild`
 pass-through on Card/Button). The Combobox is deliberately hand-rolled because
-Radix has no combobox primitive. Charts are custom SVG for control.
+Radix has no combobox primitive. Charts and the map hero are custom SVG for
+control.

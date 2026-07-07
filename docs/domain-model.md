@@ -89,6 +89,19 @@ before), keeping the index scannable rather than half-empty. All identity fields
 are nullable in the contract — a destination without an authored region falls into
 an "Other" group rather than breaking the layout.
 
+### Comparison aggregates (Phase 2 polish)
+
+The post-S5 polish (map-hero home + the `/explore` filter/compare browser) made
+the summary genuinely comparable, again with **no new columns** — only aggregates
+computed over each destination's already-filtered routes. `DestinationSummary`
+now also carries **`routeTypes`** (the distinct route types present, for the
+type filter and the chips), **`startingCost`** (the cheapest route's
+`{ amount, currency }`, for "From"), and **`fastestMonths`** (the shortest
+timeline, for "As fast as"). These are `min()` / `array_agg(distinct …)` rollups
+in `listForCitizenship`; two node-postgres quirks are handled in the mapper — the
+numeric aggregates come back as strings (coerced to numbers) and the enum array
+needs a `::text` cast inside `array_agg` or it returns a raw `{a,b}` string.
+
 ## Route Taxonomy
 
 Route type is the `route_type` enum, already in the schema:

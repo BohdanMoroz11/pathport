@@ -503,3 +503,21 @@ Phase 2 is done when:
   (S6/S7) build the tool and the `ingestion_*` layer **against** that schema and do
   not design it. Stage text, Resolved Decisions, constraints, and Exit Criteria
   updated accordingly.
+- **Post-S5 UI polish (portfolio "wow" pass).** With the S5 skeleton usable, a
+  polish pass reworked the information architecture around an **active citizenship**
+  rather than a picker page. Three changes: (1) the home page is now a **map hero**
+  — a stylized world map with destination pins, flight-path arcs from the passport
+  origin, and a live detail panel — over a destination card grid; (2) the
+  citizenship picker page is retired in favour of a **global header selector** that
+  cookie-persists the choice (`pathport-citizenship`, default `USA`), with home and
+  `/explore` rendering server-side for it and deep destination pages keeping
+  citizenship in the URL; (3) a new **`/explore` browser** adds search, region /
+  route-type filters, sort, and a compare tray → side-by-side dialog. Backed by
+  **comparison aggregates** on `DestinationSummary` (`routeTypes`, `startingCost`,
+  `fastestMonths` — no new columns, see [../domain-model.md](../domain-model.md)).
+  A `text-(color:--on-brand)` disambiguation + moving the globals.css element
+  resets into `@layer base` fixed a link-button contrast failure the axe e2e caught
+  (both codified in [../design-system.md](../design-system.md)). Pipeline green:
+  typecheck, Biome, unit (74), integration (29), and 6 Playwright + axe e2e over
+  the new IA (home map hero → shell → route drawer, the header citizenship switch,
+  the explore filter/compare flow).
