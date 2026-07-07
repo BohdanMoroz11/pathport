@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { cn, focusRing } from "./cn";
+import { cn } from "./cn";
 
 /**
  * One selectable row: a label to match/show, an optional emoji glyph and a short
@@ -24,7 +24,16 @@ type ComboboxProps = {
   placeholder?: string;
   emptyMessage?: string;
   className?: string;
+  /** `rail` themes the input for the dark left rail; the popover stays elevated. */
+  variant?: "surface" | "rail";
 };
+
+/** Input theming: on the content canvas vs. on the always-dark left rail. */
+const INPUT_VARIANT = {
+  surface:
+    "border-(--border) bg-(--surface) text-(--text) placeholder:text-(--text-3) focus-visible:outline-(--brand)",
+  rail: "border-(--rail-border) bg-(--rail-bg-2) text-(--rail-text) placeholder:text-(--rail-text-2) focus-visible:outline-(--violet)",
+} as const;
 
 /** Case-insensitive substring match on the label and the hint (the code). */
 function matches(item: ComboboxItem, query: string): boolean {
@@ -47,6 +56,7 @@ export function Combobox({
   placeholder = "Search…",
   emptyMessage = "No matches.",
   className,
+  variant = "surface",
 }: ComboboxProps) {
   const router = useRouter();
   const baseId = useId();
@@ -136,7 +146,10 @@ export function Combobox({
       <div className="relative">
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--text-3)"
+          className={cn(
+            "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+            variant === "rail" ? "text-(--rail-text-2)" : "text-(--text-3)",
+          )}
         >
           {"\u{1F50D}"}
         </span>
@@ -158,9 +171,9 @@ export function Combobox({
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           className={cn(
-            "h-10 w-full rounded-[var(--radius-md)] border border-(--border) bg-(--surface) pl-9 pr-3 text-sm text-(--text)",
-            "placeholder:text-(--text-3)",
-            focusRing("brand"),
+            "h-10 w-full rounded-[var(--radius-md)] border pl-9 pr-3 text-sm",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+            INPUT_VARIANT[variant],
           )}
         />
       </div>
@@ -202,14 +215,14 @@ export function Combobox({
             )}
             <span className="min-w-0 flex-1 truncate font-medium text-(--text)">{item.label}</span>
             {item.hint && (
-              <span className="shrink-0 font-display text-xs text-(--text-3)">{item.hint}</span>
+              <span className="shrink-0 font-display text-xs text-(--text-2)">{item.hint}</span>
             )}
           </div>
         ))}
       </div>
 
       {open && results.length === 0 && (
-        <div className="absolute z-20 mt-1 w-full rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-3 py-2.5 text-sm text-(--text-3) shadow-[var(--shadow)]">
+        <div className="absolute z-20 mt-1 w-full rounded-[var(--radius-md)] border border-(--border) bg-(--surface) px-3 py-2.5 text-sm text-(--text-2) shadow-[var(--shadow)]">
           {emptyMessage}
         </div>
       )}

@@ -48,6 +48,31 @@ test("primary journey: citizenship to destination shell to route detail", async 
   await expect(page.getByRole("heading", { name: /Routes into Germany/i })).toBeVisible();
 });
 
+test("citizenship search jumps straight to the destination list", async ({ page }) => {
+  await page.goto("/");
+
+  const search = page.getByRole("combobox", { name: /jump to your citizenship/i });
+  await search.fill("united");
+  await page.getByRole("option", { name: /United States/ }).click();
+
+  await expect(
+    page.getByRole("heading", { name: /Destinations for United States/i }),
+  ).toBeVisible();
+});
+
+test("destination list is grouped, scannable, and accessible", async ({ page }) => {
+  await page.goto("/explore/USA");
+
+  await expect(
+    page.getByRole("heading", { name: /Destinations for United States/i }),
+  ).toBeVisible();
+  // Germany's card carries its route-count at a glance.
+  await expect(page.getByRole("link", { name: /Germany/ })).toContainText(/routes/);
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test("unknown citizenship resolves to the not-found page", async ({ page }) => {
   const response = await page.goto("/explore/ZZZ");
 

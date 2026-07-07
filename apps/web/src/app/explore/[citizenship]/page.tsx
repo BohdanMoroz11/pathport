@@ -82,7 +82,7 @@ export default async function DestinationsPage({
 
             {groups.map((group) => (
               <section key={group.region} className="space-y-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-(--text-3)">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-(--text-2)">
                   {group.region}
                 </h2>
                 <ul className="grid gap-3 sm:grid-cols-2">

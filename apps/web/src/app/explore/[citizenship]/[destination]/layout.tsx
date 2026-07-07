@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { DestinationRail } from "@/components/destination/destination-rail";
-import { getDestinationProfile } from "@/lib/api";
+import { getDestinationProfile, getDestinations } from "@/lib/api";
 
 /**
  * The destination app-shell (Phase 2 / S3): a persistent left rail + a centered
@@ -16,7 +16,10 @@ export default async function DestinationLayout({
   params: Promise<{ citizenship: string; destination: string }>;
 }) {
   const { citizenship, destination } = await params;
-  const profile = await getDestinationProfile(citizenship, destination);
+  const [profile, destinations] = await Promise.all([
+    getDestinationProfile(citizenship, destination),
+    getDestinations(citizenship),
+  ]);
   if (!profile) {
     notFound();
   }
@@ -24,7 +27,11 @@ export default async function DestinationLayout({
   return (
     <div className="min-h-screen lg:flex">
       <aside className="border-b border-(--rail-border) lg:fixed lg:inset-y-0 lg:left-0 lg:w-[264px] lg:overflow-y-auto lg:border-b-0 lg:border-r">
-        <DestinationRail citizenship={profile.citizenship} destination={profile.destination} />
+        <DestinationRail
+          citizenship={profile.citizenship}
+          destination={profile.destination}
+          destinations={destinations ?? []}
+        />
       </aside>
       <div className="w-full lg:pl-[264px]">
         <main className="mx-auto w-full max-w-[var(--content-max)] px-6 py-10">{children}</main>

@@ -1,18 +1,25 @@
 "use client";
 
-import type { CitizenshipIdentity, DestinationIdentity } from "@pathport/contracts";
+import type {
+  CitizenshipIdentity,
+  DestinationIdentity,
+  DestinationSummary,
+} from "@pathport/contracts";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { DESTINATION_SECTIONS, destinationBasePath, sectionHref } from "@/lib/destination/sections";
 
 type DestinationRailProps = {
   citizenship: CitizenshipIdentity;
   destination: DestinationIdentity;
+  /** Every destination open to this citizenship, powering the rail's jump search. */
+  destinations: DestinationSummary[];
 };
 
-export function DestinationRail({ citizenship, destination }: DestinationRailProps) {
+export function DestinationRail({ citizenship, destination, destinations }: DestinationRailProps) {
   const pathname = usePathname();
   const basePath = destinationBasePath(citizenship.code, destination.code);
 
@@ -36,22 +43,21 @@ export function DestinationRail({ citizenship, destination }: DestinationRailPro
         <span className="font-display text-base font-semibold">Pathport</span>
       </Link>
 
-      {/* Country search is visual-only in S3; wired to the picker pattern in S4. */}
-      <div className="relative">
-        <span
-          aria-hidden="true"
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-(--rail-text-2)"
-        >
-          {"\u{1F50D}"}
-        </span>
-        <input
-          type="search"
-          disabled
-          placeholder="Search countries…"
-          aria-label="Search countries (coming soon)"
-          className="w-full rounded-[var(--radius-md)] border border-(--rail-border) bg-(--rail-bg-2) py-2 pl-9 pr-3 text-sm text-(--rail-text) placeholder:text-(--rail-text-2)"
-        />
-      </div>
+      {/* Jump to another destination open to this citizenship (S5). */}
+      <Combobox
+        variant="rail"
+        label="Search destinations"
+        hideLabel
+        placeholder="Search countries…"
+        emptyMessage="No matching destination."
+        items={destinations.map((d) => ({
+          value: d.code,
+          label: d.name,
+          href: sectionHref(destinationBasePath(citizenship.code, d.code), ""),
+          glyph: d.flag,
+          hint: d.code,
+        }))}
+      />
 
       <p className="px-1 text-xs text-(--rail-text-2)">
         Viewing as <span aria-hidden="true">{citizenship.flag}</span>{" "}
@@ -71,7 +77,9 @@ export function DestinationRail({ citizenship, destination }: DestinationRailPro
         </div>
         <h2 className="mt-2 font-display text-lg font-semibold">{destination.name}</h2>
         <p className="mt-1 text-xs leading-5 text-(--rail-text-2)">{destination.tagline}</p>
-        <Button className="mt-3 w-full">Compare destinations</Button>
+        <Button asChild className="mt-3 w-full">
+          <Link href={`/explore/${citizenship.code}`}>Compare destinations</Link>
+        </Button>
       </div>
 
       <nav aria-label="Destination sections" className="flex-1">

@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <BrowseShell>
       <div className="space-y-4 py-10">
-        <p className="text-sm font-medium uppercase tracking-wide text-(--text-3)">404</p>
+        <p className="text-sm font-medium uppercase tracking-wide text-(--text-2)">404</p>
         <h1 className="font-display text-3xl font-semibold text-(--text)">
           We couldn't find that page
         </h1>

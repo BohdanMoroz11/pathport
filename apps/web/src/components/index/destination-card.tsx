@@ -41,7 +41,7 @@ export function DestinationCard({
               {destination.name}
             </h3>
             {destination.region && (
-              <p className="truncate text-xs text-(--text-3)">{destination.region}</p>
+              <p className="truncate text-xs text-(--text-2)">{destination.region}</p>
             )}
           </div>
           <Badge variant="soft" tone="brand" className="shrink-0">

@@ -20,7 +20,7 @@ export function CitizenshipCard({ citizenship }: { citizenship: Citizenship }) {
           <span className="block truncate font-display text-base font-semibold text-(--text)">
             {citizenship.name}
           </span>
-          <span className="text-xs font-medium uppercase tracking-wide text-(--text-3)">
+          <span className="text-xs font-medium uppercase tracking-wide text-(--text-2)">
             {citizenship.code}
           </span>
         </span>
