@@ -1,5 +1,10 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { ArrivalContext, DestinationProfile, DestinationSummary } from "@pathport/contracts";
+import type {
+  ArrivalContext,
+  DestinationProfile,
+  DestinationSummary,
+  RouteType,
+} from "@pathport/contracts";
 import {
   arrivalContext,
   citizenships,
@@ -7,7 +12,7 @@ import {
   routeApplicability,
   routes,
 } from "@pathport/db";
-import { and, asc, countDistinct, eq } from "drizzle-orm";
+import { and, asc, countDistinct, eq, min, sql } from "drizzle-orm";
 import { DatabaseService } from "../database/database.service";
 import { toDestinationProfile } from "./destination-profile.mapper";
 
@@ -31,6 +36,17 @@ export class DestinationsService {
         region: destinationCountries.region,
         tagline: destinationCountries.tagline,
         routeCount: countDistinct(routes.id),
+        // Distinct route types available to this citizenship, and the cheapest /
+        // fastest applicable route — the comparison aggregates the explore page
+        // filters and lines up. NULLs (routes without cost/timeline) are ignored
+        // by MIN; currency is paired loosely (demo uses one currency per country).
+        // Cast the enum to text inside the aggregate: node-postgres parses a
+        // text[] (OID 1009) into a real array, but leaves a custom-enum[] as its
+        // raw `{a,b}` string.
+        routeTypes: sql<RouteType[]>`array_agg(distinct ${routes.type}::text)`,
+        startingCostAmount: min(routes.costMin),
+        startingCostCurrency: min(routes.costCurrency),
+        fastestMonths: min(routes.timelineMinMonths),
       })
       .from(destinationCountries)
       .innerJoin(routes, eq(routes.destinationCountryId, destinationCountries.id))
@@ -53,17 +69,29 @@ export class DestinationsService {
 
     const contexts = await this.arrivalContextsByDestination(citizenshipId);
 
-    return destinations.map((destination) => ({
-      code: destination.code,
-      name: destination.name,
-      flag: destination.flag,
-      region: destination.region,
-      tagline: destination.tagline,
-      // Postgres returns COUNT(...) as a string via node-postgres; coerce so the
-      // contract's `number` is honest rather than a lie the type system can't see.
-      routeCount: Number(destination.routeCount),
-      arrivalContext: contexts.get(destination.code) ?? null,
-    }));
+    return destinations.map((destination) => {
+      // node-postgres returns COUNT/MIN as strings; coerce so the contract's
+      // numbers are honest rather than a lie the type system can't see.
+      const startingCostAmount =
+        destination.startingCostAmount === null ? null : Number(destination.startingCostAmount);
+      return {
+        code: destination.code,
+        name: destination.name,
+        flag: destination.flag,
+        region: destination.region,
+        tagline: destination.tagline,
+        routeCount: Number(destination.routeCount),
+        // array_agg has no ordering guarantee; sort so the chips/filters are stable.
+        routeTypes: [...destination.routeTypes].sort(),
+        startingCost:
+          startingCostAmount === null || destination.startingCostCurrency === null
+            ? null
+            : { amount: startingCostAmount, currency: destination.startingCostCurrency },
+        fastestMonths:
+          destination.fastestMonths === null ? null : Number(destination.fastestMonths),
+        arrivalContext: contexts.get(destination.code) ?? null,
+      };
+    });
   }
 
   /**

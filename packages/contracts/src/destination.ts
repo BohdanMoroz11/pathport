@@ -1,4 +1,5 @@
 import type { ContentMetadata } from "./metadata.js";
+import type { RouteType } from "./route.js";
 
 /**
  * Visa-free / visitor entry facts for the selected citizenship × destination
@@ -24,5 +25,18 @@ export type DestinationSummary = {
   /** Short standing line, mirrored from the destination identity. */
   tagline: string | null;
   routeCount: number;
+  /**
+   * Distinct route types available to this citizenship (e.g. `["work","study"]`).
+   * Powers the explore route-type filter and the card's type chips.
+   */
+  routeTypes: RouteType[];
+  /**
+   * Cheapest applicable route's lower bound, for comparison ("from €X"). Null when
+   * no applicable route has cost figures. Currency is that route's currency (demo
+   * data uses one currency per destination).
+   */
+  startingCost: { amount: number; currency: string } | null;
+  /** Fastest applicable route's lower bound in months, for comparison. Null when unknown. */
+  fastestMonths: number | null;
   arrivalContext: ArrivalContext | null;
 };

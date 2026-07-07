@@ -50,6 +50,13 @@ describe("Read API", () => {
       expect(germany?.flag).toBe("\u{1F1E9}\u{1F1EA}");
       expect(germany?.region).toBe("Western Europe");
       expect(germany?.tagline).not.toBe("");
+
+      // Comparison aggregates the explore filters + compare tray line up on.
+      expect(germany?.routeTypes).toContain("work");
+      expect(germany?.routeTypes).toEqual([...(germany?.routeTypes ?? [])].sort());
+      expect(germany?.startingCost?.currency).toBe("EUR");
+      expect(germany?.startingCost?.amount).toBeGreaterThan(0);
+      expect(germany?.fastestMonths).toBeGreaterThan(0);
     });
 
     it("is case-insensitive on the citizenship code", async () => {
