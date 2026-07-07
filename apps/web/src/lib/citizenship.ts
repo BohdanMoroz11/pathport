@@ -1,20 +1,17 @@
 import type { Citizenship } from "@pathport/contracts";
-import { cookies } from "next/headers";
 
 /**
  * The active citizenship is global, persisted in a cookie, and defaults to the
  * primary demo passport. Home and `/explore` render for it server-side (no
  * hydration flash); the deep destination shell keeps the citizenship in its URL.
  * The header selector writes this cookie. See docs/web.md.
+ *
+ * These are the client-safe pieces (constant + a pure resolver). The cookie read
+ * itself lives in `citizenship.server.ts` because it imports `next/headers`,
+ * which must not be pulled into a client bundle.
  */
 export const CITIZENSHIP_COOKIE = "pathport-citizenship";
 export const DEFAULT_CITIZENSHIP_CODE = "USA";
-
-/** Read the active citizenship code from the cookie (default USA). */
-export async function getActiveCitizenshipCode(): Promise<string> {
-  const store = await cookies();
-  return store.get(CITIZENSHIP_COOKIE)?.value ?? DEFAULT_CITIZENSHIP_CODE;
-}
 
 /**
  * Resolve a code to a known citizenship, falling back to the default (then the
