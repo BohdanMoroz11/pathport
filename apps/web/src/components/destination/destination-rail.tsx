@@ -3,9 +3,9 @@
 import type { CitizenshipIdentity, DestinationIdentity } from "@pathport/contracts";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { DESTINATION_SECTIONS, destinationBasePath, sectionHref } from "@/lib/destination/sections";
-import { ThemeToggle } from "./theme-toggle";
 
 type DestinationRailProps = {
   citizenship: CitizenshipIdentity;
