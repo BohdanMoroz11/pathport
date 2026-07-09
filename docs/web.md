@@ -9,10 +9,11 @@ directly (see [architecture.md](architecture.md)).
 The explorer follows the citizenship → destination → route drill-down from the
 [domain model](domain-model.md):
 
-1. `/` — the home landing for the **active citizenship**: a map hero that plots
-   the reachable destinations as pins with flight-path arcs from the passport's
-   origin and a live detail panel, followed by a destination card grid. The
-   heading and data render server-side for whoever the active citizenship is.
+1. `/` — the home landing for the **active citizenship**: a full-bleed dark hero
+   band pairing a gradient headline + stats (server-rendered for the active
+   citizenship) with an interactive map that plots the reachable destinations as
+   pins, glowing flight-path arcs from the passport's origin, and a floating
+   detail card; followed by a wide destination card grid.
 2. `/explore` — the destination browser for the active citizenship: search,
    region/route-type filters, sort, and a compare tray that opens a side-by-side
    dialog (up to three destinations). Also server-rendered for the active

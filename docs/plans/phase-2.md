@@ -521,3 +521,18 @@ Phase 2 is done when:
   typecheck, Biome, unit (74), integration (29), and 6 Playwright + axe e2e over
   the new IA (home map hero → shell → route drawer, the header citizenship switch,
   the explore filter/compare flow).
+- **Post-S5 visual pass (widen + de-box the browse surfaces).** A second polish
+  pass targeted the "narrow, boring, dev-flavoured" feel of the browse chrome.
+  `BrowseShell` went from a boxed, centered `max-w-5xl`/`max-w-6xl` canvas to a
+  **sticky translucent header + full-width `main`** (pages own their width at
+  `max-w-7xl`) so the home page can run a **full-bleed dark hero band**: a gradient
+  headline + stats beside an enlarged, glowing map (ambient glows, an animated
+  `.arc-flow` active flight arc, a floating glass detail card). Grids widened to
+  `xl:grid-cols-4`. The dev-only footer note ("placeholder demo data for
+  development") was replaced by a **real product footer** with a public,
+  non-legal-advice disclaimer. New tokens: `--gradient-brand`, `--glow-brand`,
+  `--glow-violet` (see [../design-system.md](../design-system.md)). The home
+  headline copy changed, so two e2e assertions moved from the old "…citizen go?"
+  heading to the hero eyebrow; a footer `--text-3` → `--text-2` bump cleared the
+  one axe contrast finding. Pipeline green: typecheck, Biome (144), unit (74),
+  and 6 Playwright + axe e2e.

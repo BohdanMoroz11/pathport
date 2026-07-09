@@ -53,6 +53,12 @@ both themes.
   `--pos` / `--warn` / `--danger` / `--neutral`. Each has a low-opacity `*-soft`
   fill for badges and tinted callouts. `--on-brand` is the text colour for a
   `--brand` fill (see the disambiguation gotcha above).
+- **Signature gradient + hero glows:** `--gradient-brand` (a `brand → violet`
+  linear gradient) is the one signature flourish — the logo mark, the headline
+  accent word (`bg-clip-text`), and the primary CTAs. `--glow-brand` /
+  `--glow-violet` are fixed (not theme-overridden) radial-glow colours used only
+  on the **hero band**, which stays dark in both themes, so they always read on
+  a dark canvas. Use them sparingly; the rest of the app stays calm.
 - **Rail:** a self-contained `--rail-*` set that stays dark in both themes.
 
 ### Typography
@@ -110,18 +116,27 @@ Small, token-driven building blocks. Each has an RTL + axe unit test.
 
 Built from the primitives, not general enough to be primitives themselves:
 
-- **`BrowseShell`** — the light index chrome for the surfaces with no selected
-  destination: home, `/explore`, and 404. Brand mark + an "Explore" link on the
-  left; a `headerSlot` (the citizenship selector) + theme toggle on the right;
-  footer disclaimer over a centered canvas (`wide` widens it for `/explore`).
+- **`BrowseShell`** — the chrome for the surfaces with no selected destination:
+  home, `/explore`, and 404. A **sticky, translucent (`backdrop-blur`) top bar**
+  (gradient logo mark + "Explore" link left; a `headerSlot` for the citizenship
+  selector + theme toggle right) over a **full-width `main`** — pages own their
+  own width (wrap non-bleed content in `mx-auto max-w-7xl px-6`) so a page can run
+  a full-bleed hero. Closes with a **real product footer** (brand blurb + a public
+  "not legal advice" disclaimer + copyright), not a dev note.
 - **`CitizenshipSelector`** — the global passport switcher docked in the header
   (a Radix `DropdownMenu` radio group). Selecting writes the
   `pathport-citizenship` cookie and then refreshes the view, or on a deep
   destination page swaps the citizenship URL segment. See [web.md](web.md).
-- **`MapHero`** (`components/home/`) — the home landing: a stylized dotted world
-  map (a coarse run-length land mask, no data dependency) with the reachable
-  destinations as pins, flight-path arcs from the passport origin, and a live
-  detail panel that previews the hovered/selected destination and links in.
+- **`MapHero`** (`components/home/`) — the interactive half of the home landing,
+  set inside a **full-bleed dark hero band** (`--rail-bg` + the hero glows, so it
+  reads in both themes): a stylized dotted world map (a coarse run-length land
+  mask, no data dependency) with the reachable destinations as pins, glowing
+  flight-path arcs from the passport origin (the active arc travels via the
+  `.arc-flow` dash animation, motion-query gated), and a **floating glass detail
+  card** that previews the hovered/selected destination and links in. The hero's
+  headline/subcopy/stats live server-side in `page.tsx` beside it; because the
+  band is dark, its surfaces use `white/α` and the `--rail-*` tokens, not the
+  theme surface tokens.
 - **`DestinationExplorer`** (`components/explore/`) — the `/explore` browser:
   search + region/route-type filters + sort over a grid of `ExploreCard`s, with
   a fixed compare tray (up to three) that opens the `CompareDialog` — a wide
