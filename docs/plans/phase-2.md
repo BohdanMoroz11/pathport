@@ -536,3 +536,24 @@ Phase 2 is done when:
   heading to the hero eyebrow; a footer `--text-3` → `--text-2` bump cleared the
   one axe contrast finding. Pipeline green: typecheck, Biome (144), unit (74),
   and 6 Playwright + axe e2e.
+- **Post-S5 map pass (real world map + alignment).** The previous map was a
+  hand-authored dot/blob world that never looked like Earth, didn't scale, was
+  broken on mobile, and had a misplaced flight arc. It was replaced with a
+  **real interactive vector map** (`react-simple-maps` over a vendored
+  `world-atlas` topojson; `apps/web/src/lib/geo.ts` maps our 2-/3-letter codes to
+  ISO numeric ids) that lights up every reachable country and drives a floating
+  detail card on hover/click — present and legible on mobile, and it scales to
+  100+ countries for free. The home hero became a **two-column layout** (headline
+  + a large `geoEqualEarth` map framed 3:2 so land fills the frame) and the map
+  mounts client-side behind a same-size placeholder to avoid a hydration
+  mismatch. The browse chrome (`BrowseShell` header/footer), `/explore`, the
+  compare tray, and `not-found` were aligned to the **home content width**
+  (`max-w-[90rem]`, `px-6 lg:px-10`, replacing the old `max-w-7xl`) so every
+  edge lines up. Markers are `pointer-events: none` (they used to steal the
+  pointer and cause a hover flicker on the selected country's dot). The e2e
+  primary-journey drawer flake was fixed at the root — the test now waits for the
+  client-mounted map SVG (a real "hydrated" signal) before the first click, so
+  the intercepting-route drawer is reached by a soft navigation — and the
+  stop-gap Playwright `retries` was removed. Pipeline green: typecheck, Biome
+  (144), unit (74), integration (29), and 6 Playwright + axe e2e (deterministic
+  under `--repeat-each`).
