@@ -11,9 +11,14 @@ The explorer follows the citizenship → destination → route drill-down from t
 
 1. `/` — the home landing for the **active citizenship**: a full-bleed dark hero
    band pairing a gradient headline + stats (server-rendered for the active
-   citizenship) with an interactive map that plots the reachable destinations as
-   pins, glowing flight-path arcs from the passport's origin, and a floating
-   detail card; followed by a wide destination card grid.
+   citizenship) with an interactive **world map** (`react-simple-maps` over a
+   vendored `world-atlas` topojson) that lights up every reachable country;
+   hovering or clicking a country selects it and updates a floating detail card,
+   with a marker on the passport's origin. The map mounts client-side (a
+   same-size placeholder holds the space during SSR to avoid a hydration
+   mismatch). Below the hero is a wide destination card grid. The hero, browse
+   chrome, and `/explore` all share one content width (`max-w-[90rem]`,
+   `px-6 lg:px-10`) so their edges line up.
 2. `/explore` — the destination browser for the active citizenship: search,
    region/route-type filters, sort, and a compare tray that opens a side-by-side
    dialog (up to three destinations). Also server-rendered for the active
@@ -60,10 +65,12 @@ deferred to the real-data phase, per the phase plan.
 ## Testing
 
 The pure helpers (`quality`, `format`, `geo`, the citizenship resolver) and the
-presentational components (quality badges, route card, map hero, explore cards)
-are unit-tested with Vitest + React Testing Library. The data-fetching server
-pages and the cross-page journeys (home map hero → destination shell → route
-drawer, the header citizenship switch, and the explore filter/compare flow) are
-covered by end-to-end tests (Playwright, with axe accessibility assertions)
-rather than brittle unit tests, in line with
-[architecture.md](architecture.md). See [testing.md](testing.md).
+presentational components (quality badges, route card, explore cards) are
+unit-tested with Vitest + React Testing Library. The interactive map hero is a
+client-only vector-map component (`react-simple-maps`), so it is exercised by
+the end-to-end journey rather than unit-tested. The data-fetching server pages
+and the cross-page journeys (home map hero → destination shell → route drawer,
+the header citizenship switch, and the explore filter/compare flow) are covered
+by end-to-end tests (Playwright, with axe accessibility assertions) rather than
+brittle unit tests, in line with [architecture.md](architecture.md). See
+[testing.md](testing.md).

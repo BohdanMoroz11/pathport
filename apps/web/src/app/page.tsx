@@ -35,7 +35,7 @@ export default async function HomePage() {
               "radial-gradient(60% 60% at 15% 0%, var(--glow-violet), transparent 60%), radial-gradient(50% 50% at 100% 100%, var(--glow-brand), transparent 55%)",
           }}
         />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-14 lg:grid-cols-[0.85fr_1.15fr] lg:py-20">
+        <div className="relative mx-auto grid max-w-[90rem] items-center gap-10 px-6 py-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.3fr)] lg:gap-14 lg:px-10 lg:py-16">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-(--radius-pill) border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-(--rail-text-2)">
               {active?.flag && <span aria-hidden="true">{active.flag}</span>}
@@ -59,12 +59,12 @@ export default async function HomePage() {
               >
                 Browse all destinations →
               </Link>
-              {active && (
+              {active && destinations.length > 0 && (
                 <a
                   href="#all-destinations"
                   className={`inline-flex h-11 items-center justify-center rounded-[var(--radius-md)] border border-white/15 px-5 text-sm font-medium text-(--rail-text) transition hover:bg-white/5 ${focusRing("brand")}`}
                 >
-                  See the map
+                  All destinations
                 </a>
               )}
             </div>
@@ -91,7 +91,10 @@ export default async function HomePage() {
 
       {/* Destinations grid */}
       {destinations.length > 0 && (
-        <section id="all-destinations" className="mx-auto max-w-7xl scroll-mt-20 px-6 py-14">
+        <section
+          id="all-destinations"
+          className="mx-auto max-w-[90rem] scroll-mt-20 px-6 py-14 lg:px-10"
+        >
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-2xl font-semibold text-(--text)">

@@ -26,6 +26,44 @@ export const COUNTRY_COORDS: Record<string, { lat: number; lon: number }> = {
 };
 
 /**
+ * ISO 3166-1 **numeric** ids, exactly as the world-atlas topojson keys its
+ * countries (zero-padded strings, e.g. Australia is `036`). Used to light up a
+ * reachable country on the real vector map. Keyed by the 2-letter destination
+ * code and the 3-letter citizenship code alike; extend alongside
+ * `COUNTRY_COORDS` when a new country lands.
+ */
+export const ISO_NUMERIC: Record<string, string> = {
+  DE: "276",
+  PT: "620",
+  ES: "724",
+  FR: "250",
+  IT: "380",
+  NL: "528",
+  IE: "372",
+  PL: "616",
+  SE: "752",
+  GR: "300",
+  CA: "124",
+  US: "840",
+  AU: "036",
+  NZ: "554",
+  JP: "392",
+  AE: "784",
+  GB: "826",
+  UA: "804",
+  // 3-letter citizenship (origin) codes resolve to the same ids.
+  USA: "840",
+  UKR: "804",
+  GBR: "826",
+  DEU: "276",
+};
+
+/** Numeric ISO id for a 2- or 3-letter code, or null when it isn't mapped yet. */
+export function numericIdFor(code: string): string | null {
+  return ISO_NUMERIC[code.toUpperCase()] ?? null;
+}
+
+/**
  * Equirectangular projection to percentage coordinates over a 2:1 map box, so a
  * pin can be absolutely positioned with CSS `left`/`top`.
  */
