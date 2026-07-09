@@ -16,6 +16,13 @@ test("home shows the map hero and destinations for the default citizenship", asy
 test("primary journey: home to destination shell to route detail", async ({ page }) => {
   await page.goto("/");
 
+  // Wait for the client to hydrate before the first click. The map mounts
+  // client-side (see MapHero), so its SVG appearing is a reliable "hydrated"
+  // signal — and it matters here: the route peek drawer below is a Next
+  // intercepting route that only renders on a *soft* client navigation, so the
+  // first hop out of home must be a client transition, not a hard load.
+  await expect(page.locator("svg.rsm-svg")).toBeVisible();
+
   // The map panel's CTA opens the destination shell on the Overview.
   await page.getByRole("link", { name: /Explore Germany/i }).click();
   await expect(page.getByRole("heading", { name: "Germany", level: 1 })).toBeVisible();
