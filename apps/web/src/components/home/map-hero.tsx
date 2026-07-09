@@ -3,7 +3,6 @@
 import type { Citizenship, DestinationSummary } from "@pathport/contracts";
 import Link from "next/link";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { cn, focusRing } from "@/components/ui/cn";
 import { formatCost } from "@/lib/format";
 import { coordsFor, projectToPercent } from "@/lib/geo";
@@ -178,10 +177,20 @@ export function MapHero({
     mapped.find((m) => m.destination.code === selectedCode)?.destination ?? destinations[0] ?? null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+    <div className="relative">
+      {/* Ambient glow behind the map */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-10 -z-10 opacity-70"
+        style={{
+          background:
+            "radial-gradient(40% 55% at 30% 40%, var(--glow-violet), transparent 70%), radial-gradient(45% 55% at 72% 62%, var(--glow-brand), transparent 70%)",
+        }}
+      />
+
       {/* Map panel */}
-      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-(--border) bg-gradient-to-b from-(--surface) to-(--surface-2) shadow-[var(--shadow-sm)]">
-        <div className="relative aspect-[2/1] w-full">
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] shadow-[0_40px_90px_-45px_rgba(0,0,0,0.95)]">
+        <div className="relative aspect-[3/2] w-full">
           <svg
             viewBox="0 0 360 180"
             preserveAspectRatio="xMidYMid meet"
@@ -189,8 +198,13 @@ export function MapHero({
             aria-hidden="true"
           >
             <title>Stylized world map</title>
+            <defs>
+              <filter id="arc-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.6" />
+              </filter>
+            </defs>
             {/* Graticule */}
-            <g stroke="var(--border)" strokeWidth="0.4" opacity="0.5">
+            <g stroke="#ffffff" strokeWidth="0.4" opacity="0.05">
               {[60, 120, 180, 240, 300].map((x) => (
                 <line key={`v${x}`} x1={x} y1={0} x2={x} y2={180} />
               ))}
@@ -199,7 +213,7 @@ export function MapHero({
               ))}
             </g>
             {/* Land dots */}
-            <g className="text-(--text-3)" fill="currentColor" opacity="0.35">
+            <g fill="#ffffff" opacity="0.13">
               {LAND_DOTS.map((d) => (
                 <circle key={`${d.cx}-${d.cy}`} cx={d.cx} cy={d.cy} r="1.7" />
               ))}
@@ -209,15 +223,32 @@ export function MapHero({
               <g fill="none" strokeLinecap="round">
                 {mapped.map((m) => {
                   const active = m.destination.code === selectedCode;
+                  const d = arcPath(origin, m.percent);
+                  if (!active) {
+                    return (
+                      <path
+                        key={m.destination.code}
+                        d={d}
+                        className="text-(--violet)"
+                        stroke="currentColor"
+                        strokeWidth={0.7}
+                        opacity={0.28}
+                      />
+                    );
+                  }
                   return (
-                    <path
-                      key={m.destination.code}
-                      d={arcPath(origin, m.percent)}
-                      className={active ? "text-(--brand)" : "text-(--violet)"}
-                      stroke="currentColor"
-                      strokeWidth={active ? 1.6 : 0.8}
-                      opacity={active ? 0.9 : 0.4}
-                    />
+                    <g key={m.destination.code} className="text-(--brand)">
+                      {/* Soft glow underlay */}
+                      <path
+                        d={d}
+                        stroke="currentColor"
+                        strokeWidth={3}
+                        opacity={0.35}
+                        filter="url(#arc-glow)"
+                      />
+                      {/* Crisp travelling line */}
+                      <path d={d} className="arc-flow" stroke="currentColor" strokeWidth={1.4} />
+                    </g>
                   );
                 })}
               </g>
@@ -227,11 +258,11 @@ export function MapHero({
           {/* Origin marker */}
           {origin && (
             <span
-              className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-(--radius-pill) border border-(--border) bg-(--surface) px-2 py-0.5 text-xs shadow-[var(--shadow-sm)]"
+              className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-(--radius-pill) border border-white/15 bg-white/10 px-2 py-0.5 text-xs backdrop-blur"
               style={{ left: `${origin.x}%`, top: `${origin.y}%` }}
             >
               <span aria-hidden="true">{citizenship.flag ?? "🌐"}</span>
-              <span className="font-medium text-(--text-2)">You</span>
+              <span className="font-medium text-(--rail-text-2)">You</span>
             </span>
           )}
 
@@ -255,14 +286,16 @@ export function MapHero({
                   {active && (
                     <span
                       aria-hidden="true"
-                      className="absolute size-5 animate-ping rounded-full bg-(--brand) opacity-40"
+                      className="absolute size-5 animate-ping rounded-full bg-(--brand) opacity-50"
                     />
                   )}
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "size-3 rounded-full border-2 border-(--surface) transition-transform",
-                      active ? "scale-125 bg-(--brand)" : "bg-(--violet)",
+                      "size-3 rounded-full border-2 border-white/60 transition-transform",
+                      active
+                        ? "scale-125 bg-(--brand) shadow-[0_0_10px_2px_var(--glow-brand)]"
+                        : "bg-(--violet)",
                     )}
                   />
                 </span>
@@ -271,7 +304,7 @@ export function MapHero({
                     "pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded-(--radius-pill) px-2 py-0.5 text-xs font-medium transition-opacity",
                     active
                       ? "bg-(--brand) text-(color:--on-brand) opacity-100"
-                      : "bg-(--surface) text-(--text-2) opacity-0",
+                      : "bg-black/40 text-white opacity-0 backdrop-blur",
                   )}
                 >
                   {m.destination.flag} {m.destination.name}
@@ -280,85 +313,76 @@ export function MapHero({
             );
           })}
         </div>
-      </div>
 
-      {/* Detail panel for the selected destination */}
-      {selected && (
-        <div className="flex flex-col rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-5 shadow-[var(--shadow-sm)]">
-          <div className="flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="grid size-11 place-items-center rounded-[var(--radius-md)] bg-(--surface-2) text-2xl"
-            >
-              {selected.flag ?? "🌐"}
-            </span>
-            <div className="min-w-0">
-              <p className="font-display text-lg font-semibold text-(--text)">{selected.name}</p>
-              {selected.region && <p className="text-xs text-(--text-2)">{selected.region}</p>}
+        {/* Floating detail card for the selected destination */}
+        {selected && (
+          <div className="border-t border-white/10 bg-black/20 p-4 backdrop-blur-md sm:m-3 sm:rounded-[var(--radius-lg)] sm:border sm:bg-white/[0.06] sm:shadow-lg lg:absolute lg:bottom-3 lg:left-3 lg:m-0 lg:w-64">
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="grid size-10 place-items-center rounded-[var(--radius-md)] bg-white/10 text-2xl"
+              >
+                {selected.flag ?? "🌐"}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-base font-semibold text-(--rail-text)">
+                  {selected.name}
+                </p>
+                {selected.region && (
+                  <p className="truncate text-xs text-(--rail-text-2)">{selected.region}</p>
+                )}
+              </div>
             </div>
+
+            <dl className="mt-3 grid grid-cols-2 gap-2">
+              <Stat label="Routes" value={String(selected.routeCount)} />
+              <Stat
+                label="From"
+                value={
+                  selected.startingCost
+                    ? formatCost({
+                        min: selected.startingCost.amount,
+                        max: selected.startingCost.amount,
+                        currency: selected.startingCost.currency,
+                      })
+                    : "—"
+                }
+              />
+              <Stat
+                label="As fast as"
+                value={selected.fastestMonths ? `${selected.fastestMonths} mo` : "—"}
+              />
+              <Stat
+                label="Visa-free"
+                value={
+                  selected.arrivalContext?.visaFreeDays != null
+                    ? `${selected.arrivalContext.visaFreeDays} days`
+                    : "—"
+                }
+              />
+            </dl>
+
+            <Link
+              href={`/explore/${citizenship.code}/${selected.code}`}
+              className={cn(
+                "mt-3 inline-flex h-9 w-full items-center justify-center rounded-[var(--radius-md)] bg-[image:var(--gradient-brand)] px-4 text-sm font-medium text-(color:--on-brand) transition hover:brightness-105",
+                focusRing("brand"),
+              )}
+            >
+              Explore {selected.name} →
+            </Link>
           </div>
-
-          <dl className="mt-4 grid grid-cols-2 gap-3">
-            <Stat label="Routes" value={String(selected.routeCount)} />
-            <Stat
-              label="From"
-              value={
-                selected.startingCost
-                  ? formatCost({
-                      min: selected.startingCost.amount,
-                      max: selected.startingCost.amount,
-                      currency: selected.startingCost.currency,
-                    })
-                  : "—"
-              }
-            />
-            <Stat
-              label="As fast as"
-              value={selected.fastestMonths ? `${selected.fastestMonths} mo` : "—"}
-            />
-            <Stat
-              label="Visa-free"
-              value={
-                selected.arrivalContext?.visaFreeDays != null
-                  ? `${selected.arrivalContext.visaFreeDays} days`
-                  : "—"
-              }
-            />
-          </dl>
-
-          {selected.routeTypes.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-1.5">
-              {selected.routeTypes.slice(0, 4).map((type) => (
-                <li key={type}>
-                  <Badge size="xs">{type.replace(/_/g, " ")}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <Link
-            href={`/explore/${citizenship.code}/${selected.code}`}
-            className={cn(
-              "mt-5 inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] bg-(--brand) px-4 text-sm font-medium text-(color:--on-brand) transition hover:brightness-95",
-              focusRing("brand"),
-            )}
-          >
-            Explore {selected.name} →
-          </Link>
-          <p className="mt-2 text-center text-xs text-(--text-2)">
-            Hover a pin to preview · click to open
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[var(--radius-md)] bg-(--surface-2) px-3 py-2">
-      <dt className="text-xs text-(--text-2)">{label}</dt>
-      <dd className="font-display text-sm font-semibold text-(--text)">{value}</dd>
+    <div className="rounded-[var(--radius-md)] bg-white/[0.05] px-2.5 py-1.5">
+      <dt className="text-[0.7rem] text-(--rail-text-2)">{label}</dt>
+      <dd className="font-display text-sm font-semibold text-(--rail-text)">{value}</dd>
     </div>
   );
 }

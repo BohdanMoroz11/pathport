@@ -142,7 +142,7 @@ export function DestinationExplorer({
       {results.length === 0 ? (
         <p className="mt-6 text-(--text-2)">No destinations match these filters.</p>
       ) : (
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {results.map((destination) => (
             <li key={destination.code}>
               <ExploreCard
@@ -160,7 +160,7 @@ export function DestinationExplorer({
       {/* Compare tray */}
       {compareList.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-(--border) bg-(--surface)/95 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-6 py-3">
+          <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-6 py-3">
             <span className="text-sm font-medium text-(--text-2)">
               Comparing {compareList.length} of {MAX_COMPARE}
             </span>
