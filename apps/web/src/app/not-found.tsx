@@ -5,7 +5,7 @@ import { focusRing } from "@/components/ui/cn";
 export default function NotFound() {
   return (
     <BrowseShell>
-      <div className="mx-auto max-w-7xl space-y-4 px-6 py-20">
+      <div className="mx-auto max-w-[90rem] space-y-4 px-6 py-20 lg:px-10">
         <p className="text-sm font-medium uppercase tracking-wide text-(--text-2)">404</p>
         <h1 className="font-display text-3xl font-semibold text-(--text) sm:text-4xl">
           We couldn't find that page

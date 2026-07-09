@@ -20,7 +20,7 @@ export default async function ExplorePage() {
       }
     >
       {/* Pad the bottom so the fixed compare tray never covers the last row. */}
-      <div className="mx-auto w-full max-w-7xl px-6 py-10 pb-24">
+      <div className="mx-auto w-full max-w-[90rem] px-6 py-10 pb-24 lg:px-10">
         <header className="max-w-2xl space-y-3">
           <span className="inline-flex items-center gap-2 rounded-(--radius-pill) border border-(--border) bg-(--surface) px-3 py-1 text-xs font-medium text-(--text-2)">
             {active?.flag && <span aria-hidden="true">{active.flag}</span>}

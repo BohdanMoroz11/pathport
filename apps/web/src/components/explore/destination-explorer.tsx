@@ -160,7 +160,7 @@ export function DestinationExplorer({
       {/* Compare tray */}
       {compareList.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-(--border) bg-(--surface)/95 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-6 py-3">
+          <div className="mx-auto flex w-full max-w-[90rem] flex-wrap items-center gap-3 px-6 py-3 lg:px-10">
             <span className="text-sm font-medium text-(--text-2)">
               Comparing {compareList.length} of {MAX_COMPARE}
             </span>

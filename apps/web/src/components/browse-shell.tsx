@@ -13,7 +13,8 @@ import { focusRing } from "@/components/ui/cn";
  * `headerSlot` is where pages inject the citizenship selector (a client
  * component that needs the fetched citizenship list); surfaces without it (404)
  * omit it. Pages own their own content width — wrap non-bleed content in
- * `mx-auto max-w-7xl px-6` (see the home and explore pages).
+ * `mx-auto max-w-[90rem] px-6 lg:px-10` so it lines up with this chrome and the
+ * home hero (see the home and explore pages).
  */
 export function BrowseShell({
   children,
@@ -25,7 +26,7 @@ export function BrowseShell({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-(--border) bg-(--surface)/80 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex w-full max-w-[90rem] items-center justify-between gap-4 px-6 py-3 lg:px-10">
           <div className="flex items-center gap-6">
             <Link
               href="/"
@@ -58,7 +59,7 @@ export function BrowseShell({
       <main className="flex-1">{children}</main>
 
       <footer className="mt-16 border-t border-(--border) bg-(--surface)">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-6 py-12 md:grid-cols-[1.5fr_1fr]">
+        <div className="mx-auto grid w-full max-w-[90rem] gap-8 px-6 py-12 md:grid-cols-[1.5fr_1fr] lg:px-10">
           <div className="max-w-md space-y-3">
             <div className="flex items-center gap-2.5">
               <span
@@ -86,7 +87,7 @@ export function BrowseShell({
           </div>
         </div>
         <div className="border-t border-(--border)">
-          <div className="mx-auto w-full max-w-7xl px-6 py-4 text-xs text-(--text-2)">
+          <div className="mx-auto w-full max-w-[90rem] px-6 py-4 text-xs text-(--text-2) lg:px-10">
             © {new Date().getFullYear()} Pathport
           </div>
         </div>
