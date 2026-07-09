@@ -4,7 +4,9 @@ import { expect, test } from "@playwright/test";
 test("home shows the map hero and destinations for the default citizenship", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /United States citizen go/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Where can you live next/i })).toBeVisible();
+  // The hero is scoped to the active citizenship.
+  await expect(page.getByText(/For United States passport holders/i)).toBeVisible();
   // The global citizenship selector is docked in the header.
   await expect(page.getByRole("button", { name: /change citizenship/i })).toBeVisible();
   // Destinations are shown directly (no citizenship-picker step).
@@ -40,7 +42,7 @@ test("the header selector switches the active citizenship", async ({ page }) => 
   await page.getByRole("button", { name: /change citizenship/i }).click();
   await page.getByRole("menuitemradio", { name: /Ukraine/ }).click();
 
-  await expect(page.getByRole("heading", { name: /Ukraine citizen go/i })).toBeVisible();
+  await expect(page.getByText(/For Ukraine passport holders/i)).toBeVisible();
 });
 
 test("explore browser filters destinations and compares side by side", async ({ page }) => {
