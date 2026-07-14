@@ -31,34 +31,35 @@ This worked for the demo explorer but is not a good S6 foundation: the page is
 filled in smaller pieces, some content is reader-/route-/assumption-scoped, and
 sources must support any content piece rather than routes only.
 
-### S6 target schema direction
+### S6 canonical schema direction
 
-S6 should rework canonical storage around the destination page aggregate described
-in [domain-model.md](domain-model.md):
+S6 tasks 1–3 reworked canonical storage around the destination page aggregate
+described in [domain-model.md](domain-model.md). The first migration keeps the
+existing `destination_countries` and `routes` table names for compatibility, but
+changes how page content is filled and cited:
 
 - `citizenships` — starting passport/origin identities.
-- `destinations` — renamed/superseding `destination_countries`; stable identity
-  and high-level page fields.
+- `destination_countries` — destination identity and high-level page fields.
 - `destination_content_blocks` — validated JSONB content pieces keyed by
   `destination_id`, `section_key`, `block_key`, `scope_kind`, and optional scope
   refs (`citizenship_id`, `route_id`, `assumptions`). These are the fillable,
   reviewable units for Country/Living/Work/Family/Entry/Overview pieces.
-- `destination_routes` — renamed/superseding `routes`; destination-owned child
-  records with normalized comparison fields and route detail content.
+- `routes` — destination-owned child records with normalized comparison fields
+  and route detail content.
 - `route_applicability` — scoped applicability/interpretation for a route and a
   citizenship/profile.
 - `source_documents` — canonical sources/evidence documents, independent of
   which UI surface cites them.
 - `content_citations` — links from source documents to the exact block/field/route
   fact they support, via a target reference and `field_path`/JSON pointer.
-- `ingestion_*` tables — the proposal layer added by S6: run tree + cost ledger,
-  proposals, claims, evidence, decisions, supersession, and publish backlinks.
+- `ingestion_*` tables — the proposal layer still to be added by later S6 tasks:
+  run tree + cost ledger, proposals, claims, evidence, decisions, supersession,
+  and publish backlinks.
 
-Enums should keep existing content signals (`review_status`, `confidence`,
-`source_type`) and add content-scope / section / block / ingestion status enums
-where useful. Prefer real foreign keys for known targets over an entirely opaque
-polymorphic target, but keep citations flexible enough to point at block fields and
-route/applicability fields.
+Enums keep existing content signals (`review_status`, `confidence`,
+`source_type`) and now include content-scope and citation-target enums. Citations
+use a flexible target reference plus `field_path` because they need to point at
+block fields and route/applicability fields.
 
 Validated JSONB remains intentional, but the unit changes: JSONB should be scoped
 to a content block or route detail, not one giant destination profile. This keeps

@@ -67,11 +67,28 @@ step notes, caveats; normalized to present arrays), and its sources. 404 if no
 route has that id.
 
 
-## S6 Write/Ingestion Surface (Target)
+## S6 Write/Ingestion Surface
 
-S6 adds the deterministic write path that S8 admin and S7 ingestion will use. The
-exact endpoint names can change during implementation, but the surface should be
-organized around these use-cases rather than around the old table names:
+S6 adds the deterministic write path that S8 admin and S7 ingestion will use.
+Tasks 1–3 landed the local/dev canonical mutation surface under `/local-write`.
+These endpoints are intentionally not product/admin URLs yet; S8 should put
+proper cookie/session auth in front of the same use-cases before deployment.
+
+Current local/dev endpoints:
+
+- `POST /local-write/content-blocks` — upsert one scoped destination content
+  block by `targetPath`;
+- `POST /local-write/routes` — create a destination-owned route with validated
+  route-detail JSON;
+- `POST /local-write/route-applicability` — upsert a route × citizenship
+  applicability fact;
+- `POST /local-write/source-documents` — upsert a reusable source document by
+  URL;
+- `POST /local-write/citations` — attach a source document to a content block,
+  route, or applicability fact.
+
+The remaining S6 ingestion/control surface should be organized around these
+use-cases rather than around the old table names:
 
 - trigger a manual fake ingestion run for a scoped target (for example
   `DE.living.rent` or `UKR→DE.entry.arrival`);
@@ -80,7 +97,8 @@ organized around these use-cases rather than around the old table names:
 - publish an approved/partially approved proposal through the single canonical
   writer;
 - create/update canonical destination content blocks, destination routes, route
-  applicability facts, source documents, and citations.
+  applicability facts, source documents, and citations (already available through
+  `/local-write` for local/dev use).
 
 The API should not expose `arrival_context` as a product concept after the S6
 storage rework. Reader-specific entry/language/fit content is destination-page

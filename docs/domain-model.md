@@ -102,22 +102,23 @@ pre-registration, first-days actions, and the bridge from arrival to routes.
 columns for sorting/filtering, but they are still part of the destination page.
 Applicability is scoped to the selected citizenship/profile.
 
-### Storage shape (S6 target)
+### Storage shape (S6 tasks 1–3)
 
 Keep normalized columns for stable, queryable identity and comparison fields, but
 store volatile page content in **smaller validated JSONB content pieces**, not one
 large profile blob:
 
-- `destinations` — destination identity and high-level metadata (`code`, `name`,
-  `flag`, `region`, `tagline`, `description`, quality metadata, ingestion
-  backlinks). This supersedes the awkward `destination_countries` name.
+- `destination_countries` — destination identity and high-level metadata (`code`,
+  `name`, `flag`, `region`, `tagline`, `description`). The S6 migration kept the
+  existing table name for compatibility; it can still be renamed later if worth
+  the churn.
 - `destination_content_blocks` — scoped page pieces:
-  `destination_id`, `section_key`, `block_key`, `scope_kind`, optional
+  `destination_country_id`, `section_key`, `block_key`, `scope`, optional
   `citizenship_id`, optional `route_id`, optional `assumptions`, `content` JSONB,
-  quality metadata, ingestion backlinks, timestamps. Unique constraints should
-  prevent duplicate active blocks for the same destination/section/block/scope.
-- `destination_routes` — destination-owned route records with normalized
-  comparison fields plus route detail JSONB where that remains practical.
+  quality metadata, ingestion backlinks, timestamps. `target_path` is unique so
+  ingestion/admin can address one fillable block deterministically.
+- `routes` — destination-owned route records with normalized comparison fields
+  plus route detail JSONB where that remains practical.
 - `route_applicability` — scoped applicability facts tying a route to a
   citizenship/profile; still needed because two citizenships can see different
   route sets.
@@ -162,11 +163,11 @@ The taxonomy is intentionally open: new categories can be added to the enum as r
 
 ```text
 citizenship ──┐
-              ├──< destination_content_blocks >── destination
+              ├──< destination_content_blocks >── destination_countries
               │              ▲                       │
-              │              │                       ├──< destination_routes
-              │              │                       │          │
-              │              └──── route_applicability >────────┘
+              │              │                       ├──< routes
+              │              │                       │      │
+              │              └──── route_applicability >────┘
               │
 source_documents ──< content_citations >── blocks / routes / applicability fields
 ```

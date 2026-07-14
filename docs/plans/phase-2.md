@@ -347,9 +347,10 @@ Tasks:
 
 ### S6 [Data]: Domain Storage Rework, Write Path, Queue & Ingestion Schema
 
-Status: Not started — scope clarified after reviewing the post-S5 destination
-page. S6 starts by reshaping the DB around the actual page content pieces, then
-builds the deterministic ingestion/write foundation on top of that shape.
+Status: In progress — tasks 1–3 landed. The DB now has scoped destination content
+blocks, route applicability metadata, and general source/citation tables; the
+public read API assembles the existing contracts from that shape; and a small
+local/dev write API exists for exercising canonical mutations before S8 auth.
 
 The deterministic foundation of the tool: a fillable canonical domain model,
 mutations (new for Phase 2), the queue/worker, the full `ingestion_*` schema, and
@@ -377,19 +378,19 @@ Important S6 scope corrections from the post-S5 review:
 
 Tasks:
 
-- [ ] Rework the canonical domain storage around the destination page aggregate:
+- [x] Rework the canonical domain storage around the destination page aggregate:
       stable destination/citizenship identities; destination-owned routes;
       scoped destination content blocks for page subsections/info pieces; route
       applicability as scoped child content; and a general source/citation model.
       Preserve the current public read surfaces by assembling responses from the
       new shape.
-- [ ] Classify the current destination page blocks by scope at the data-model
+- [x] Classify the current destination page blocks by scope at the data-model
       boundary, not merely by page section: `destination`,
       `citizenship_destination`, `route`, `route_citizenship`, and
       `assumption`/persona-scoped content where the UI currently implies an
       assumption (budget persona, take-home example, healthcare access mode,
       earning mode, pet-origin rules, etc.).
-- [ ] Add a local/dev write API surface in NestJS (mutation modules, validation,
+- [x] Add a local/dev write API surface in NestJS (mutation modules, validation,
       no production auth yet). Keep the read API intact and ready for S8 guards.
 - [ ] Stand up BullMQ + Redis and a separate `apps/ingestion-worker` process; add
       Redis to local dev (compose) and config.
