@@ -28,7 +28,7 @@ The explorer follows the citizenship → destination → route drill-down from t
    cards; opening one peeks the full detail in a drawer.
 4. `/explore/[citizenship]/[destination]/routes/[id]` — the same route detail as
    a full page: comparable fields, requirement groups, documents, eligibility,
-   steps, caveats, and sources.
+   steps, caveats, and cited sources.
 
 ### Active citizenship
 
@@ -55,7 +55,10 @@ deferred to the real-data phase, per the phase plan.
 - **Data:** a thin typed client in `src/lib/api.ts` wraps `fetch` and returns
   the shared `@pathport/contracts` types. These fetches run server-side, so the
   base URL prefers the runtime `API_BASE_URL`, falling back to
-  `NEXT_PUBLIC_API_BASE_URL` and then `http://localhost:4311` for dev.
+  `NEXT_PUBLIC_API_BASE_URL` and then `http://localhost:4311` for dev. S6 should
+  keep these contracts stable while changing the backing store to scoped
+  destination content blocks, destination-owned routes, applicability facts, and
+  general citations.
 - **Quality labels:** the user-facing labels (`Official source`, `Needs review`,
   `Estimate`, `Demo`, …) are **derived** in `src/lib/quality.ts` from the raw
   signals (`reviewStatus`, `confidence`, `isDemo`, per-source `type`), never

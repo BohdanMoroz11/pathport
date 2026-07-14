@@ -66,13 +66,14 @@ Settled in collaborative planning; the stages below build on these.
   Radix for behavior/accessibility, our own design for everything visual.
 - **Dark mode from the start.**
 - **Brand identity stays minimal** in Phase 2; full brand focus is Phase 3.
-- **The domain/content schema is designed alongside the UI, not before it.** The
-  only place the real data requirements surface is the page itself, so the **UI
-  stages (S3–S5) own evolving the domain schema** — the page reveals the shape, the
-  schema (and demo seed) follow. The country/destination page is a new
-  destination-level surface, and `destination_countries` (today just `code + name`)
-  is a known stub to flesh out. The data-gathering tool (S6/S7) then consumes
-  whatever the domain schema has become; it does not design it.
+- **The domain/content schema is designed from the UI surface, but must also be
+  fillable.** S3–S5 revealed the destination page surface; S6 is now allowed — and
+  expected — to refactor the storage model so that surface can be filled, cited,
+  reviewed, and published incrementally. That means replacing coarse demo-era
+  blobs and oddly named concepts (`arrival_context`, route-only sources) with a
+  destination-page aggregate made of scoped content pieces. S6 should not invent
+  new product content beyond the current UI, but it may reshape the DB around the
+  content pieces the UI already exposes.
 
 **Data-gathering** (full concept in [../data-gathering.md](../data-gathering.md); S2)
 
@@ -91,11 +92,13 @@ Settled in collaborative planning; the stages below build on these.
   architecture proven on **one real end-to-end flow**. Deep recursion at scale,
   scheduling/refresh/staleness, auto-approval, and the full eval harness are
   **Phase 3**.
-- **Scope is the tool, not the content** — populating a production DB is a
-  post-deploy Phase 3 activity. The tool (S6/S7) is built **against the domain
-  schema as the UI stages leave it**; it *fills* the domain DB and owns only the
-  `ingestion_*` proposal layer — it does **not** design the domain/content schema
-  (that is the UI stages' job, see the UI decisions above).
+- **Scope is the tool, not production content** — populating a production DB is a
+  post-deploy Phase 3 activity. S6/S7 build the filling machinery against the
+  current destination-page surface. Because that surface exposed that the old
+  domain storage is not fillable enough, **S6 includes a domain-storage rework**
+  before the ingestion layer: scoped destination content blocks, destination-owned
+  routes, general sources/citations, and proposal targets that match how the page
+  is actually filled.
 
 **Admin**
 
@@ -342,33 +345,71 @@ Tasks:
 - [x] Document the design system in `docs/design-system.md` (tokens + components,
       now that they are settled).
 
-### S6 [Data]: Write Path, Queue & Ingestion Schema
+### S6 [Data]: Domain Storage Rework, Write Path, Queue & Ingestion Schema
 
-Status: Not started
+Status: Not started — scope clarified after reviewing the post-S5 destination
+page. S6 starts by reshaping the DB around the actual page content pieces, then
+builds the deterministic ingestion/write foundation on top of that shape.
 
-The deterministic foundation of the tool: mutations (new for Phase 2), the
-queue/worker, the full `ingestion_*` schema, and the single canonical writer —
-**no AI yet**, so all of it is provable with the deterministic machinery (Ring 1).
-This stage builds **against the domain schema as the UI stages (S3–S5) left it** —
-it owns the `ingestion_*` layer, not the domain/content schema.
+The deterministic foundation of the tool: a fillable canonical domain model,
+mutations (new for Phase 2), the queue/worker, the full `ingestion_*` schema, and
+the single canonical writer — **no real AI yet**, so all of it is provable with
+the deterministic machinery (Ring 1). The fake producer should still look like the
+future S7 agent seam so the end-to-end path is testable.
+
+Important S6 scope corrections from the post-S5 review:
+
+- The current `arrival_context` concept is too narrow and misleading. It is really
+  citizenship-/reader-scoped destination-page content (entry, language read,
+  fit signals, some overview metrics), not just arrival facts.
+- The current `destination_countries.profile` blob is too coarse. The destination
+  page has subsections and smaller information pieces; some are universal, some
+  citizenship-/route-/assumption-scoped, and each needs citations/review state.
+- Routes are destination-owned child content. A route table can remain because
+  comparison/filtering needs real columns, but it should be modeled and filled as
+  part of the destination aggregate, with route applicability as scoped child
+  facts.
+- Route-only `route_sources` is wrong for this product. Sources/citations must be
+  able to support any content piece or field, not just route detail.
+- Full cookie/session auth is **deferred to S8**. S6 may structure local/dev write
+  endpoints so S8 can guard them, but it should not spend effort on temporary auth
+  for an app that is not deployed.
 
 Tasks:
 
-- [ ] Add a write API surface in NestJS (mutation module(s), validation, the
-      authn/authz boundary). Keep the read API intact.
-- [ ] Stand up BullMQ + Redis and a separate ingestion worker process; add Redis
-      to local dev (compose) and config.
+- [ ] Rework the canonical domain storage around the destination page aggregate:
+      stable destination/citizenship identities; destination-owned routes;
+      scoped destination content blocks for page subsections/info pieces; route
+      applicability as scoped child content; and a general source/citation model.
+      Preserve the current public read surfaces by assembling responses from the
+      new shape.
+- [ ] Classify the current destination page blocks by scope at the data-model
+      boundary, not merely by page section: `destination`,
+      `citizenship_destination`, `route`, `route_citizenship`, and
+      `assumption`/persona-scoped content where the UI currently implies an
+      assumption (budget persona, take-home example, healthcare access mode,
+      earning mode, pet-origin rules, etc.).
+- [ ] Add a local/dev write API surface in NestJS (mutation modules, validation,
+      no production auth yet). Keep the read API intact and ready for S8 guards.
+- [ ] Stand up BullMQ + Redis and a separate `apps/ingestion-worker` process; add
+      Redis to local dev (compose) and config.
 - [ ] Model the full `ingestion_*` layer as new migrations — the run tree
       (`ingestion_run` incl. the cost ledger + `budget_exceeded`),
       `ingestion_proposal`, `ingestion_claim` (with decision state), and
-      `ingestion_evidence`. The domain schema is taken as the UI stages left it;
-      close only the narrow gaps publish needs, don't redesign it here.
+      `ingestion_evidence`/evidence links. Proposal targets should match the
+      scoped content model, e.g. `DE.country.geography`, `DE.living.rent`,
+      `USA→DE.entry.arrival`, `DE.route.blue-card`, and
+      `USA→DE.route.blue-card.applicability`.
 - [ ] Implement the **single canonical writer + publish mapper** (claims →
-      canonical, partial-apply, the required-field `blocked` guard, supersession),
-      shared by human admin CRUD and proposal publish.
+      canonical content blocks/routes/applicability/citations, partial-apply, the
+      required-field `blocked` guard, supersession), shared by later human admin
+      CRUD and proposal publish.
+- [ ] Add a deterministic fake-AI/fake-producer worker path so the whole mechanism
+      is testable before S7: manual trigger → BullMQ → worker → run/evidence →
+      proposals/claims → review decisions → publish → canonical DB.
 - [ ] Ring 1 deterministic tests: unit pure-logic (publish mapper, status machine,
-      budget math, dedup) + integration of the write/publish path against real
-      Postgres. No live model.
+      budget math, dedup, citation mapping) + integration of the queue/write/
+      publish path against real Postgres. No live model.
 
 ### S7 [Data]: Research Agent & One End-to-End Flow
 
@@ -498,10 +539,12 @@ Phase 2 is done when:
 - **Clarified where the domain schema is designed.** The Phase 1 domain/content
   schema was built for the route-centric explorer and is treated as provisional, not
   settled. Because the data requirements only surface in the pages, the **UI stages
-  (S3–S5) own evolving the domain schema** (the country/destination page is a new
-  data surface; `destination_countries` is a known stub). The data-gathering stages
-  (S6/S7) build the tool and the `ingestion_*` layer **against** that schema and do
-  not design it. Stage text, Resolved Decisions, constraints, and Exit Criteria
+  (S3–S5) own revealing the domain surface** (the country/destination page is a new
+  data surface; `destination_countries` was a known stub). After S5, the ingestion
+  planning review showed that the implemented storage model is still too coarse and
+  oddly scoped to fill the page well. S6 therefore owns a **domain-storage rework**
+  around scoped destination content pieces and general citations before building the
+  ingestion layer. Stage text, Resolved Decisions, constraints, and Exit Criteria
   updated accordingly.
 - **Post-S5 UI polish (portfolio "wow" pass).** With the S5 skeleton usable, a
   polish pass reworked the information architecture around an **active citizenship**
@@ -557,3 +600,15 @@ Phase 2 is done when:
   stop-gap Playwright `retries` was removed. Pipeline green: typecheck, Biome
   (144), unit (74), integration (29), and 6 Playwright + axe e2e (deterministic
   under `--repeat-each`).
+
+- **S6 scope refinement after post-S5 page review.** The destination page should be
+  treated as an aggregate assembled from smaller, scoped content pieces rather than
+  from one destination blob plus a misleading `arrival_context` blob. Some content
+  is destination-universal (geography, many country facts), some is
+  citizenship-/reader-specific (entry, language difficulty, fit signals), some is
+  route-/route-applicability-specific (work rights, eligibility), and some is
+  assumption/persona-specific (monthly budgets, sample take-home pay, access mode).
+  S6 should rework canonical storage accordingly and replace route-only sources with
+  source documents + field/block citations. Full cookie auth is deferred to S8;
+  S6 still creates local/dev write endpoints and a separate fake-producer worker so
+  the queue→proposal→review→publish path is testable without real AI.

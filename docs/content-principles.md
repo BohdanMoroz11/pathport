@@ -18,15 +18,20 @@ Lower-trust sources can be useful, but they should not override official sources
 
 ## Required Metadata
 
-Every route or country summary should eventually track:
+Every content piece should eventually track:
 
-- source URLs
+- source URLs / source-document records
+- citations to the specific field or block the source supports
 - last reviewed date
 - confidence level
 - destination country
-- relevant citizenship or audience
-- route type
-- notes about uncertainty or missing data
+- relevant citizenship, route, route applicability, or audience/assumption scope
+- notes about uncertainty, conflicts, or missing data
+
+This applies beyond routes: country facts, living-cost rows, entry rules,
+language reads, family/pet rules, route details, and applicability facts all need
+sourceability. S6 should replace route-only sources with general source documents
+and content citations.
 
 ## Tone
 

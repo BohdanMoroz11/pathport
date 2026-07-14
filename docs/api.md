@@ -1,8 +1,11 @@
 # API
 
-The API is a NestJS service that exposes read-only endpoints for the
-citizenship-first explorer. It is the only thing the web app talks to; the web
-app never reaches the database directly.
+The API is a NestJS service for the citizenship-first explorer. It is the only
+thing the web app talks to; the web app never reaches the database directly.
+
+Most implemented endpoints are currently public reads. S6 introduces local/dev
+write and ingestion-control endpoints, but full cookie/session authentication is
+intentionally deferred to S8 because Phase 2 is not deployed.
 
 ## Shape
 
@@ -14,7 +17,12 @@ app never reaches the database directly.
 - All read queries run through the shared `DatabaseService` (one pool) using
   Drizzle.
 - Country codes in paths are matched case-insensitively (`USA`, `usa`).
-- The API is read-only: there is no write, auth, or mutation surface yet.
+- S6 should preserve the public read contracts while changing their backing store:
+  destination profiles and summaries are assembled from scoped destination content
+  blocks, destination-owned routes, applicability facts, and citations.
+- S6 write endpoints are local/dev tooling behind clear module boundaries. They
+  should validate inputs and call the single canonical writer, but proper admin
+  cookie auth is S8.
 
 ## Endpoints
 
@@ -30,9 +38,11 @@ Destinations reachable by the citizenship: any destination with at least one
 applicable route, with its applicable-route count and the arrival context for
 that citizenship × destination pair. Ordered by destination name.
 
-Returns `DestinationSummary[]` — `{ code, name, routeCount, arrivalContext }`,
-where `arrivalContext` is the visa-free / visitor entry facts for the pair (or
-`null`). 404 if the citizenship is unknown.
+Returns `DestinationSummary[]` — identity, route-count/comparison aggregates,
+and the entry/arrival summary for the selected citizenship × destination pair.
+The current contract still names this nested object `arrivalContext`; after the
+S6 storage rework it should be assembled from scoped destination-page content, not
+from an `arrival_context` table. 404 if the citizenship is unknown.
 
 ### `GET /citizenships/:citizenshipCode/destinations/:destinationCode/routes`
 
@@ -55,6 +65,26 @@ Returns `RouteDetail` — every summary field plus the route's destination, the
 flexible detail content (requirement groups, document list, eligibility notes,
 step notes, caveats; normalized to present arrays), and its sources. 404 if no
 route has that id.
+
+
+## S6 Write/Ingestion Surface (Target)
+
+S6 adds the deterministic write path that S8 admin and S7 ingestion will use. The
+exact endpoint names can change during implementation, but the surface should be
+organized around these use-cases rather than around the old table names:
+
+- trigger a manual fake ingestion run for a scoped target (for example
+  `DE.living.rent` or `UKR→DE.entry.arrival`);
+- inspect ingestion runs, proposals, claims, evidence, and budget/metering state;
+- update claim decisions (`approved | rejected | held | edited`);
+- publish an approved/partially approved proposal through the single canonical
+  writer;
+- create/update canonical destination content blocks, destination routes, route
+  applicability facts, source documents, and citations.
+
+The API should not expose `arrival_context` as a product concept after the S6
+storage rework. Reader-specific entry/language/fit content is destination-page
+content scoped to a citizenship/profile.
 
 ## Health
 

@@ -8,99 +8,147 @@ The product is organized around the question "I hold citizenship X — where can
 
 The main flow has three steps:
 
-1. **Pick a citizenship.** The entry choice. Default should be infered from IP, geolocation, user agent, etc.
+1. **Pick a citizenship.** The entry choice. Default can later be inferred from IP, geolocation, user agent, or user settings.
 2. **See a destination overview.** A list of destinations available to that citizenship, each with a short summary and a route count. Cross-destination comparison also included.
 3. **Drill into one destination.** See that destination's routes as cards grouped or filtered by route type, then open a route for full detail.
 
-Arrival context (visa-free / visitor entry) is shown as supporting information on the destination, not as a route.
+Entry / visitor context is supporting information on the destination page, not a migration route. In the S6 target model it is stored as scoped destination-page content, not as a standalone `arrival_context` product concept.
 
-## Destination Shell: The Section Surface (Phase 2 / S3)
+## Destination Page Aggregate (S6 Target)
 
-The rebuilt explorer is not a single route-comparison page but a **destination
-shell**: a persistent left rail over an Overview plus deep reference sections —
-**Country**, **Living**, **Work & income**, **Family & pets**, **Entry**, and the
-**Routes** comparison. This is a genuinely new, destination-level data surface. It
-was built FE-first against in-repo fixtures (`apps/web/src/lib/destination/*`), and
-the shape those fixtures settled into is now folded down into the real schema.
+The rebuilt explorer is a **destination page**, not a collection of disconnected
+records. A page is assembled for a selected citizenship and destination, with
+subpages for Overview, Country, Living, Work & income, Family & pets, Entry, and
+Routes. S3–S5 made that surface real; the S6 planning review showed that the
+current storage model (`destination_countries.profile` + `arrival_context` +
+route-only sources) is too coarse and oddly scoped to fill and cite the page well.
 
-The content splits cleanly along one seam, and the schema follows it:
+> Implementation note: the code may still use the older Phase-1/S3 tables until
+> S6 lands. This section describes the **target domain model for S6**.
 
-- **Destination-level facts** — the same for every visitor: identity (flag,
-  tagline, region, description), the `quickFacts` strip, and the deep **country /
-  living / work / family** section profiles. These live on
-  **`destination_countries`** (fleshing out the Phase 1 `code + name` stub).
-- **Pairing-level, reader-specific facts** — read from the visitor's citizenship:
-  the **language** read (how hard the main language is *for you*), the **entry**
-  brief + full **entryDetail** journey, the **glance** metric list, and the
-  **fitsYouIf** signals. These live on **`arrival_context`**, whose role broadens
-  from "visa-free entry facts" to **the citizenship × destination pairing record**.
+The canonical model should treat the destination page as an aggregate made of:
 
-### How it is stored (validated JSONB, same pattern as route detail)
+- stable identities (`citizenships`, `destinations`);
+- destination-owned routes (queryable child records used for comparison);
+- scoped content pieces for the page's sub-sections and info blocks;
+- route applicability facts for a citizenship/profile;
+- source documents and field/block-level citations.
 
-The section profiles are deep, nested, and still volatile, so — exactly as with
-route detail — they are **validated JSONB**, not block tables. A single Zod schema
-per blob (in `packages/db`) is the source of truth: the seed validates on write and
-the API validates on read, so the compile-time `$type<>()` cast is actually
-enforced. Only the small, stable, queryable identity fields are normalized columns.
+The key distinction is not just "destination-level vs citizenship-specific." The
+actual unit is a **content piece** with a scope.
 
-- `destination_countries`: adds `flag`, `tagline`, `region`, `description` columns
-  + a `profile` JSONB `{ quickFacts, country, living, work, family }` (each
-  sub-section optional so an unfilled section degrades to its scaffold) +
-  `contentMetadata`.
-- `arrival_context`: adds a `profile` JSONB `{ language, entry, entryDetail,
-  glance, fitsYouIf }` (all optional; a missing pairing row falls back to a
-  synthesized "being gathered" stub, mirroring the old fixture `synthesizePair`).
+### Content scopes
 
-The shared **contract types** (`@pathport/contracts`) mirror the section shapes so
-the API and the web app agree without the frontend importing the DB layer, and the
-API exposes the assembled profile at
-`GET /citizenships/:c/destinations/:d/profile`. The web app reads it through
-`api.ts` like every other surface; the local fixture module is retired.
+A content piece is a subsection/block/fact group that can be researched,
+reviewed, cited, and refreshed independently. It carries a scope:
 
-### Open questions / deferred
+- **`destination`** — universal facts about the destination regardless of reader:
+  geography, climate, political system, many economy/safety/rights facts, rent
+  market rows, public healthcare/schooling structure, pet import basics.
+- **`citizenship_destination`** — facts that depend on the selected citizenship or
+  origin context: visa-free entry, border documents, language difficulty for the
+  reader, "fits you if" signals, and some overview reads.
+- **`route`** — facts about a route owned by the destination: title, category,
+  comparison fields, core requirements, steps, risks, documents, caveats.
+- **`route_citizenship`** — whether/how a route applies for a given citizenship or
+  origin/status, including exemptions and special-case caveats.
+- **`assumption`** — facts that are not truly universal but are still useful in
+  the UI under an explicit persona/assumption: monthly budget personas, sample
+  take-home pay, employee vs freelancer access modes, healthcare access mode,
+  pet-origin/rabies-risk assumptions, household shape, city assumptions.
 
-- The section JSONB is deliberately coarse for now. As real (non-demo) data lands
-  in Phase 3, repeating sub-shapes (e.g. `CountryStat`, `ShareDatum`, price rows)
-  are candidates to **normalize into block tables** — the same "normalize later
-  once the shape stops moving" bet documented for route detail below.
-- `arrival_context.summary` / `visaFreeDays` (Phase 1) now overlap conceptually
-  with the pairing `profile.entry` brief. They are kept as-is: S5 still reads
-  `summary`/`visaFreeDays` for the destination-index card (the arrival read), so
-  both remain live and reconciling them leans Phase 3, once real data shows which
-  is canonical.
+This avoids false universality. For example, the Living page contains universal
+rent/price facts, but its budget personas are assumption-scoped; Work has universal
+job-market facts, but right-to-work depends on route/status; Family has universal
+family-reunification structure, but who can join and which exemptions apply can be
+route-/status-specific.
 
-## Index Surfaces: Scannable Summaries (Phase 2 / S5)
+### Current page pieces by section
 
-Rebuilding the browse half of the explorer (home → citizenship → destination
-list) surfaced what the **index cards** need to be comparable at a glance, and the
-schema followed — this time with **no new columns**, only wider reads:
+**Overview** is assembled, not a single stored blob:
 
-- **`Citizenship`** summary gains **`flag`**. It already existed on the
-  `citizenships` table (used by the shell's identity), the list read just dropped
-  it.
-- **`DestinationSummary`** gains **`flag`**, **`region`**, and **`tagline`** — the
-  identity fields the destination list groups (by region) and scans by. All three
-  already existed on `destination_countries` (added in S3); again only the summary
-  read was widened, so `GET /citizenships/:c/destinations` now returns them.
+- destination identity, description, and quick facts: mostly `destination` scope;
+- entry brief: `citizenship_destination`;
+- at-a-glance metrics: mixed/derived from destination blocks, routes available to
+  this citizenship, and assumption-scoped examples;
+- "Fits you if": `citizenship_destination`, route-derived, and later
+  user-profile-derived.
 
-Both are surfaced through the existing services/mappers; the demo seed was
-enriched so Portugal and Spain carry `flag`/`region`/`tagline` (only Germany did
-before), keeping the index scannable rather than half-empty. All identity fields
-are nullable in the contract — a destination without an authored region falls into
-an "Other" group rather than breaking the layout.
+**Country** is mostly `destination` scope: geography, climate, people, economy,
+government, rights, safety, and culture. The language read is inserted from
+`citizenship_destination` (or later language-profile scope), because difficulty
+and practical interpretation depend on the reader.
 
-### Comparison aggregates (Phase 2 polish)
+**Living** is mixed: rent, groceries, everyday prices, healthcare system, and
+schooling system are often destination-scoped; monthly budgets, household costs,
+healthcare access, childcare access, and sample affordability reads need explicit
+assumptions/personas.
 
-The post-S5 polish (map-hero home + the `/explore` filter/compare browser) made
-the summary genuinely comparable, again with **no new columns** — only aggregates
-computed over each destination's already-filtered routes. `DestinationSummary`
-now also carries **`routeTypes`** (the distinct route types present, for the
-type filter and the chips), **`startingCost`** (the cheapest route's
-`{ amount, currency }`, for "From"), and **`fastestMonths`** (the shortest
-timeline, for "As fast as"). These are `min()` / `array_agg(distinct …)` rollups
-in `listForCitizenship`; two node-postgres quirks are handled in the mapper — the
-numeric aggregates come back as strings (coerced to numbers) and the enum array
-needs a `::text` cast inside `array_agg` or it returns a raw `{a,b}` string.
+**Work & income** is mixed: job market, industries, tax examples, earning modes,
+and finding-work channels are destination/assumption scoped; right-to-work,
+setup steps, credential recognition implications, and work permission are often
+route-/status-scoped.
+
+**Family & pets** is mixed: pet import basics and the broad family-reunification
+framework are destination-scoped; family eligibility, spouse language exemptions,
+benefits, and work rights for dependents can be route-/status-/citizenship-scoped.
+Pet import can also depend on origin/rabies-risk assumptions rather than
+citizenship alone.
+
+**Entry** is mostly `citizenship_destination`: visa-free days, border documents,
+pre-registration, first-days actions, and the bridge from arrival to routes.
+
+**Routes** are destination-owned child content. Routes need normalized comparison
+columns for sorting/filtering, but they are still part of the destination page.
+Applicability is scoped to the selected citizenship/profile.
+
+### Storage shape (S6 target)
+
+Keep normalized columns for stable, queryable identity and comparison fields, but
+store volatile page content in **smaller validated JSONB content pieces**, not one
+large profile blob:
+
+- `destinations` — destination identity and high-level metadata (`code`, `name`,
+  `flag`, `region`, `tagline`, `description`, quality metadata, ingestion
+  backlinks). This supersedes the awkward `destination_countries` name.
+- `destination_content_blocks` — scoped page pieces:
+  `destination_id`, `section_key`, `block_key`, `scope_kind`, optional
+  `citizenship_id`, optional `route_id`, optional `assumptions`, `content` JSONB,
+  quality metadata, ingestion backlinks, timestamps. Unique constraints should
+  prevent duplicate active blocks for the same destination/section/block/scope.
+- `destination_routes` — destination-owned route records with normalized
+  comparison fields plus route detail JSONB where that remains practical.
+- `route_applicability` — scoped applicability facts tying a route to a
+  citizenship/profile; still needed because two citizenships can see different
+  route sets.
+- `source_documents` — canonical source records (URL, title, publisher/source
+  type, retrieved/reviewed timestamps, content hash, snapshot/excerpt refs).
+- `content_citations` — field/block-level citations from source documents to the
+  content they support, using a target reference plus a `field_path` / JSON
+  pointer. Citations must work for destination blocks, routes, and applicability
+  facts — not only route detail.
+
+This still uses JSONB deliberately: the UI section shapes are nested and evolving.
+The improvement is that JSONB is now **scoped to fillable blocks** and can be
+cited/reviewed independently.
+
+### Ingestion target examples
+
+The S6 fake producer and S7 agent should target content like this, not whole
+pages:
+
+- `DE.country.geography`
+- `DE.country.safety`
+- `DE.living.rent`
+- `DE.living.budget[single:berlin:mid-range]`
+- `DE.work.demand`
+- `USA→DE.entry.arrival`
+- `UKR→DE.entry.toPermit`
+- `DE.route.blue-card`
+- `USA→DE.route.blue-card.applicability`
+
+Each target can produce proposals, claims, evidence, and citations at field/block
+granularity.
 
 ## Route Taxonomy
 
@@ -110,24 +158,36 @@ Route type is the `route_type` enum, already in the schema:
 
 The taxonomy is intentionally open: new categories can be added to the enum as real immigration paths are explored. Phase 1 lightly exercises each major type in demo data.
 
-## Entities And Relationships
+## Entities And Relationships (S6 Target)
 
-```
+```text
 citizenship ──┐
-              ├──< route_applicability >── route ──> destination
-destination ──┘                              │
-              ──< arrival_context >──         ├──< route_sources
-                                              └── (JSONB detail fields)
+              ├──< destination_content_blocks >── destination
+              │              ▲                       │
+              │              │                       ├──< destination_routes
+              │              │                       │          │
+              │              └──── route_applicability >────────┘
+              │
+source_documents ──< content_citations >── blocks / routes / applicability fields
 ```
 
-- **citizenship** — a passport/nationality. Code + name (+ flag).
-- **destination** — a country a person can migrate to. Code + name (+ flag,
-  region, tagline, description, and the section `profile`; see the destination
-  shell and index sections above).
-- **route** — one immigration path *into a single destination* (e.g. Germany Skilled Worker Visa). Carries type, summary fields, detail fields, and metadata.
-- **route_applicability** — the `route ↔ citizenship` join. A route is shown for a citizenship when a row links them. This is the join the citizenship-first UI filters on. Demo data makes US and Ukraine differ on at least some routes so the filter is exercised, not trivial.
-- **arrival_context** — keyed on `citizenship × destination`. Holds visa-free / visitor entry facts about the *pair* (e.g. "US citizens: 90 days visa-free in the Schengen area"). Not a route.
-- **route_sources** — source links per route (type, label, url, last reviewed).
+- **citizenship** — a passport/nationality or origin context the user starts
+  from. Code, name, flag, and later profile/language context.
+- **destination** — the country/page being explored. Identity and high-level
+  display fields live here; page content lives in scoped blocks.
+- **destination_content_block** — one fillable, reviewable, citeable content piece
+  of the destination page. The block says where it renders (`section_key` /
+  `block_key`) and what it is scoped to (`destination`, `citizenship_destination`,
+  `route`, `route_citizenship`, `assumption`).
+- **destination_route** — one long-term route under a destination. It remains a
+  table because comparison, filtering, sorting, and detail URLs need stable rows
+  and normalized fields.
+- **route_applicability** — a route's availability/interpretation for a selected
+  citizenship/profile. This is scoped child content, not a disconnected concept.
+- **source_document** — a canonical source page/document/snapshot used as
+  evidence.
+- **content_citation** — a citation linking one source document to the exact
+  block/field/route fact it supports.
 
 ## Route Summary Fields (the card)
 
@@ -153,7 +213,7 @@ The detail view shows all summary fields plus the flexible, still-volatile conte
 - **stepNotes** — high-level process steps.
 - **caveats** — uncertainty, common pitfalls, things to verify.
 
-Plus the route's **sources**.
+Plus the route's **citations/sources** assembled from the general source model.
 
 ## Source, Review, Confidence, And Demo Metadata
 
@@ -162,7 +222,10 @@ Three independent signals, kept minimal; the user-facing quality label is **deri
 - **review_status** (`route`, existing enum): `draft | needs_review | reviewed | outdated` — where this record is in the content lifecycle.
 - **confidence** (`route`, new enum): `low | medium | high` — how much we trust the values, independent of review state.
 - **is_demo** (`route`, new boolean): true for all Phase 1 seed data; surfaces as a clear demo marker.
-- **sources** (`route_sources`, existing): each has a `source_type` (`official | legal | community | ai_assisted | other`), label, url, and optional `last_reviewed_at`.
+- **sources/citations** (S6 target): sources are general `source_documents`, and
+  `content_citations` attach them to the destination block / route / applicability
+  field they support. `route_sources` is a demo-era route-only shape and should be
+  replaced during S6.
 
 ### Derived Display Labels
 

@@ -119,39 +119,63 @@ boundary, never in the layer.
   canonical review status. AI content enters canonical only **after** the gate,
   so it lands as reviewed/published — never as raw unreviewed content.
 
-### Rough schema (`ingestion_*` namespace)
+### Rough schema (`ingestion_*` namespace + S6 canonical target)
 
-The layer owns its tables; only the publish mapper touches canonical. Columns are
-intent, finalized in S6.
+The ingestion layer owns its proposal tables; only the publish mapper touches
+canonical tables. S6 also reshapes canonical storage so proposals target the
+actual fillable destination-page pieces rather than the old coarse blobs.
 
-- **`ingestion_run`** — one execution. `type` (discovery | extraction | refresh),
-  `parent_run_id` (the run tree), `target` scope (jsonb), `status` (incl.
+**Canonical target shape for S6 (summary):**
+
+- **`destinations`** — stable destination identity and high-level display fields.
+- **`destination_content_blocks`** — fillable page pieces keyed by destination,
+  section/block, scope (`destination | citizenship_destination | route |
+  route_citizenship | assumption`), optional citizenship/route refs, optional
+  assumptions JSONB, content JSONB, metadata, and ingestion backlinks.
+- **`destination_routes`** — destination-owned route records with normalized
+  comparison fields and route detail content.
+- **`route_applicability`** — scoped facts controlling whether/how a route applies
+  for a citizenship/profile.
+- **`source_documents`** + **`content_citations`** — source records and field/block
+  citations for any content piece, route, or applicability fact. Route-only
+  sources are retired.
+
+**Ingestion proposal layer:**
+
+- **`ingestion_run`** — one execution. `type` (discovery | extraction | refresh |
+  fake), `parent_run_id` (the run tree), `target` scope (jsonb), `status` (incl.
   `budget_exceeded`), `trigger` (manual | scheduled), the config it ran with
   (`model_id`, `prompt_version`, `guardrail_version`, `agent_version`), timing,
   `idempotency_key`, error, raw-trace ref. **Cost ledger:** `tokens_in`,
   `tokens_out`, `call_count`, `cost_estimate` (+ the per-model price used),
   `token_budget` / `cost_ceiling` and the rolled-up child totals. *Run-tier
   provenance + the metering record.*
-- **`ingestion_proposal`** — the atomic unit of publish. `run_id`, `entity_kind`
-  (a plain string like `route` — schema-agnostic), `operation` (create | update),
-  `target_ref` (canonical id when updating), `contract_version`, `payload`
-  (assembled candidate, jsonb), `dedup_key`, `status` (`pending | approved |
-  rejected | partially_applied | blocked | applied | superseded`), `supersedes_id`,
-  a **roll-up** of its claim decisions, `applied_record_ref`, `applied_at`. The
-  per-field decisions live on the claims (below).
+- **`ingestion_proposal`** — the atomic unit of publish. `run_id`, `target_kind`
+  (content_block | route | route_applicability | citation | source_document),
+  `operation` (create | update), `target_ref` (canonical id when updating),
+  `target` jsonb (e.g. `DE.living.rent` or `USA→DE.route.blue-card.applicability`),
+  `contract_version`, `payload` (assembled candidate, jsonb), `dedup_key`,
+  `status` (`pending | approved | rejected | partially_applied | blocked | applied |
+  superseded`), `supersedes_id`, decision roll-up, `applied_record_ref`,
+  `applied_at`.
 - **`ingestion_claim`** — field-level grounding **and** the review-decision unit.
   `proposal_id`, `field_path`, `value` (jsonb), `confidence`, `judge_score`,
-  `evidence_ids` (citations), note; plus the decision: `decision` (`pending |
-  approved | rejected | held | edited`), `edited_value`, `reviewed_by`,
-  `reviewer_kind` (human | ai), `reviewed_at`, `decision_note`.
-- **`ingestion_evidence`** — source-tier provenance. `run_id`, `url`,
-  `source_type`, `title`, `retrieved_at`, `content_hash` (idempotency +
-  change-detection), snapshot/excerpt ref, trust tier.
+  `evidence_ids` / citation candidates, note; plus the decision: `decision`
+  (`pending | approved | rejected | held | edited`), `edited_value`,
+  `reviewed_by`, `reviewer_kind` (human | ai), `reviewed_at`, `decision_note`.
+- **`ingestion_evidence`** — source-tier provenance gathered during a run. `run_id`,
+  `url`, `source_type`, `title`, `retrieved_at`, `content_hash` (idempotency +
+  change-detection), snapshot/excerpt ref, trust tier. On publish, evidence maps
+  to `source_documents` and `content_citations`.
 
-**Light canonical touch-points (intent now; the reshape lands in S6):** generalize
-sources to a polymorphic `sources`; lift the content-quality signals so every
-content entity shares them; add a back-link from each canonical record to the
-proposal/run that last published it.
+Example proposal targets:
+
+- `DE.country.geography`
+- `DE.living.rent`
+- `DE.living.budget[single:berlin:mid-range]`
+- `UKR→DE.entry.arrival`
+- `DE.route.blue-card`
+- `USA→DE.route.blue-card.applicability`
 
 ## Architecture & Boundary (S2 · Task 3)
 
@@ -159,8 +183,14 @@ proposal/run that last published it.
 
 A **modular NestJS `apps/api`** with internal modules — public **read**, domain
 **write**, and **ingestion** (job control + proposals + review) — plus a
-**separate BullMQ worker process** that runs the agent and writes proposals, and a
-thin **`apps/admin`** frontend (cookie auth) that drives it all through the api.
+**separate BullMQ worker app** (`apps/ingestion-worker`) that runs the fake S6
+producer / later S7 agent and writes proposals, and a thin **`apps/admin`**
+frontend (cookie auth, S8) that drives it all through the api.
+
+Full cookie/session authentication is deliberately deferred to S8 because the app
+is not deployed in S6. S6 write endpoints are local/dev machinery with validation
+and module boundaries; they should be structured so S8 can add guards without
+rewriting the use-cases.
 
 The key invariant: **one writer of canonical data.** Both human admin CRUD and
 proposal publish call the *same* domain write use-case, so invariants cannot
@@ -235,10 +265,11 @@ visibility are **first-class from the first build**, not a Phase-3 afterthought:
   not just correctness ones.
 
 **What we build regardless of tooling** (our product, not orchestration): the
-`ingestion_*` schema, the publish mapper, target definitions + BullMQ wiring, the
-agent tools (`spawn_subtarget`, `query_existing_data`, `get_contract`,
-`emit_proposal`), the prompts/guardrails, the budget/metering ledger, and the
-review gate. No framework or out-of-box product removes this.
+canonical scoped-content storage, the `ingestion_*` schema, the publish mapper,
+target definitions + BullMQ wiring, the agent tools (`spawn_subtarget`,
+`query_existing_data`, `get_contract`, `emit_proposal`), the prompts/guardrails,
+the budget/metering ledger, source/citation mapping, and the review gate. No
+framework or out-of-box product removes this.
 
 **Options considered and rejected:**
 
@@ -268,9 +299,11 @@ review gate. No framework or out-of-box product removes this.
 _Mostly resolved: BullMQ; manual trigger for Phase 2; idempotency via
 content-hash on evidence + `dedup_key`/`supersedes` on proposals; the durable
 orchestrator→sub-agent fan-out (above) is how "recursive fill/update" is scoped;
-budgets/ceilings bound every run and the whole cascade (Task 5). Still to settle:
-scheduled (cron) vs manual split, how much "recursive" is implemented in S7 vs
-concept-only, and re-run/refresh cadence (refresh leans Phase 3)._
+budgets/ceilings bound every run and the whole cascade (Task 5). S6 uses a
+separate worker with a deterministic fake producer so the whole queue → proposal →
+review → publish path is testable before real AI. Still to settle: scheduled
+(cron) vs manual split, how much "recursive" is implemented in S7 vs concept-only,
+and re-run/refresh cadence (refresh leans Phase 3)._
 
 ## Human-in-the-Loop Gate (S2 · Task 4)
 

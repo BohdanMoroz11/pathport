@@ -89,3 +89,20 @@ without its own unit test is correct by design.
 - Prefer user-visible behavior over implementation details.
 - Keep generated files, framework bootstrap, and styling-only glue out of coverage pressure.
 - Mock true external services only. Do not mock the database for backend integration/API tests.
+
+## S6 Ingestion / Write-Path Testing
+
+S6 adds a deterministic ingestion/write layer before any live AI. Keep the same
+unit-vs-integration split:
+
+- **Unit (`*.test.ts`)**: pure publish logic and status machines — claim decisions,
+  required-field `blocked` guards, partial-apply assembly, scoped target parsing,
+  budget math, dedup keys, and source/citation mapping.
+- **Integration (`*.integration.test.ts`)**: real Postgres + BullMQ/Redis/fake
+  producer where practical. Prove manual trigger → worker → `ingestion_*` rows →
+  claim decisions → publish → canonical destination content blocks/routes/
+  applicability/citations. No live model calls.
+
+The fake producer is not a UI mock; it is the deterministic stand-in for the S7
+agent port, so tests should assert on durable rows and canonical writes rather
+than implementation calls.
