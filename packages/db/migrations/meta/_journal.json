@@ -15,6 +15,13 @@
       "when": 1783338814718,
       "tag": "0001_cuddly_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784043929244,
+      "tag": "0002_useful_the_professor",
+      "breakpoints": true
     }
   ]
 }

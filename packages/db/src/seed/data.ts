@@ -27,6 +27,8 @@ export type SeedDestination = {
   region?: string;
   description?: string;
   profile?: DestinationDetail;
+  reviewStatus?: EnumValue<typeof reviewStatusEnum>;
+  confidence?: EnumValue<typeof confidenceEnum>;
 };
 
 export type SeedSource = {

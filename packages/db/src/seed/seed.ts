@@ -1,13 +1,23 @@
 import { parseDestinationDetail, parseDestinationPairing } from "@pathport/contracts";
 import type { DatabaseClient } from "../client.js";
+import {
+  destinationTargetPath,
+  pairingTargetPath,
+  routeApplicabilityTargetPath,
+  routeTargetPath,
+  splitDestinationDetailIntoBlocks,
+  splitDestinationPairingIntoBlocks,
+} from "../content-blocks.js";
 import { parseRouteDetails } from "../route-details.js";
 import {
   arrivalContext,
   citizenships,
+  contentCitations,
+  destinationContentBlocks,
   destinationCountries,
   routeApplicability,
-  routeSources,
   routes,
+  sourceDocuments,
 } from "../schema.js";
 import { demoSeedData, type SeedData } from "./data.js";
 
@@ -44,6 +54,7 @@ export async function seedDatabase(
 
   const destinationIds = new Map<string, string>();
   for (const destination of data.destinations) {
+    const profile = destination.profile ? parseDestinationDetail(destination.profile) : {};
     const row = insertedRow(
       await db
         .insert(destinationCountries)
@@ -54,13 +65,31 @@ export async function seedDatabase(
           tagline: destination.tagline,
           region: destination.region,
           description: destination.description,
-          // Validate on write so no malformed profile blob can reach the column.
-          profile: destination.profile ? parseDestinationDetail(destination.profile) : {},
+          // Legacy compatibility while public reads move to scoped S6 blocks.
+          profile,
           isDemo: true,
         })
         .returning(),
     );
     destinationIds.set(destination.code, row.id);
+
+    const blocks = splitDestinationDetailIntoBlocks(profile);
+    if (blocks.length > 0) {
+      await db.insert(destinationContentBlocks).values(
+        blocks.map((block) => ({
+          destinationCountryId: row.id,
+          sectionKey: block.sectionKey,
+          blockKey: block.blockKey,
+          scope: block.scope,
+          assumptions: block.assumptions ?? {},
+          content: block.content,
+          targetPath: destinationTargetPath(destination.code, block.blockKey),
+          reviewStatus: destination.reviewStatus ?? "needs_review",
+          confidence: destination.confidence ?? "low",
+          isDemo: true,
+        })),
+      );
+    }
   }
 
   for (const route of data.routes) {
@@ -71,6 +100,7 @@ export async function seedDatabase(
       );
     }
 
+    const details = parseRouteDetails(route.details);
     const row = insertedRow(
       await db
         .insert(routes)
@@ -91,8 +121,7 @@ export async function seedDatabase(
           pathToPermanentResidenceNote: route.pathToPermanentResidenceNote,
           renewable: route.renewable,
           renewableNote: route.renewableNote,
-          // Validate on write so no malformed detail blob can reach the column.
-          details: parseRouteDetails(route.details),
+          details,
           reviewStatus: route.reviewStatus ?? "needs_review",
           confidence: route.confidence ?? "low",
           isDemo: true,
@@ -100,24 +129,70 @@ export async function seedDatabase(
         .returning(),
     );
 
+    await db.insert(destinationContentBlocks).values({
+      destinationCountryId,
+      sectionKey: "routes",
+      blockKey: route.key,
+      scope: "route",
+      routeId: row.id,
+      content: details,
+      targetPath: routeTargetPath(route.destination, route.key),
+      reviewStatus: route.reviewStatus ?? "needs_review",
+      confidence: route.confidence ?? "low",
+      isDemo: true,
+    });
+
     for (const code of route.applicableTo) {
       const citizenshipId = citizenshipIds.get(code);
       if (!citizenshipId) {
         throw new Error(`Route "${route.key}" references unknown citizenship "${code}".`);
       }
-      await db.insert(routeApplicability).values({ routeId: row.id, citizenshipId });
+      await db.insert(routeApplicability).values({
+        routeId: row.id,
+        citizenshipId,
+        reviewStatus: route.reviewStatus ?? "needs_review",
+        confidence: route.confidence ?? "low",
+        isDemo: true,
+      });
+      await db.insert(destinationContentBlocks).values({
+        destinationCountryId,
+        sectionKey: "routes",
+        blockKey: "applicability",
+        scope: "route_citizenship",
+        citizenshipId,
+        routeId: row.id,
+        content: { note: null },
+        targetPath: routeApplicabilityTargetPath(code, route.destination, route.key),
+        reviewStatus: route.reviewStatus ?? "needs_review",
+        confidence: route.confidence ?? "low",
+        isDemo: true,
+      });
     }
 
     if (route.sources?.length) {
-      await db.insert(routeSources).values(
-        route.sources.map((source) => ({
-          routeId: row.id,
-          type: source.type,
-          label: source.label,
-          url: source.url,
-          lastReviewedAt: source.lastReviewedAt,
-        })),
-      );
+      const documents = await db
+        .insert(sourceDocuments)
+        .values(
+          route.sources.map((source) => ({
+            type: source.type,
+            label: source.label,
+            url: source.url,
+            lastReviewedAt: source.lastReviewedAt,
+          })),
+        )
+        .onConflictDoNothing({ target: sourceDocuments.url })
+        .returning();
+
+      if (documents.length > 0) {
+        await db.insert(contentCitations).values(
+          documents.map((source) => ({
+            sourceDocumentId: source.id,
+            targetType: "route" as const,
+            targetId: row.id,
+            fieldPath: "details",
+          })),
+        );
+      }
     }
   }
 
@@ -129,16 +204,36 @@ export async function seedDatabase(
         `Arrival context references unknown pair "${context.citizenship}" x "${context.destination}".`,
       );
     }
+
+    const profile = context.profile ? parseDestinationPairing(context.profile) : {};
     await db.insert(arrivalContext).values({
       citizenshipId,
       destinationCountryId,
       visaFreeDays: context.visaFreeDays,
       summary: context.summary,
-      // Validate on write so no malformed pairing blob can reach the column.
-      profile: context.profile ? parseDestinationPairing(context.profile) : {},
+      // Legacy compatibility while public reads move to scoped S6 blocks.
+      profile,
       reviewStatus: context.reviewStatus ?? "needs_review",
       confidence: context.confidence ?? "low",
       isDemo: true,
     });
+
+    const blocks = splitDestinationPairingIntoBlocks(profile);
+    if (blocks.length > 0) {
+      await db.insert(destinationContentBlocks).values(
+        blocks.map((block) => ({
+          destinationCountryId,
+          citizenshipId,
+          sectionKey: block.sectionKey,
+          blockKey: block.blockKey,
+          scope: block.scope,
+          content: block.content,
+          targetPath: pairingTargetPath(context.citizenship, context.destination, block.blockKey),
+          reviewStatus: context.reviewStatus ?? "needs_review",
+          confidence: context.confidence ?? "low",
+          isDemo: true,
+        })),
+      );
+    }
   }
 }

@@ -2,10 +2,11 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { RouteDetail, RouteSummary } from "@pathport/contracts";
 import {
   citizenships,
+  contentCitations,
   destinationCountries,
   routeApplicability,
-  routeSources,
   routes,
+  sourceDocuments,
 } from "@pathport/db";
 import { and, asc, eq } from "drizzle-orm";
 import { DatabaseService } from "../database/database.service";
@@ -61,10 +62,16 @@ export class RoutesService {
     }
 
     const sources = await this.database.client
-      .select()
-      .from(routeSources)
-      .where(eq(routeSources.routeId, id))
-      .orderBy(asc(routeSources.label));
+      .select({
+        type: sourceDocuments.type,
+        label: sourceDocuments.label,
+        url: sourceDocuments.url,
+        lastReviewedAt: sourceDocuments.lastReviewedAt,
+      })
+      .from(contentCitations)
+      .innerJoin(sourceDocuments, eq(sourceDocuments.id, contentCitations.sourceDocumentId))
+      .where(and(eq(contentCitations.targetType, "route"), eq(contentCitations.targetId, id)))
+      .orderBy(asc(sourceDocuments.label));
 
     return toRouteDetail(
       row.route,

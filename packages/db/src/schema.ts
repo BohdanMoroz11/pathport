@@ -45,6 +45,20 @@ export const sourceTypeEnum = pgEnum("source_type", [
 
 export const confidenceEnum = pgEnum("confidence", ["low", "medium", "high"]);
 
+export const contentScopeEnum = pgEnum("content_scope", [
+  "destination",
+  "citizenship_destination",
+  "route",
+  "route_citizenship",
+  "assumption",
+]);
+
+export const citationTargetEnum = pgEnum("citation_target", [
+  "destination_content_block",
+  "route",
+  "route_applicability",
+]);
+
 export const workPermissionEnum = pgEnum("work_permission", ["none", "limited", "full"]);
 
 export const pathToPrEnum = pgEnum("path_to_pr", ["none", "eventual", "direct"]);
@@ -103,6 +117,43 @@ export const destinationCountries = pgTable("destination_countries", {
   ...timestamps,
 });
 
+/**
+ * Smallest canonical page content unit. A destination page is assembled from
+ * these scoped blocks instead of one coarse destination blob plus an
+ * arrival-context blob. Blocks can be destination-wide, citizenship-specific,
+ * route-specific, route × citizenship-specific, or explicit assumption/persona
+ * examples (see docs/domain-model.md).
+ */
+export const destinationContentBlocks = pgTable(
+  "destination_content_blocks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    destinationCountryId: uuid("destination_country_id")
+      .notNull()
+      .references(() => destinationCountries.id, { onDelete: "cascade" }),
+    sectionKey: text("section_key").notNull(),
+    blockKey: text("block_key").notNull(),
+    scope: contentScopeEnum("scope").notNull(),
+    citizenshipId: uuid("citizenship_id").references(() => citizenships.id, {
+      onDelete: "cascade",
+    }),
+    routeId: uuid("route_id"),
+    assumptions: jsonb("assumptions").$type<Record<string, unknown>>().notNull().default({}),
+    content: jsonb("content").$type<unknown>().notNull().default({}),
+    targetPath: text("target_path").notNull(),
+    sourceRunId: uuid("source_run_id"),
+    ...contentMetadata,
+    ...timestamps,
+  },
+  (table) => [
+    index("destination_content_blocks_destination_idx").on(table.destinationCountryId),
+    index("destination_content_blocks_citizenship_idx").on(table.citizenshipId),
+    index("destination_content_blocks_route_idx").on(table.routeId),
+    index("destination_content_blocks_scope_idx").on(table.scope),
+    uniqueIndex("destination_content_blocks_target_idx").on(table.targetPath),
+  ],
+);
+
 export const routes = pgTable(
   "routes",
   {
@@ -156,11 +207,46 @@ export const routeApplicability = pgTable(
       .notNull()
       .references(() => citizenships.id, { onDelete: "cascade" }),
     note: text("note"),
+    ...contentMetadata,
     ...timestamps,
   },
   (table) => [
     uniqueIndex("route_applicability_route_citizenship_idx").on(table.routeId, table.citizenshipId),
     index("route_applicability_citizenship_id_idx").on(table.citizenshipId),
+  ],
+);
+
+export const sourceDocuments = pgTable(
+  "source_documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    type: sourceTypeEnum("type").notNull(),
+    label: text("label").notNull(),
+    url: text("url").notNull(),
+    publisher: text("publisher"),
+    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+    snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull().default({}),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("source_documents_url_idx").on(table.url)],
+);
+
+export const contentCitations = pgTable(
+  "content_citations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => sourceDocuments.id, { onDelete: "cascade" }),
+    targetType: citationTargetEnum("target_type").notNull(),
+    targetId: uuid("target_id").notNull(),
+    fieldPath: text("field_path"),
+    note: text("note"),
+    ...timestamps,
+  },
+  (table) => [
+    index("content_citations_source_document_idx").on(table.sourceDocumentId),
+    index("content_citations_target_idx").on(table.targetType, table.targetId),
   ],
 );
 

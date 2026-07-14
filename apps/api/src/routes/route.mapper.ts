@@ -1,8 +1,13 @@
 import type { RouteDetail, RouteSource, RouteSummary } from "@pathport/contracts";
-import { parseRouteDetails, type routeSources, type routes } from "@pathport/db";
+import { parseRouteDetails, type routes } from "@pathport/db";
 
 type RouteRow = typeof routes.$inferSelect;
-type RouteSourceRow = typeof routeSources.$inferSelect;
+type RouteSourceRow = {
+  type: RouteSource["type"];
+  label: string;
+  url: string;
+  lastReviewedAt: Date | null;
+};
 
 /**
  * Map a route row to the "comparable at a glance" summary contract. Collapses

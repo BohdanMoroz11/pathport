@@ -1,13 +1,18 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type {
   ArrivalContext,
+  DestinationPairing,
   DestinationProfile,
   DestinationSummary,
+  NormalizedDestinationDetail,
   RouteType,
 } from "@pathport/contracts";
 import {
   arrivalContext,
+  assembleDestinationDetailFromBlocks,
+  assembleDestinationPairingFromBlocks,
   citizenships,
+  destinationContentBlocks,
   destinationCountries,
   routeApplicability,
   routes,
@@ -125,7 +130,6 @@ export class DestinationsService {
         tagline: destinationCountries.tagline,
         region: destinationCountries.region,
         description: destinationCountries.description,
-        profile: destinationCountries.profile,
       })
       .from(destinationCountries)
       .where(eq(destinationCountries.code, destinationCode.toUpperCase()))
@@ -134,18 +138,33 @@ export class DestinationsService {
       throw new NotFoundException(`Unknown destination "${destinationCode}".`);
     }
 
-    const [pairing] = await this.database.client
-      .select({ profile: arrivalContext.profile })
-      .from(arrivalContext)
+    const blocks = await this.database.client
+      .select({
+        blockKey: destinationContentBlocks.blockKey,
+        scope: destinationContentBlocks.scope,
+        content: destinationContentBlocks.content,
+        citizenshipId: destinationContentBlocks.citizenshipId,
+      })
+      .from(destinationContentBlocks)
       .where(
         and(
-          eq(arrivalContext.citizenshipId, citizenship.id),
-          eq(arrivalContext.destinationCountryId, destination.id),
+          eq(destinationContentBlocks.destinationCountryId, destination.id),
+          sql`${destinationContentBlocks.citizenshipId} is null or ${destinationContentBlocks.citizenshipId} = ${citizenship.id}`,
         ),
-      )
-      .limit(1);
+      );
 
-    return toDestinationProfile({ citizenship, destination, pairing: pairing ?? null });
+    const destinationProfile = assembleDestinationDetailFromBlocks(
+      blocks.filter((block) => block.citizenshipId === null),
+    ) as NormalizedDestinationDetail;
+    const pairingProfile = assembleDestinationPairingFromBlocks(
+      blocks.filter((block) => block.citizenshipId === citizenship.id),
+    ) as DestinationPairing;
+
+    return toDestinationProfile({
+      citizenship,
+      destination: { ...destination, profile: destinationProfile },
+      pairing: { profile: pairingProfile },
+    });
   }
 
   private async arrivalContextsByDestination(

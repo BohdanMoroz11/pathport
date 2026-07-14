@@ -7,9 +7,12 @@ import { resetSchema } from "../migrate";
 import {
   arrivalContext,
   citizenships,
+  contentCitations,
+  destinationContentBlocks,
   destinationCountries,
   routeApplicability,
   routes,
+  sourceDocuments,
 } from "../schema";
 import { demoSeedData } from "./data";
 import { seedDatabase } from "./seed";
@@ -64,9 +67,13 @@ describe("demo seed", () => {
   it("marks all seeded content as demo data", async () => {
     const seededRoutes = await db.select({ isDemo: routes.isDemo }).from(routes);
     const seededArrival = await db.select({ isDemo: arrivalContext.isDemo }).from(arrivalContext);
+    const seededBlocks = await db
+      .select({ isDemo: destinationContentBlocks.isDemo })
+      .from(destinationContentBlocks);
 
     expect(seededRoutes.every((row) => row.isDemo)).toBe(true);
     expect(seededArrival.every((row) => row.isDemo)).toBe(true);
+    expect(seededBlocks.every((row) => row.isDemo)).toBe(true);
   });
 
   it("differentiates results between the two citizenships", async () => {
@@ -98,5 +105,17 @@ describe("demo seed", () => {
       .where(and(eq(citizenships.code, "USA"), eq(destinationCountries.code, "DE")));
 
     expect(usGermany?.arrival_context.visaFreeDays).toBe(90);
+  });
+
+  it("seeds scoped destination blocks and general route citations", async () => {
+    const blocks = await db.select().from(destinationContentBlocks);
+    expect(blocks.some((block) => block.targetPath === "DE.country")).toBe(true);
+    expect(blocks.some((block) => block.targetPath === "USA→DE.entry")).toBe(true);
+    expect(blocks.some((block) => block.scope === "route_citizenship")).toBe(true);
+
+    const sources = await db.select().from(sourceDocuments);
+    const citations = await db.select().from(contentCitations);
+    expect(sources.length).toBeGreaterThan(0);
+    expect(citations.length).toBeGreaterThan(0);
   });
 });

@@ -12,9 +12,12 @@ import { migrateToLatest } from "./migrate";
 import {
   arrivalContext,
   citizenships,
+  contentCitations,
+  destinationContentBlocks,
   destinationCountries,
   routeApplicability,
   routes,
+  sourceDocuments,
 } from "./schema";
 
 describe("database foundation", () => {
@@ -43,7 +46,7 @@ describe("database foundation", () => {
     expect(createDatabaseClient(pool)).toBeDefined();
   });
 
-  it("creates the Phase 1 domain tables", async () => {
+  it("creates the canonical domain tables", async () => {
     const result = await pool.query<{ table_name: string }>(
       `
         select table_name
@@ -56,10 +59,13 @@ describe("database foundation", () => {
     expect(result.rows.map((row) => row.table_name)).toEqual([
       "arrival_context",
       "citizenships",
+      "content_citations",
+      "destination_content_blocks",
       "destination_countries",
       "route_applicability",
       "route_sources",
       "routes",
+      "source_documents",
     ]);
   });
 
@@ -113,6 +119,44 @@ describe("database foundation", () => {
       .from(routeApplicability)
       .where(eq(routeApplicability.citizenshipId, citizenship.id));
     expect(applicable).toHaveLength(1);
+  });
+
+  it("persists scoped content blocks and general citations", async () => {
+    const [destination] = await db
+      .insert(destinationCountries)
+      .values({ code: "ES", name: "Spain" })
+      .returning();
+    const [block] = await db
+      .insert(destinationContentBlocks)
+      .values({
+        destinationCountryId: destination.id,
+        sectionKey: "living",
+        blockKey: "rent",
+        scope: "assumption",
+        assumptions: { household: "single renter" },
+        content: { summary: "Demo rent note." },
+        targetPath: "ES.living.rent",
+        reviewStatus: "needs_review",
+        confidence: "low",
+      })
+      .returning();
+    const [source] = await db
+      .insert(sourceDocuments)
+      .values({ type: "official", label: "Official statistics", url: "https://example.test/es" })
+      .returning();
+
+    await db.insert(contentCitations).values({
+      sourceDocumentId: source.id,
+      targetType: "destination_content_block",
+      targetId: block.id,
+      fieldPath: "summary",
+    });
+
+    const citations = await db
+      .select()
+      .from(contentCitations)
+      .where(eq(contentCitations.targetId, block.id));
+    expect(citations).toHaveLength(1);
   });
 
   it("stores arrival context for a citizenship x destination pair", async () => {
