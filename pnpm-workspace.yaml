@@ -10,3 +10,4 @@ allowBuilds:
   protobufjs: false # transitive (lighthouse); works without codegen step
   cpu-features: false # test-only native SSH crypto via testcontainers
   ssh2: false # test-only; we use the local Docker socket, not SSH
+  msgpackr-extract: false # optional BullMQ acceleration; pure JS fallback is sufficient

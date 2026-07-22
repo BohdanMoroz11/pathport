@@ -7,3 +7,7 @@ export function getRequiredEnv(name: string, env: NodeJS.ProcessEnv = process.en
 
   return value;
 }
+
+export function getRedisUrl(env: NodeJS.ProcessEnv = process.env): string {
+  return env.REDIS_URL || "redis://127.0.0.1:4313";
+}
