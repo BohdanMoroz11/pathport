@@ -111,10 +111,11 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       temperature: 0,
       system: [
         "You extract reviewable immigration-relocation data. Use only supplied evidence.",
-        "centre/outer/family MUST be typical monthly EUR apartment totals (whole euros), never €/m² rates.",
-        "Do not invent unsupported precision. Cite evidence with flat zero-based index arrays in citations.note and citations.rows.",
+        "centre/outer/family MUST be typical monthly EUR apartment totals (whole euros).",
+        "If evidence only has €/m² rates, convert with stated size assumptions (centre 45m², outer 55m², family 80m²) and mention those assumptions in the note.",
+        "Do not invent unsupported city names or rates. Cite evidence with flat zero-based index arrays under citations.note and citations.rows.",
         reinforceMonthlyTotals
-          ? "Previous draft used €/m²-like magnitudes. Convert to whole-apartment monthly EUR totals only."
+          ? "Previous draft still looked like €/m² magnitudes. Convert to whole-apartment monthly EUR totals using the size assumptions above."
           : "",
       ]
         .filter(Boolean)
@@ -123,7 +124,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
         `Target: ${input.target}`,
         `Existing rent value (context only): ${JSON.stringify(input.existingRent ?? null)}`,
         `Web evidence: ${JSON.stringify(input.evidence)}`,
-        "Produce a concise note and at least one representative city row with monthly EUR totals for centre, outer, and family apartments. Every note and row claim must cite evidence.",
+        "Produce a concise note and at least one representative city/national row with monthly EUR totals for centre, outer, and family apartments. Every note and row claim must cite evidence.",
       ].join("\n"),
     });
     return this.result(normalizeRentDraft(rentDraftModelSchema.parse(result.object)), result.usage);
@@ -207,8 +208,17 @@ export class MiniMaxResearchAgent implements ResearchAgent {
 
     if (text) {
       const parsed = truncateEvidenceArray(normalizeEvidenceCandidates(parseJsonPayload(text)));
+      const withExcerpts = Array.isArray(parsed)
+        ? parsed.filter(
+            (item) =>
+              item &&
+              typeof item === "object" &&
+              typeof (item as { excerpt?: unknown }).excerpt === "string" &&
+              (item as { excerpt: string }).excerpt.trim() !== "",
+          )
+        : parsed;
       return {
-        value: searchEvidenceSchema.parse(parsed),
+        value: searchEvidenceSchema.parse(withExcerpts),
         usage: searchUsage,
         modelId: this.config.modelId,
       };

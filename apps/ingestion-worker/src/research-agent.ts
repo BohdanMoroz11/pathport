@@ -34,27 +34,35 @@ export type RentExtraction = z.infer<typeof rentExtractionSchema>;
 export const rentDraftSchema = rentExtractionSchema.omit({ evidence: true });
 export type RentDraft = z.infer<typeof rentDraftSchema>;
 
-/** Looser model schema: MiniMax sometimes nests citation index arrays. */
-export const rentDraftModelSchema = z.object({
-  rent: rentProfileSchema,
-  citations: z.object({
-    note: z.array(
-      z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]),
-    ),
-    rows: z.array(
-      z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]),
-    ),
-  }),
-});
+/** Looser model schema: MiniMax sometimes nests citation indexes or mis-nests fields. */
+export const rentDraftModelSchema = z
+  .object({
+    rent: rentProfileSchema,
+    citations: z
+      .object({
+        note: z
+          .array(z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]))
+          .optional(),
+        rows: z
+          .array(z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]))
+          .optional(),
+      })
+      .optional(),
+    // MiniMax sometimes emits citation rows beside rent instead of under citations.
+    rows: z
+      .array(z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]))
+      .optional(),
+  })
+  .passthrough();
 
 export function normalizeRentDraft(value: z.infer<typeof rentDraftModelSchema>): RentDraft {
-  const note = flattenCitationIndexes(value.citations.note);
-  const rows = flattenCitationIndexes(value.citations.rows);
+  const citationNote = flattenCitationIndexes(value.citations?.note ?? []);
+  const citationRows = flattenCitationIndexes(value.citations?.rows ?? value.rows ?? []);
   return rentDraftSchema.parse({
     rent: value.rent,
     citations: {
-      note: note.length > 0 ? note : rows,
-      rows: rows.length > 0 ? rows : note,
+      note: citationNote.length > 0 ? citationNote : citationRows,
+      rows: citationRows.length > 0 ? citationRows : citationNote,
     },
   });
 }

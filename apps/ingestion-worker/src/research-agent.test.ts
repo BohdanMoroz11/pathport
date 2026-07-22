@@ -100,6 +100,19 @@ describe("normalizeRentDraft", () => {
       }).citations,
     ).toEqual({ note: [0], rows: [0] });
   });
+
+  it("lifts top-level citation rows into the citations object", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0] },
+        rows: [[0, 1]],
+      }).citations,
+    ).toEqual({ note: [0], rows: [0, 1] });
+  });
 });
 
 describe("extractWebSearchHits", () => {
