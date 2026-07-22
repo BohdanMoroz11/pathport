@@ -70,3 +70,62 @@ export function validateExtractionCitations(extraction: RentExtraction): RentExt
   }
   return extraction;
 }
+
+/** Parse model text that may wrap JSON in fences or leading prose. */
+export function parseJsonPayload(text: string): unknown {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidates = [fenced?.[1]?.trim(), trimmed].filter((value): value is string =>
+    Boolean(value),
+  );
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      const extracted = extractBalancedJson(candidate);
+      if (extracted === undefined) continue;
+      try {
+        return JSON.parse(extracted);
+      } catch {
+        // try the next candidate
+      }
+    }
+  }
+
+  throw new Error("Model response did not contain valid JSON.");
+}
+
+function extractBalancedJson(text: string): string | undefined {
+  const start = text.search(/[[{]/);
+  if (start < 0) return undefined;
+  const open = text[start];
+  const close = open === "[" ? "]" : "}";
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === open) depth += 1;
+    if (char === close) {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, index + 1);
+    }
+  }
+  return undefined;
+}

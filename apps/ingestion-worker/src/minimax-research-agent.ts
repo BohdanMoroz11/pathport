@@ -10,6 +10,7 @@ import {
   evidenceCandidateSchema,
   type JudgeOutput,
   judgeOutputSchema,
+  parseJsonPayload,
   type RentDraft,
   type RentExtraction,
   type ResearchAgent,
@@ -120,11 +121,17 @@ export class MiniMaxResearchAgent implements ResearchAgent {
           messages: [
             {
               role: "user",
-              content: `${query}\nReturn only a JSON array. Each item must contain url, title, optional publisher, sourceType (official|legal|community|ai_assisted|other), trustTier (primary|secondary|community|unknown), and a verbatim excerpt.`,
+              content: [
+                query,
+                "Use web search, then reply with ONLY a JSON array (no narration).",
+                "Each item must contain url, title, optional publisher,",
+                "sourceType (official|legal|community|ai_assisted|other),",
+                "trustTier (primary|secondary|community|unknown), and a verbatim excerpt.",
+              ].join(" "),
             },
           ],
         }),
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(90_000),
       },
     );
     if (!response.ok) {
@@ -139,8 +146,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       .map((block) => block.text ?? "")
       .join("\n");
     if (!text) throw new Error("MiniMax web search returned no text.");
-    const json = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-    const value = searchEvidenceSchema.parse(JSON.parse(json));
+    const value = searchEvidenceSchema.parse(parseJsonPayload(text));
     return {
       value,
       usage: {

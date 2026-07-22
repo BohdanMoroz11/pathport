@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { rentExtractionSchema, validateExtractionCitations } from "./research-agent";
+import {
+  parseJsonPayload,
+  rentExtractionSchema,
+  validateExtractionCitations,
+} from "./research-agent";
 
 const extraction = {
   rent: {
@@ -39,5 +43,22 @@ describe("rent research contract", () => {
         rentExtractionSchema.parse({ ...extraction, citations: { note: [1], rows: [0] } }),
       ),
     ).toThrow("Citation index 1 has no corresponding evidence.");
+  });
+});
+
+describe("parseJsonPayload", () => {
+  it("parses fenced JSON and prose-prefixed arrays", () => {
+    expect(parseJsonPayload('```json\n[{"url":"https://example.test"}]\n```')).toEqual([
+      { url: "https://example.test" },
+    ]);
+    expect(parseJsonPayload('I\'ll search first.\n[{"url":"https://example.test"}]')).toEqual([
+      { url: "https://example.test" },
+    ]);
+  });
+
+  it("rejects responses without JSON", () => {
+    expect(() => parseJsonPayload("I'll search the web now.")).toThrow(
+      "Model response did not contain valid JSON.",
+    );
   });
 });
