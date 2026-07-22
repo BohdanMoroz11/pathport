@@ -1,3 +1,4 @@
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   boolean,
   index,
@@ -5,6 +6,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -61,6 +63,52 @@ export const citationTargetEnum = pgEnum("citation_target", [
 export const workPermissionEnum = pgEnum("work_permission", ["none", "limited", "full"]);
 
 export const pathToPrEnum = pgEnum("path_to_pr", ["none", "eventual", "direct"]);
+
+export const ingestionRunTypeEnum = pgEnum("ingestion_run_type", [
+  "discovery",
+  "extraction",
+  "refresh",
+  "fake",
+]);
+export const ingestionRunStatusEnum = pgEnum("ingestion_run_status", [
+  "queued",
+  "running",
+  "completed",
+  "failed",
+  "budget_exceeded",
+]);
+export const ingestionTriggerEnum = pgEnum("ingestion_trigger", ["manual", "scheduled"]);
+export const ingestionTargetKindEnum = pgEnum("ingestion_target_kind", [
+  "content_block",
+  "route",
+  "route_applicability",
+  "source_document",
+  "citation",
+]);
+export const ingestionOperationEnum = pgEnum("ingestion_operation", ["create", "update"]);
+export const ingestionProposalStatusEnum = pgEnum("ingestion_proposal_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "partially_applied",
+  "blocked",
+  "applied",
+  "superseded",
+]);
+export const ingestionClaimDecisionEnum = pgEnum("ingestion_claim_decision", [
+  "pending",
+  "approved",
+  "rejected",
+  "held",
+  "edited",
+]);
+export const reviewerKindEnum = pgEnum("reviewer_kind", ["human", "ai"]);
+export const evidenceTrustTierEnum = pgEnum("evidence_trust_tier", [
+  "primary",
+  "secondary",
+  "community",
+  "unknown",
+]);
 
 // --- Shared column groups --------------------------------------------------
 
@@ -135,6 +183,7 @@ export const destinationContentBlocks = pgTable(
     content: jsonb("content").$type<unknown>().notNull().default({}),
     targetPath: text("target_path").notNull(),
     sourceRunId: uuid("source_run_id"),
+    sourceProposalId: uuid("source_proposal_id"),
     ...contentMetadata,
     ...timestamps,
   },
@@ -175,6 +224,8 @@ export const routes = pgTable(
 
     // Flexible detail fields.
     details: jsonb("details").$type<RouteDetails>().notNull().default({}),
+    sourceRunId: uuid("source_run_id"),
+    sourceProposalId: uuid("source_proposal_id"),
 
     ...contentMetadata,
     ...timestamps,
@@ -200,6 +251,8 @@ export const routeApplicability = pgTable(
       .notNull()
       .references(() => citizenships.id, { onDelete: "cascade" }),
     note: text("note"),
+    sourceRunId: uuid("source_run_id"),
+    sourceProposalId: uuid("source_proposal_id"),
     ...contentMetadata,
     ...timestamps,
   },
@@ -219,6 +272,8 @@ export const sourceDocuments = pgTable(
     publisher: text("publisher"),
     lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
     snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull().default({}),
+    sourceRunId: uuid("source_run_id"),
+    sourceProposalId: uuid("source_proposal_id"),
     ...timestamps,
   },
   (table) => [uniqueIndex("source_documents_url_idx").on(table.url)],
@@ -240,5 +295,145 @@ export const contentCitations = pgTable(
   (table) => [
     index("content_citations_source_document_idx").on(table.sourceDocumentId),
     index("content_citations_target_idx").on(table.targetType, table.targetId),
+  ],
+);
+
+// --- Ingestion proposal layer ---------------------------------------------
+
+export const ingestionRuns = pgTable(
+  "ingestion_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    parentRunId: uuid("parent_run_id").references((): AnyPgColumn => ingestionRuns.id, {
+      onDelete: "cascade",
+    }),
+    type: ingestionRunTypeEnum("type").notNull(),
+    target: jsonb("target").$type<Record<string, unknown>>().notNull(),
+    status: ingestionRunStatusEnum("status").notNull().default("queued"),
+    trigger: ingestionTriggerEnum("trigger").notNull().default("manual"),
+    modelId: text("model_id"),
+    promptVersion: text("prompt_version").notNull(),
+    guardrailVersion: text("guardrail_version").notNull(),
+    agentVersion: text("agent_version").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    tokensIn: integer("tokens_in").notNull().default(0),
+    tokensOut: integer("tokens_out").notNull().default(0),
+    callCount: integer("call_count").notNull().default(0),
+    costEstimateMicros: integer("cost_estimate_micros").notNull().default(0),
+    modelPricing: jsonb("model_pricing").$type<Record<string, unknown>>().notNull().default({}),
+    tokenBudget: integer("token_budget"),
+    costCeilingMicros: integer("cost_ceiling_micros"),
+    childTokensIn: integer("child_tokens_in").notNull().default(0),
+    childTokensOut: integer("child_tokens_out").notNull().default(0),
+    childCostEstimateMicros: integer("child_cost_estimate_micros").notNull().default(0),
+    error: text("error"),
+    rawTraceRef: text("raw_trace_ref"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("ingestion_runs_parent_idx").on(table.parentRunId),
+    index("ingestion_runs_status_idx").on(table.status),
+    uniqueIndex("ingestion_runs_idempotency_idx").on(table.idempotencyKey),
+  ],
+);
+
+export const ingestionProposals = pgTable(
+  "ingestion_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => ingestionRuns.id, { onDelete: "cascade" }),
+    targetKind: ingestionTargetKindEnum("target_kind").notNull(),
+    operation: ingestionOperationEnum("operation").notNull(),
+    targetRef: uuid("target_ref"),
+    target: jsonb("target").$type<Record<string, unknown>>().notNull(),
+    contractVersion: text("contract_version").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    dedupKey: text("dedup_key").notNull(),
+    status: ingestionProposalStatusEnum("status").notNull().default("pending"),
+    supersedesId: uuid("supersedes_id").references((): AnyPgColumn => ingestionProposals.id, {
+      onDelete: "set null",
+    }),
+    decisionSummary: jsonb("decision_summary")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    appliedRecordRef: uuid("applied_record_ref"),
+    appliedAt: timestamp("applied_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("ingestion_proposals_run_idx").on(table.runId),
+    index("ingestion_proposals_status_idx").on(table.status),
+    uniqueIndex("ingestion_proposals_dedup_idx").on(table.dedupKey),
+  ],
+);
+
+export const ingestionClaims = pgTable(
+  "ingestion_claims",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    proposalId: uuid("proposal_id")
+      .notNull()
+      .references(() => ingestionProposals.id, { onDelete: "cascade" }),
+    fieldPath: text("field_path").notNull(),
+    value: jsonb("value").$type<unknown>().notNull(),
+    required: boolean("required").notNull().default(false),
+    confidence: confidenceEnum("confidence").notNull(),
+    judgeScoreBasisPoints: integer("judge_score_basis_points"),
+    note: text("note"),
+    decision: ingestionClaimDecisionEnum("decision").notNull().default("pending"),
+    editedValue: jsonb("edited_value").$type<unknown>(),
+    reviewedBy: text("reviewed_by"),
+    reviewerKind: reviewerKindEnum("reviewer_kind"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    decisionNote: text("decision_note"),
+    ...timestamps,
+  },
+  (table) => [
+    index("ingestion_claims_proposal_idx").on(table.proposalId),
+    uniqueIndex("ingestion_claims_proposal_field_idx").on(table.proposalId, table.fieldPath),
+  ],
+);
+
+export const ingestionEvidence = pgTable(
+  "ingestion_evidence",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => ingestionRuns.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    sourceType: sourceTypeEnum("source_type").notNull(),
+    title: text("title").notNull(),
+    publisher: text("publisher"),
+    retrievedAt: timestamp("retrieved_at", { withTimezone: true }).notNull(),
+    contentHash: text("content_hash").notNull(),
+    snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull().default({}),
+    trustTier: evidenceTrustTierEnum("trust_tier").notNull().default("unknown"),
+    ...timestamps,
+  },
+  (table) => [
+    index("ingestion_evidence_run_idx").on(table.runId),
+    uniqueIndex("ingestion_evidence_run_hash_idx").on(table.runId, table.contentHash),
+  ],
+);
+
+export const ingestionClaimEvidence = pgTable(
+  "ingestion_claim_evidence",
+  {
+    claimId: uuid("claim_id")
+      .notNull()
+      .references(() => ingestionClaims.id, { onDelete: "cascade" }),
+    evidenceId: uuid("evidence_id")
+      .notNull()
+      .references(() => ingestionEvidence.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.claimId, table.evidenceId] }),
+    index("ingestion_claim_evidence_evidence_idx").on(table.evidenceId),
   ],
 );

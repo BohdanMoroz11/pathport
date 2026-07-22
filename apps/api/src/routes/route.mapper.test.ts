@@ -32,6 +32,8 @@ const baseRoute: RouteRow = {
   renewable: true,
   renewableNote: "Renewable once.",
   details: {},
+  sourceRunId: null,
+  sourceProposalId: null,
   reviewStatus: "reviewed",
   confidence: "medium",
   isDemo: true,

@@ -1,0 +1,2 @@
+ALTER TABLE "ingestion_proposals" ADD CONSTRAINT "ingestion_proposals_supersedes_id_ingestion_proposals_id_fk" FOREIGN KEY ("supersedes_id") REFERENCES "public"."ingestion_proposals"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ingestion_runs" ADD CONSTRAINT "ingestion_runs_parent_run_id_ingestion_runs_id_fk" FOREIGN KEY ("parent_run_id") REFERENCES "public"."ingestion_runs"("id") ON DELETE cascade ON UPDATE no action;
