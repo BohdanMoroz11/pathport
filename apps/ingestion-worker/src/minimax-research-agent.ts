@@ -72,7 +72,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
     target: ResearchTargetPath;
   }): Promise<AgentResult<EvidenceCandidate[]>> {
     return this.searchEvidence(
-      `Target ${input.target}. Current typical monthly asking rents in Germany for one-bedroom apartments in city centre, outside centre, and family-sized apartments. Prefer official German statistics or other primary sources; include representative cities and quote exact supporting excerpts.`,
+      `Target ${input.target}. Current typical monthly asking rents in EUR (whole-apartment monthly totals, not €/m²) in Germany for one-bedroom apartments in city centre, outside centre, and family-sized apartments. Prefer official German statistics or other primary sources; include representative cities and quote exact supporting excerpts with monthly EUR figures when available.`,
     );
   }
 
@@ -87,12 +87,12 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       maxOutputTokens: this.config.maxOutputTokens,
       temperature: 0,
       system:
-        "You extract reviewable immigration-relocation data. Use only supplied evidence. Preserve units as monthly EUR amounts, do not infer unsupported precision, and cite evidence by zero-based array index. citations.note and citations.rows must be flat arrays of numbers.",
+        "You extract reviewable immigration-relocation data. Use only supplied evidence. centre/outer/family MUST be typical monthly EUR apartment totals (whole euros), never €/m² rates. Do not invent unsupported precision. Cite evidence with flat zero-based index arrays in citations.note and citations.rows.",
       prompt: [
         `Target: ${input.target}`,
         `Existing rent value (context only): ${JSON.stringify(input.existingRent ?? null)}`,
         `Web evidence: ${JSON.stringify(input.evidence)}`,
-        "Produce a concise note and at least one representative city row. Every note and row claim must cite evidence.",
+        "Produce a concise note and at least one representative city row with monthly EUR totals for centre, outer, and family apartments. Every note and row claim must cite evidence.",
       ].join("\n"),
     });
     return this.result(normalizeRentDraft(rentDraftModelSchema.parse(result.object)), result.usage);
@@ -327,4 +327,8 @@ function normalizeToolResultContent(content: unknown): unknown[] {
 
 function normalizeUsage(usage: { inputTokens?: number; outputTokens?: number }): AgentUsage {
   return { inputTokens: usage.inputTokens ?? 0, outputTokens: usage.outputTokens ?? 0 };
+}
+
+function looksLikeMonthlyEuroTotals(rent: RentDraft["rent"]): boolean {
+  return rent.rows.every((row) => row.centre >= 200 && row.outer >= 200 && row.family >= 200);
 }
