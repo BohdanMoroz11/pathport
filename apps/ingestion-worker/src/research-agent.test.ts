@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { extractWebSearchHits, truncateEvidenceArray } from "./minimax-research-agent";
+import {
+  extractWebSearchHits,
+  normalizeEvidenceCandidates,
+  truncateEvidenceArray,
+} from "./minimax-research-agent";
 import {
   parseJsonPayload,
   rentExtractionSchema,
@@ -116,5 +120,43 @@ describe("extractWebSearchHits", () => {
     }));
     expect(truncateEvidenceArray(oversized)).toHaveLength(8);
     expect(truncateEvidenceArray({ not: "array" })).toEqual({ not: "array" });
+  });
+
+  it("maps alternate excerpt keys onto the evidence contract", () => {
+    expect(
+      normalizeEvidenceCandidates([
+        {
+          url: "https://example.test/a",
+          title: "A",
+          sourceType: "other",
+          trustTier: "unknown",
+          "verbatim excerpt": "From the search hit.",
+        },
+        {
+          url: "https://example.test/b",
+          title: "B",
+          sourceType: "other",
+          trustTier: "unknown",
+          content: "Content field excerpt.",
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://example.test/a",
+        title: "A",
+        sourceType: "other",
+        trustTier: "unknown",
+        "verbatim excerpt": "From the search hit.",
+        excerpt: "From the search hit.",
+      },
+      {
+        url: "https://example.test/b",
+        title: "B",
+        sourceType: "other",
+        trustTier: "unknown",
+        content: "Content field excerpt.",
+        excerpt: "Content field excerpt.",
+      },
+    ]);
   });
 });

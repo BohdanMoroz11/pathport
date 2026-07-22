@@ -166,7 +166,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
 
     if (text) {
       try {
-        const parsed = truncateEvidenceArray(parseJsonPayload(text));
+        const parsed = truncateEvidenceArray(normalizeEvidenceCandidates(parseJsonPayload(text)));
         return {
           value: searchEvidenceSchema.parse(parsed),
           usage: searchUsage,
@@ -235,6 +235,31 @@ export function extractWebSearchHits(content: MiniMaxContentBlock[]): WebSearchH
 
 export function truncateEvidenceArray(value: unknown): unknown {
   return Array.isArray(value) ? value.slice(0, 8) : value;
+}
+
+export function normalizeEvidenceCandidates(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return item;
+    const record = item as Record<string, unknown>;
+    const excerpt =
+      firstString(record.excerpt) ??
+      firstString(record["verbatim excerpt"]) ??
+      firstString(record.content) ??
+      firstString(record.snippet) ??
+      firstString(record.quote);
+    return {
+      ...record,
+      ...(excerpt ? { excerpt } : {}),
+    };
+  });
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim() !== "") return value.trim();
+  }
+  return undefined;
 }
 
 function normalizeToolResultContent(content: unknown): unknown[] {
