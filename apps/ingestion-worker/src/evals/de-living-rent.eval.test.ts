@@ -5,7 +5,7 @@ import { estimateCostMicros } from "../budget";
 import { MiniMaxResearchAgent } from "../minimax-research-agent";
 
 const runLive = process.env.RUN_LIVE_AI_EVAL === "1";
-const maxAttempts = Number(process.env.RING3_MAX_ATTEMPTS ?? 2);
+const maxAttempts = Number(process.env.RING3_MAX_ATTEMPTS ?? 3);
 
 describe.skipIf(!runLive)("Ring 3 MiniMax rent eval", () => {
   it(

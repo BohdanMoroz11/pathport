@@ -81,13 +81,44 @@ export class MiniMaxResearchAgent implements ResearchAgent {
     evidence: EvidenceCandidate[];
     existingRent?: RentDraft["rent"];
   }): Promise<AgentResult<RentDraft>> {
+    const first = await this.generateRentDraft(input, false);
+    if (looksLikeMonthlyEuroTotals(first.value.rent)) {
+      return first;
+    }
+    const retry = await this.generateRentDraft(input, true);
+    return {
+      value: retry.value,
+      usage: {
+        inputTokens: first.usage.inputTokens + retry.usage.inputTokens,
+        outputTokens: first.usage.outputTokens + retry.usage.outputTokens,
+      },
+      modelId: this.config.modelId,
+    };
+  }
+
+  private async generateRentDraft(
+    input: {
+      target: ResearchTargetPath;
+      evidence: EvidenceCandidate[];
+      existingRent?: RentDraft["rent"];
+    },
+    reinforceMonthlyTotals: boolean,
+  ): Promise<AgentResult<RentDraft>> {
     const result = await generateStructured({
       model: this.model,
       schema: rentDraftModelSchema,
       maxOutputTokens: this.config.maxOutputTokens,
       temperature: 0,
-      system:
-        "You extract reviewable immigration-relocation data. Use only supplied evidence. centre/outer/family MUST be typical monthly EUR apartment totals (whole euros), never €/m² rates. Do not invent unsupported precision. Cite evidence with flat zero-based index arrays in citations.note and citations.rows.",
+      system: [
+        "You extract reviewable immigration-relocation data. Use only supplied evidence.",
+        "centre/outer/family MUST be typical monthly EUR apartment totals (whole euros), never €/m² rates.",
+        "Do not invent unsupported precision. Cite evidence with flat zero-based index arrays in citations.note and citations.rows.",
+        reinforceMonthlyTotals
+          ? "Previous draft used €/m²-like magnitudes. Convert to whole-apartment monthly EUR totals only."
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
       prompt: [
         `Target: ${input.target}`,
         `Existing rent value (context only): ${JSON.stringify(input.existingRent ?? null)}`,

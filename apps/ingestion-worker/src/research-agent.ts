@@ -48,11 +48,13 @@ export const rentDraftModelSchema = z.object({
 });
 
 export function normalizeRentDraft(value: z.infer<typeof rentDraftModelSchema>): RentDraft {
+  const note = flattenCitationIndexes(value.citations.note);
+  const rows = flattenCitationIndexes(value.citations.rows);
   return rentDraftSchema.parse({
     rent: value.rent,
     citations: {
-      note: flattenCitationIndexes(value.citations.note),
-      rows: flattenCitationIndexes(value.citations.rows),
+      note: note.length > 0 ? note : rows,
+      rows: rows.length > 0 ? rows : note,
     },
   });
 }

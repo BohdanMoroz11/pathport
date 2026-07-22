@@ -88,6 +88,18 @@ describe("normalizeRentDraft", () => {
       citations: { note: [0, 1], rows: [0, 1] },
     });
   });
+
+  it("shares citation indexes when one side is empty", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0], rows: [] },
+      }).citations,
+    ).toEqual({ note: [0], rows: [0] });
+  });
 });
 
 describe("extractWebSearchHits", () => {
