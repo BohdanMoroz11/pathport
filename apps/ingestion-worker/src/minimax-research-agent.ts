@@ -164,29 +164,25 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       .trim();
     const hits = extractWebSearchHits(body.content ?? []);
 
+    // Prefer raw tool hits when present: MiniMax often returns incomplete/mislabeled JSON.
+    if (hits.length > 0) {
+      return {
+        value: searchEvidenceSchema.parse(evidenceFromSearchHits(hits)),
+        usage: searchUsage,
+        modelId: this.config.modelId,
+      };
+    }
+
     if (text) {
-      try {
-        const parsed = truncateEvidenceArray(normalizeEvidenceCandidates(parseJsonPayload(text)));
-        return {
-          value: searchEvidenceSchema.parse(parsed),
-          usage: searchUsage,
-          modelId: this.config.modelId,
-        };
-      } catch (error) {
-        if (hits.length === 0) throw error;
-        // Fall through to search-hit synthesis when MiniMax narrates or truncates.
-      }
+      const parsed = truncateEvidenceArray(normalizeEvidenceCandidates(parseJsonPayload(text)));
+      return {
+        value: searchEvidenceSchema.parse(parsed),
+        usage: searchUsage,
+        modelId: this.config.modelId,
+      };
     }
 
-    if (hits.length === 0) {
-      throw new Error("MiniMax web search returned neither JSON evidence nor search hits.");
-    }
-
-    return {
-      value: searchEvidenceSchema.parse(evidenceFromSearchHits(hits)),
-      usage: searchUsage,
-      modelId: this.config.modelId,
-    };
+    throw new Error("MiniMax web search returned neither JSON evidence nor search hits.");
   }
 
   private result<T>(
@@ -217,17 +213,45 @@ export function extractWebSearchHits(content: MiniMaxContentBlock[]): WebSearchH
 }
 
 export function evidenceFromSearchHits(hits: WebSearchHit[]): EvidenceCandidate[] {
-  return hits.slice(0, 8).map((hit) => {
-    const host = safeHostname(hit.url);
-    return {
-      url: hit.url,
-      title: hit.title,
-      excerpt: hit.excerpt,
-      ...(host ? { publisher: host } : {}),
-      sourceType: classifySourceType(host),
-      trustTier: classifyTrustTier(host),
-    };
-  });
+  return hits
+    .map((hit) => {
+      const host = safeHostname(hit.url);
+      return {
+        url: hit.url,
+        title: hit.title,
+        excerpt: hit.excerpt,
+        ...(host ? { publisher: host } : {}),
+        sourceType: classifySourceType(host),
+        trustTier: classifyTrustTier(host),
+      } satisfies EvidenceCandidate;
+    })
+    .sort((left, right) => evidenceRank(left) - evidenceRank(right))
+    .filter((candidate, _index, all) => {
+      if (candidate.trustTier !== "community") return true;
+      const stronger = all.filter((item) => item.trustTier !== "community").length;
+      return stronger < 4;
+    })
+    .slice(0, 8);
+}
+
+function evidenceRank(candidate: EvidenceCandidate): number {
+  const sourceRank =
+    candidate.sourceType === "official"
+      ? 0
+      : candidate.sourceType === "legal"
+        ? 1
+        : candidate.sourceType === "other"
+          ? 2
+          : 3;
+  const trustRank =
+    candidate.trustTier === "primary"
+      ? 0
+      : candidate.trustTier === "secondary"
+        ? 1
+        : candidate.trustTier === "unknown"
+          ? 2
+          : 3;
+  return sourceRank * 10 + trustRank;
 }
 
 function safeHostname(url: string): string | undefined {
