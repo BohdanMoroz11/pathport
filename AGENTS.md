@@ -73,3 +73,13 @@ Committing conventions:
   be named `*.integration.test.ts` so `pnpm test` stays fast and Docker-free —
   never put one in a plain `*.test.ts`.
 - Preserve horizontal-scaling readiness: stateless services, external persistent state, explicit config, health/readiness checks, and no single-replica assumptions.
+
+## Cursor Cloud specific instructions
+
+Standard dev/test/build commands live in the [README scripts table](README.md#scripts); this section only records non-obvious cloud-VM caveats.
+
+- **Node version:** the project requires Node >=24, but the VM's `/exec-daemon/node` (Node 22) sits ahead of nvm on `PATH`. Setup added a line to `~/.bashrc` that prepends the nvm Node 24 bin so `node`/`pnpm` resolve to 24 in interactive shells. If a tool ever reports Node 22, run `nvm use 24` (or start a login shell) first. `pnpm` is provided via corepack on the Node 24 install.
+- **Docker is not managed by systemd.** Nothing starts the daemon automatically. Before anything that needs containers — `pnpm db:up`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm start:stack` — start it yourself, e.g. in a tmux session: `sudo dockerd`. The daemon is preconfigured for this kernel (`fuse-overlayfs` storage driver, containerd-snapshotter disabled, iptables-legacy). The `ubuntu` user is in the `docker` group, so `docker` works without sudo once the daemon is up (if you hit a socket permission error in the same session, `sudo chmod 666 /var/run/docker.sock`).
+- **Dev DB:** `pnpm db:up` runs Postgres in Docker mapped to host port **5433** (`127.0.0.1:5433->5432`); `DATABASE_URL` in `.env` points there. Create `.env` once with `cp .env.example .env` (it is gitignored). After `db:up`, run `pnpm db:migrate` then `pnpm db:seed` before `pnpm dev` or e2e so the explorer has demo content.
+- **Ports:** web dev server on 3000, API on 4000 (`/health` returns `{"ok":true,"service":"api"}`).
+- **Shared packages:** app typecheck/dev/build consume `packages/*` from their built `dist/`. `pnpm dev` and `pnpm build` build them first, but if you run `pnpm typecheck` on a fresh checkout, run `pnpm build:packages` first.
