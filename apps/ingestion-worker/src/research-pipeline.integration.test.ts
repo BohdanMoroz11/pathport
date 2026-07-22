@@ -1,7 +1,6 @@
 import {
   DISCOVERY_RESEARCH_JOB,
   type DiscoveryResearchJob,
-  EXTRACTION_RESEARCH_JOB,
   type ExtractionResearchJob,
   INGESTION_QUEUE,
   RENT_RESEARCH_TARGET,
