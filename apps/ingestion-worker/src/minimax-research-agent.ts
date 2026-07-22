@@ -119,7 +119,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
           messages: [
             {
               role: "user",
-              content: `${query}\nReturn only a JSON array. Each item must contain url, title, optional publisher, sourceType (official|legal|community|ai_assisted|other), trustTier (primary|secondary|discovery_only|unknown), and a verbatim excerpt.`,
+              content: `${query}\nReturn only a JSON array. Each item must contain url, title, optional publisher, sourceType (official|legal|community|ai_assisted|other), trustTier (primary|secondary|community|unknown), and a verbatim excerpt.`,
             },
           ],
         }),

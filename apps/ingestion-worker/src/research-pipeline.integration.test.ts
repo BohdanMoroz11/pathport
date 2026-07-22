@@ -187,6 +187,47 @@ describe("durable research pipeline", () => {
       expect(claims.every((claim) => claim.judgeScoreBasisPoints !== null)).toBe(true);
       expect(evidence).toHaveLength(1);
       expect(links).toHaveLength(2);
+
+      await expect(
+        runDiscovery(db, queue, agent, config, { version: 1, runId: root.id }),
+      ).resolves.toEqual({ childRunId: child?.id });
+      await expect(
+        runExtraction(db, agent, config, {
+          version: 1,
+          runId: child?.id ?? "",
+          rootRunId: root.id,
+        }),
+      ).resolves.toEqual({ proposalId: proposal?.id });
+      expect(agent.discover).toHaveBeenCalledTimes(1);
+      expect(agent.extractRent).toHaveBeenCalledTimes(1);
+      expect(agent.judge).toHaveBeenCalledTimes(1);
+
+      const blockedAgent = scriptedAgent();
+      const [blockedRoot] = await db
+        .insert(ingestionRuns)
+        .values({
+          type: "discovery",
+          target: { path: RENT_RESEARCH_TARGET.path },
+          modelId: config.modelId,
+          promptVersion: config.promptVersion,
+          guardrailVersion: config.guardrailVersion,
+          agentVersion: config.agentVersion,
+          idempotencyKey: "research-integration-budget-blocked",
+          tokenBudget: 100,
+          costCeilingMicros: config.cascadeCostCeilingMicros,
+          modelPricing: config.pricing,
+        })
+        .returning();
+      if (!blockedRoot) throw new Error("Blocked root insert returned no row.");
+      await expect(
+        runDiscovery(db, queue, blockedAgent, config, { version: 1, runId: blockedRoot.id }),
+      ).rejects.toThrow("Token budget cannot admit the next model call.");
+      const [storedBlockedRoot] = await db
+        .select()
+        .from(ingestionRuns)
+        .where(eq(ingestionRuns.id, blockedRoot.id));
+      expect(storedBlockedRoot?.status).toBe("budget_exceeded");
+      expect(blockedAgent.discover).not.toHaveBeenCalled();
     } finally {
       await worker.close();
       await events.close();

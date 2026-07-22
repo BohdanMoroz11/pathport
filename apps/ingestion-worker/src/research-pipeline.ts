@@ -33,6 +33,15 @@ export async function runDiscovery(
 ): Promise<{ childRunId: string }> {
   const run = await requireRun(db, job.runId);
   requireTarget(run.target);
+  if (run.status === "completed") {
+    const [child] = await db
+      .select({ id: ingestionRuns.id })
+      .from(ingestionRuns)
+      .where(eq(ingestionRuns.parentRunId, run.id))
+      .limit(1);
+    if (!child) throw new Error("Completed discovery run has no durable child.");
+    return { childRunId: child.id };
+  }
   await startRun(db, run.id);
   try {
     assertCallBudget(run, config, INPUT_RESERVATION, Math.min(config.maxOutputTokens, 1_000));
@@ -96,6 +105,14 @@ export async function runExtraction(
   requireTarget(run.target);
   if (run.parentRunId !== job.rootRunId)
     throw new Error("Extraction root does not match parent run.");
+  if (run.status === "completed") {
+    const [proposal] = await db
+      .select({ id: ingestionProposals.id })
+      .from(ingestionProposals)
+      .where(eq(ingestionProposals.runId, run.id))
+      .limit(1);
+    return { proposalId: proposal?.id ?? null };
+  }
   const root = await requireRun(db, job.rootRunId);
   await startRun(db, run.id);
   try {
