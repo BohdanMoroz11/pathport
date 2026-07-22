@@ -106,3 +106,9 @@ unit-vs-integration split:
 The fake producer is not a UI mock; it is the deterministic stand-in for the S7
 agent port, so tests should assert on durable rows and canonical writes rather
 than implementation calls.
+
+Implemented Ring 1 coverage includes unit tests for claim assembly,
+required-field blocking, reviewer edits, run transitions, and cascade budget
+math. Container-backed tests cover BullMQ + Redis → fake producer → real Postgres
+and the API review/publish path into a cited canonical block. They remain named
+`*.integration.test.ts`, keeping `pnpm test` Docker-free.

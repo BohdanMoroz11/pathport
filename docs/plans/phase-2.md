@@ -347,10 +347,12 @@ Tasks:
 
 ### S6 [Data]: Domain Storage Rework, Write Path, Queue & Ingestion Schema
 
-Status: In progress — tasks 1–3 landed. The DB now has scoped destination content
-blocks, route applicability metadata, and general source/citation tables; the
-public read API assembles the existing contracts from that shape; and a small
-local/dev write API exists for exercising canonical mutations before S8 auth.
+Status: Done — canonical destination storage is fully scoped (the obsolete
+profile/arrival/source tables are removed), Redis + BullMQ back a separate worker,
+the complete proposal/run/claim/evidence schema is migrated, and a deterministic
+`DE.living.rent` flow proves queue → evidence/claims → review → publish with
+citations and provenance. Unit/type/lint validation is green; container-backed
+integration coverage is green against real Postgres and Redis Testcontainers.
 
 The deterministic foundation of the tool: a fillable canonical domain model,
 mutations (new for Phase 2), the queue/worker, the full `ingestion_*` schema, and
@@ -392,23 +394,23 @@ Tasks:
       earning mode, pet-origin rules, etc.).
 - [x] Add a local/dev write API surface in NestJS (mutation modules, validation,
       no production auth yet). Keep the read API intact and ready for S8 guards.
-- [ ] Stand up BullMQ + Redis and a separate `apps/ingestion-worker` process; add
+- [x] Stand up BullMQ + Redis and a separate `apps/ingestion-worker` process; add
       Redis to local dev (compose) and config.
-- [ ] Model the full `ingestion_*` layer as new migrations — the run tree
+- [x] Model the full `ingestion_*` layer as new migrations — the run tree
       (`ingestion_run` incl. the cost ledger + `budget_exceeded`),
       `ingestion_proposal`, `ingestion_claim` (with decision state), and
       `ingestion_evidence`/evidence links. Proposal targets should match the
       scoped content model, e.g. `DE.country.geography`, `DE.living.rent`,
       `USA→DE.entry.arrival`, `DE.route.blue-card`, and
       `USA→DE.route.blue-card.applicability`.
-- [ ] Implement the **single canonical writer + publish mapper** (claims →
+- [x] Implement the **single canonical writer + publish mapper** (claims →
       canonical content blocks/routes/applicability/citations, partial-apply, the
       required-field `blocked` guard, supersession), shared by later human admin
       CRUD and proposal publish.
-- [ ] Add a deterministic fake-AI/fake-producer worker path so the whole mechanism
+- [x] Add a deterministic fake-AI/fake-producer worker path so the whole mechanism
       is testable before S7: manual trigger → BullMQ → worker → run/evidence →
       proposals/claims → review decisions → publish → canonical DB.
-- [ ] Ring 1 deterministic tests: unit pure-logic (publish mapper, status machine,
+- [x] Ring 1 deterministic tests: unit pure-logic (publish mapper, status machine,
       budget math, dedup, citation mapping) + integration of the queue/write/
       publish path against real Postgres. No live model.
 

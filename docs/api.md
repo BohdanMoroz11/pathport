@@ -40,9 +40,9 @@ that citizenship × destination pair. Ordered by destination name.
 
 Returns `DestinationSummary[]` — identity, route-count/comparison aggregates,
 and the entry/arrival summary for the selected citizenship × destination pair.
-The current contract still names this nested object `arrivalContext`; after the
-S6 storage rework it should be assembled from scoped destination-page content, not
-from an `arrival_context` table. 404 if the citizenship is unknown.
+The public contract still names this nested object `arrivalContext`, while the
+API assembles it from scoped destination-page content rather than an
+`arrival_context` table. 404 if the citizenship is unknown.
 
 ### `GET /citizenships/:citizenshipCode/destinations/:destinationCode/routes`
 
@@ -87,18 +87,18 @@ Current local/dev endpoints:
 - `POST /local-write/citations` — attach a source document to a content block,
   route, or applicability fact.
 
-The remaining S6 ingestion/control surface should be organized around these
-use-cases rather than around the old table names:
+The S6 deterministic ingestion surface is also local/dev-only:
 
-- trigger a manual fake ingestion run for a scoped target (for example
-  `DE.living.rent` or `UKR→DE.entry.arrival`);
-- inspect ingestion runs, proposals, claims, evidence, and budget/metering state;
-- update claim decisions (`approved | rejected | held | edited`);
-- publish an approved/partially approved proposal through the single canonical
-  writer;
-- create/update canonical destination content blocks, destination routes, route
-  applicability facts, source documents, and citations (already available through
-  `/local-write` for local/dev use).
+- `POST /local-ingestion/fake-runs` queues the deterministic `DE.living.rent`
+  fixture through BullMQ;
+- `POST /local-ingestion/claims/:id/review` records an approved, rejected, held,
+  or edited human decision;
+- `POST /local-ingestion/proposals/:id/publish` assembles cleared claims, blocks
+  missing required fields, writes through the shared canonical writer, and maps
+  evidence to canonical sources/citations.
+
+The fixture is not a second implementation of S7 research: it is a deterministic
+producer behind the same queue, run ledger, proposal, and publish seams.
 
 The API should not expose `arrival_context` as a product concept after the S6
 storage rework. Reader-specific entry/language/fit content is destination-page

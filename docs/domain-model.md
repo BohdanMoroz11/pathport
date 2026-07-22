@@ -14,17 +14,15 @@ The main flow has three steps:
 
 Entry / visitor context is supporting information on the destination page, not a migration route. In the S6 target model it is stored as scoped destination-page content, not as a standalone `arrival_context` product concept.
 
-## Destination Page Aggregate (S6 Target)
+## Destination Page Aggregate (Implemented in S6)
 
 The rebuilt explorer is a **destination page**, not a collection of disconnected
 records. A page is assembled for a selected citizenship and destination, with
 subpages for Overview, Country, Living, Work & income, Family & pets, Entry, and
 Routes. S3–S5 made that surface real; the S6 planning review showed that the
-current storage model (`destination_countries.profile` + `arrival_context` +
-route-only sources) is too coarse and oddly scoped to fill and cite the page well.
-
-> Implementation note: the code may still use the older Phase-1/S3 tables until
-> S6 lands. This section describes the **target domain model for S6**.
+former storage model (`destination_countries.profile` + `arrival_context` +
+route-only sources) was too coarse and oddly scoped to fill and cite the page well.
+S6 removed those legacy structures after moving every public read to scoped blocks.
 
 The canonical model should treat the destination page as an aggregate made of:
 
@@ -102,7 +100,7 @@ pre-registration, first-days actions, and the bridge from arrival to routes.
 columns for sorting/filtering, but they are still part of the destination page.
 Applicability is scoped to the selected citizenship/profile.
 
-### Storage shape (S6 tasks 1–3)
+### Storage shape
 
 Keep normalized columns for stable, queryable identity and comparison fields, but
 store volatile page content in **smaller validated JSONB content pieces**, not one
@@ -223,10 +221,9 @@ Three independent signals, kept minimal; the user-facing quality label is **deri
 - **review_status** (`route`, existing enum): `draft | needs_review | reviewed | outdated` — where this record is in the content lifecycle.
 - **confidence** (`route`, new enum): `low | medium | high` — how much we trust the values, independent of review state.
 - **is_demo** (`route`, new boolean): true for all Phase 1 seed data; surfaces as a clear demo marker.
-- **sources/citations** (S6 target): sources are general `source_documents`, and
+- **sources/citations**: sources are general `source_documents`, and
   `content_citations` attach them to the destination block / route / applicability
-  field they support. `route_sources` is a demo-era route-only shape and should be
-  replaced during S6.
+  field they support. The demo-era `route_sources` table was removed in S6.
 
 ### Derived Display Labels
 

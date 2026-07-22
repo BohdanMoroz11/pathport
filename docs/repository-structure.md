@@ -6,6 +6,7 @@ Pathport uses a pnpm workspace monorepo with separate frontend and backend appli
 
 - `apps/web`: Next.js App Router frontend.
 - `apps/api`: NestJS backend API.
+- `apps/ingestion-worker`: separate BullMQ worker for durable research/fixture jobs.
 
 ## Packages
 

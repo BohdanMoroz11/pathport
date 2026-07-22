@@ -13,9 +13,9 @@ Database code lives in `packages/db`.
 
 ## Schema
 
-### Current implementation before S6
+### Superseded demo storage
 
-The code currently implements the Phase-1/S3 demo schema:
+The Phase-1/S3 demo originally used:
 
 - `citizenships` — passport/nationality (code + name + flag).
 - `destination_countries` — destination identity plus a coarse `profile` JSONB
@@ -31,7 +31,10 @@ This worked for the demo explorer but is not a good S6 foundation: the page is
 filled in smaller pieces, some content is reader-/route-/assumption-scoped, and
 sources must support any content piece rather than routes only.
 
-### S6 canonical schema direction
+Those coarse `profile` columns plus `arrival_context` and `route_sources` were
+removed during S6 rather than retained as a compatibility layer.
+
+### S6 canonical schema
 
 S6 tasks 1–3 reworked canonical storage around the destination page aggregate
 described in [domain-model.md](domain-model.md). The first migration keeps the
@@ -52,9 +55,13 @@ changes how page content is filled and cited:
   which UI surface cites them.
 - `content_citations` — links from source documents to the exact block/field/route
   fact they support, via a target reference and `field_path`/JSON pointer.
-- `ingestion_*` tables — the proposal layer still to be added by later S6 tasks:
-  run tree + cost ledger, proposals, claims, evidence, decisions, supersession,
-  and publish backlinks.
+- `ingestion_runs` — parent/child execution tree, configuration provenance,
+  status, token/call ledger, cost in integer micro-units, and cascade totals;
+- `ingestion_proposals` — deduplicated, superseding atomic publish candidates;
+- `ingestion_claims` — field values, grounding scores, required flags, and
+  claim-level review decisions/edits;
+- `ingestion_evidence` + `ingestion_claim_evidence` — immutable run evidence and
+  its many-to-many claim links.
 
 Enums keep existing content signals (`review_status`, `confidence`,
 `source_type`) and now include content-scope and citation-target enums. Citations
@@ -96,9 +103,9 @@ The data ([data.ts](../packages/db/src/seed/data.ts)) covers the two demo
 citizenships (US, Ukraine), three destinations (Germany, Portugal, Spain), and at
 least one route of every `route_type`. The humanitarian (Temporary Protection)
 routes are Ukraine-only, so the citizenship filter provably differentiates results.
-Everything is flagged `is_demo`. During S6 the seed should be migrated to the
-scoped content-block/source-citation model while preserving the same public demo
-flow. The seeder is dev/test-only (it applies the migrations through dev tooling).
+Everything is flagged `is_demo`. The seed writes only the scoped
+content-block/source-citation model while preserving the same public demo flow.
+The seeder is dev/test-only (it applies migrations through dev tooling).
 
 ## Commands
 
@@ -112,6 +119,8 @@ credentials matching `.env.example`:
 ```text
 postgres://pathport:pathport@localhost:4312/pathport
 ```
+
+The BullMQ worker uses the Redis service at `redis://localhost:4313` by default.
 
 ## Testing
 
