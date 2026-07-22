@@ -15,6 +15,12 @@ export class IngestionController {
     return this.ingestion.triggerFakeResearch();
   }
 
+  @Post("research-runs")
+  triggerResearch() {
+    this.writes.assertLocalWritesAllowed();
+    return this.ingestion.triggerResearch();
+  }
+
   @Post("claims/:id/review")
   reviewClaim(@Param("id") id: string, @Body() body: unknown) {
     this.writes.assertLocalWritesAllowed();

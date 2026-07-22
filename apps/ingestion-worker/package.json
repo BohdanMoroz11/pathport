@@ -10,15 +10,19 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project unit --passWithNoTests",
     "test:integration": "vitest run --project integration",
+    "test:eval": "vitest run --project eval",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@pathport/config": "workspace:*",
     "@pathport/contracts": "workspace:*",
     "@pathport/db": "workspace:*",
+    "ai": "^7.0.32",
     "bullmq": "^5.58.0",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.44.0"
+    "drizzle-orm": "^0.44.0",
+    "vercel-minimax-ai-provider": "^0.0.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.0.0",
