@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { extractWebSearchHits } from "./minimax-research-agent";
 import {
   parseJsonPayload,
   rentExtractionSchema,
@@ -60,5 +61,48 @@ describe("parseJsonPayload", () => {
     expect(() => parseJsonPayload("I'll search the web now.")).toThrow(
       "Model response did not contain valid JSON.",
     );
+  });
+});
+
+describe("extractWebSearchHits", () => {
+  it("collects web_search_result blocks from MiniMax tool payloads", () => {
+    expect(
+      extractWebSearchHits([
+        { type: "server_tool_use" },
+        {
+          type: "web_search_tool_result",
+          content: [
+            {
+              type: "web_search_result",
+              url: "https://www.destatis.de/rent",
+              title: "Destatis rents",
+              content: "Average rent rose in 2023.",
+            },
+          ],
+        },
+        {
+          type: "web_search_tool_result",
+          content: JSON.stringify([
+            {
+              type: "web_search_result",
+              url: "https://example.test/market",
+              title: "Market note",
+              content: "Berlin centre rents remain elevated.",
+            },
+          ]),
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://www.destatis.de/rent",
+        title: "Destatis rents",
+        excerpt: "Average rent rose in 2023.",
+      },
+      {
+        url: "https://example.test/market",
+        title: "Market note",
+        excerpt: "Berlin centre rents remain elevated.",
+      },
+    ]);
   });
 });

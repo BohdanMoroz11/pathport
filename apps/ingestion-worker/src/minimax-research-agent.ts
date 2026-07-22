@@ -28,6 +28,18 @@ const generateStructured = generateObject as unknown as (
   usage: { inputTokens?: number; outputTokens?: number };
 }>;
 
+type MiniMaxContentBlock = {
+  type?: string;
+  text?: string;
+  content?: unknown;
+};
+
+type WebSearchHit = {
+  url: string;
+  title: string;
+  excerpt: string;
+};
+
 export class MiniMaxResearchAgent implements ResearchAgent {
   private readonly model: LanguageModel;
 
@@ -123,7 +135,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
               role: "user",
               content: [
                 query,
-                "Use web search, then reply with ONLY a JSON array (no narration).",
+                "Use web search to gather sources, then reply with ONLY a JSON array (no narration).",
                 "Each item must contain url, title, optional publisher,",
                 "sourceType (official|legal|community|ai_assisted|other),",
                 "trustTier (primary|secondary|community|unknown), and a verbatim excerpt.",
@@ -138,20 +150,55 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       throw new Error(`MiniMax web search failed (${response.status}): ${await response.text()}`);
     }
     const body = (await response.json()) as {
-      content?: Array<{ type?: string; text?: string }>;
+      content?: MiniMaxContentBlock[];
       usage?: { input_tokens?: number; output_tokens?: number };
     };
-    const text = body.content
-      ?.filter((block) => block.type === "text")
+    const searchUsage = {
+      inputTokens: body.usage?.input_tokens ?? 0,
+      outputTokens: body.usage?.output_tokens ?? 0,
+    };
+    const text = (body.content ?? [])
+      .filter((block) => block.type === "text")
       .map((block) => block.text ?? "")
-      .join("\n");
-    if (!text) throw new Error("MiniMax web search returned no text.");
-    const value = searchEvidenceSchema.parse(parseJsonPayload(text));
+      .join("\n")
+      .trim();
+
+    if (text) {
+      try {
+        return {
+          value: searchEvidenceSchema.parse(parseJsonPayload(text)),
+          usage: searchUsage,
+          modelId: this.config.modelId,
+        };
+      } catch {
+        // Fall through to search-hit synthesis when MiniMax narrates or truncates.
+      }
+    }
+
+    const hits = extractWebSearchHits(body.content ?? []);
+    if (hits.length === 0) {
+      throw new Error("MiniMax web search returned neither JSON evidence nor search hits.");
+    }
+
+    const synthesized = await generateStructured({
+      model: this.model,
+      schema: searchEvidenceSchema,
+      maxOutputTokens: Math.min(this.config.maxOutputTokens, 3_000),
+      temperature: 0,
+      system:
+        "You convert web search hits into Pathport evidence candidates. Prefer official and primary sources. Keep excerpts verbatim. Do not invent URLs.",
+      prompt: [
+        `Research query: ${query}`,
+        `Search hits: ${JSON.stringify(hits.slice(0, 12))}`,
+        "Return 1-8 evidence candidates grounded in those hits.",
+      ].join("\n"),
+    });
+
     return {
-      value,
+      value: searchEvidenceSchema.parse(synthesized.object),
       usage: {
-        inputTokens: body.usage?.input_tokens ?? 0,
-        outputTokens: body.usage?.output_tokens ?? 0,
+        inputTokens: searchUsage.inputTokens + (synthesized.usage.inputTokens ?? 0),
+        outputTokens: searchUsage.outputTokens + (synthesized.usage.outputTokens ?? 0),
       },
       modelId: this.config.modelId,
     };
@@ -163,6 +210,38 @@ export class MiniMaxResearchAgent implements ResearchAgent {
   ): AgentResult<T> {
     return { value, usage: normalizeUsage(usage), modelId: this.config.modelId };
   }
+}
+
+export function extractWebSearchHits(content: MiniMaxContentBlock[]): WebSearchHit[] {
+  const hits: WebSearchHit[] = [];
+  for (const block of content) {
+    if (block.type !== "web_search_tool_result") continue;
+    const items = normalizeToolResultContent(block.content);
+    for (const item of items) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const record = item as Record<string, unknown>;
+      if (record.type !== "web_search_result") continue;
+      const url = typeof record.url === "string" ? record.url : "";
+      const title = typeof record.title === "string" ? record.title : "";
+      const excerpt = typeof record.content === "string" ? record.content.trim() : "";
+      if (!url || !title || !excerpt) continue;
+      hits.push({ url, title, excerpt: excerpt.slice(0, 600) });
+    }
+  }
+  return hits;
+}
+
+function normalizeToolResultContent(content: unknown): unknown[] {
+  if (Array.isArray(content)) return content;
+  if (typeof content === "string") {
+    try {
+      const parsed = JSON.parse(content);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 function normalizeUsage(usage: { inputTokens?: number; outputTokens?: number }): AgentUsage {
