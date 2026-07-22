@@ -1,7 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { ResearchAgentConfig } from "@pathport/config";
 import {
-  DISCOVERY_RESEARCH_JOB,
   type DiscoveryResearchJob,
   EXTRACTION_RESEARCH_JOB,
   type ExtractionResearchJob,
