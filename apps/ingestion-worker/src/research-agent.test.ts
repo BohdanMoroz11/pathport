@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  evidenceFromSearchHits,
   extractWebSearchHits,
   normalizeEvidenceCandidates,
   truncateEvidenceArray,
@@ -156,6 +157,40 @@ describe("extractWebSearchHits", () => {
         trustTier: "unknown",
         content: "Content field excerpt.",
         excerpt: "Content field excerpt.",
+      },
+    ]);
+  });
+
+  it("builds evidence candidates from raw web search hits", () => {
+    expect(
+      evidenceFromSearchHits([
+        {
+          url: "https://www.destatis.de/rent",
+          title: "Destatis rents",
+          excerpt: "Average rent rose in 2023.",
+        },
+        {
+          url: "https://www.reddit.com/r/germany/comments/1",
+          title: "Anecdote",
+          excerpt: "My rent in Berlin is high.",
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://www.destatis.de/rent",
+        title: "Destatis rents",
+        excerpt: "Average rent rose in 2023.",
+        publisher: "destatis.de",
+        sourceType: "official",
+        trustTier: "primary",
+      },
+      {
+        url: "https://www.reddit.com/r/germany/comments/1",
+        title: "Anecdote",
+        excerpt: "My rent in Berlin is high.",
+        publisher: "reddit.com",
+        sourceType: "community",
+        trustTier: "community",
       },
     ]);
   });

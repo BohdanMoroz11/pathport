@@ -182,26 +182,9 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       throw new Error("MiniMax web search returned neither JSON evidence nor search hits.");
     }
 
-    const synthesized = await generateStructured({
-      model: this.model,
-      schema: searchEvidenceSchema,
-      maxOutputTokens: Math.min(this.config.maxOutputTokens, 3_000),
-      temperature: 0,
-      system:
-        "You convert web search hits into Pathport evidence candidates. Prefer official and primary sources. Keep excerpts verbatim. Do not invent URLs.",
-      prompt: [
-        `Research query: ${query}`,
-        `Search hits: ${JSON.stringify(hits.slice(0, 12))}`,
-        "Return 1-8 evidence candidates grounded in those hits.",
-      ].join("\n"),
-    });
-
     return {
-      value: searchEvidenceSchema.parse(synthesized.object),
-      usage: {
-        inputTokens: searchUsage.inputTokens + (synthesized.usage.inputTokens ?? 0),
-        outputTokens: searchUsage.outputTokens + (synthesized.usage.outputTokens ?? 0),
-      },
+      value: searchEvidenceSchema.parse(evidenceFromSearchHits(hits)),
+      usage: searchUsage,
       modelId: this.config.modelId,
     };
   }
@@ -231,6 +214,48 @@ export function extractWebSearchHits(content: MiniMaxContentBlock[]): WebSearchH
     }
   }
   return hits;
+}
+
+export function evidenceFromSearchHits(hits: WebSearchHit[]): EvidenceCandidate[] {
+  return hits.slice(0, 8).map((hit) => {
+    const host = safeHostname(hit.url);
+    return {
+      url: hit.url,
+      title: hit.title,
+      excerpt: hit.excerpt,
+      ...(host ? { publisher: host } : {}),
+      sourceType: classifySourceType(host),
+      trustTier: classifyTrustTier(host),
+    };
+  });
+}
+
+function safeHostname(url: string): string | undefined {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return undefined;
+  }
+}
+
+function classifySourceType(host: string | undefined): EvidenceCandidate["sourceType"] {
+  if (!host) return "other";
+  if (isOfficialHost(host)) return "official";
+  if (/(reddit|facebook|instagram|twitter|x\.com|quora)/i.test(host)) return "community";
+  return "other";
+}
+
+function classifyTrustTier(host: string | undefined): EvidenceCandidate["trustTier"] {
+  if (!host) return "unknown";
+  if (isOfficialHost(host)) return "primary";
+  if (/(reddit|facebook|instagram|twitter|x\.com|quora)/i.test(host)) return "community";
+  return "secondary";
+}
+
+function isOfficialHost(host: string): boolean {
+  return /(\.gov|\.gov\.[a-z]{2}|destatis\.de|bund\.de|europa\.eu|bbsr\.bund\.de|statistik\.)/i.test(
+    host,
+  );
 }
 
 export function truncateEvidenceArray(value: unknown): unknown {
