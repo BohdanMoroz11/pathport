@@ -74,3 +74,15 @@ Committing conventions:
   be named `*.integration.test.ts` so `pnpm test` stays fast and Docker-free —
   never put one in a plain `*.test.ts`.
 - Preserve horizontal-scaling readiness: stateless services, external persistent state, explicit config, health/readiness checks, and no single-replica assumptions.
+
+## Cursor Cloud specific instructions
+
+Standard dev/test/build commands live in the [README scripts table](README.md#scripts); this section only records non-obvious cloud-VM caveats.
+
+- **Active development is on `phase-2`**, not `main`. `main` is intentionally stale — do product work from the current phase branch and base setup/testing on it.
+- **Node version:** the project requires Node >=24, but the VM's `/exec-daemon/node` (Node 22) sits ahead of nvm on `PATH`. Setup added a line to `~/.bashrc` that prepends the nvm Node 24 bin so `node`/`pnpm` resolve to 24 in interactive shells. If a tool ever reports Node 22, run `nvm use 24` (or start a login shell) first. `pnpm` comes from corepack on the Node 24 install.
+- **Docker is not managed by systemd.** Nothing starts the daemon automatically. Before anything that needs containers — `pnpm db:up`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm start:stack` — start it yourself, e.g. in a tmux session: `sudo dockerd`. The daemon is preconfigured for this kernel (`fuse-overlayfs` storage driver, containerd-snapshotter disabled, iptables-legacy). The `ubuntu` user is in the `docker` group, so `docker` works without sudo once the daemon is up (if you hit a socket permission error, `sudo chmod 666 /var/run/docker.sock`).
+- **Dev services & ports (phase-2):** `pnpm db:up` runs both **Postgres (host 4312)** and **Redis (host 4313)** in Docker; `.env` points at them. Create `.env` once with `cp .env.example .env` (gitignored). After `db:up`, run `pnpm db:migrate` then `pnpm db:seed` before `pnpm dev` or e2e so the explorer has demo content. `pnpm dev` runs three processes: API (**4311**, `/health` → `{"ok":true,"service":"api"}`), web dev server (**4310**), and the BullMQ **ingestion worker** (needs Redis; logs `Ingestion worker ready` when connected).
+- **Ingestion walking skeleton:** the data-gathering flow is exercised with `curl -X POST http://localhost:4311/local-ingestion/fake-runs` — the API enqueues a job, the worker consumes it and writes an `ingestion_proposals` row, and the `ingestion_runs` row flips to `completed`. Local write/ingestion endpoints are enabled outside `NODE_ENV=production`.
+- **Stale `.next`:** the Next.js typecheck reads generated types under `apps/web/.next`. Switching branches can leave a stale `.next` from another branch's routes and make `pnpm typecheck` fail on phantom route modules; `rm -rf apps/web/.next` (or rerun `pnpm build`) regenerates it. `.next` is gitignored build output.
+- **Shared packages:** app typecheck/dev/build consume `packages/*` from their built `dist/`. `pnpm dev` and `pnpm build` build them first, but on a fresh checkout run `pnpm build:packages` before a standalone `pnpm typecheck`.
