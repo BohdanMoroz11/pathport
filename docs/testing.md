@@ -128,4 +128,6 @@ S7 keeps the provider as the only nondeterministic seam:
   `RUN_LIVE_AI_EVAL=1 pnpm test:eval`. It requires `MINIMAX_API_KEY`, scores the
   one Phase-2 golden target (`DE.living.rent`) for coverage, citations,
   groundedness, and budget compliance, and never runs in `pnpm test`,
-  `pnpm test:all`, or CI.
+  `pnpm test:all`, or CI. Live verification also includes the manual cascade
+  `POST /local-ingestion/research-runs` (discovery → one extraction child →
+  pending reviewable claims with evidence and metering).

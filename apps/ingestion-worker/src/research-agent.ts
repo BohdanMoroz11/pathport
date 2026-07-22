@@ -34,6 +34,38 @@ export type RentExtraction = z.infer<typeof rentExtractionSchema>;
 export const rentDraftSchema = rentExtractionSchema.omit({ evidence: true });
 export type RentDraft = z.infer<typeof rentDraftSchema>;
 
+/** Looser model schema: MiniMax sometimes nests citation index arrays. */
+export const rentDraftModelSchema = z.object({
+  rent: rentProfileSchema,
+  citations: z.object({
+    note: z.array(
+      z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]),
+    ),
+    rows: z.array(
+      z.union([z.number().int().nonnegative(), z.array(z.number().int().nonnegative())]),
+    ),
+  }),
+});
+
+export function normalizeRentDraft(value: z.infer<typeof rentDraftModelSchema>): RentDraft {
+  return rentDraftSchema.parse({
+    rent: value.rent,
+    citations: {
+      note: flattenCitationIndexes(value.citations.note),
+      rows: flattenCitationIndexes(value.citations.rows),
+    },
+  });
+}
+
+function flattenCitationIndexes(value: Array<number | number[]>): number[] {
+  const flat: number[] = [];
+  for (const item of value) {
+    if (typeof item === "number") flat.push(item);
+    else flat.push(...item);
+  }
+  return [...new Set(flat)];
+}
+
 export const judgeOutputSchema = z.object({
   claims: z
     .array(

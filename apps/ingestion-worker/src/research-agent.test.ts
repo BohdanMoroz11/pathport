@@ -6,6 +6,7 @@ import {
   truncateEvidenceArray,
 } from "./minimax-research-agent";
 import {
+  normalizeRentDraft,
   parseJsonPayload,
   rentExtractionSchema,
   validateExtractionCitations,
@@ -66,6 +67,26 @@ describe("parseJsonPayload", () => {
     expect(() => parseJsonPayload("I'll search the web now.")).toThrow(
       "Model response did not contain valid JSON.",
     );
+  });
+});
+
+describe("normalizeRentDraft", () => {
+  it("flattens nested citation index arrays from the model", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0, [1]], rows: [[0, 1], 1] },
+      }),
+    ).toEqual({
+      rent: {
+        note: "Monthly asking rents.",
+        rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+      },
+      citations: { note: [0, 1], rows: [0, 1] },
+    });
   });
 });
 

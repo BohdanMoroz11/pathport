@@ -10,11 +10,12 @@ import {
   evidenceCandidateSchema,
   type JudgeOutput,
   judgeOutputSchema,
+  normalizeRentDraft,
   parseJsonPayload,
   type RentDraft,
   type RentExtraction,
   type ResearchAgent,
-  rentDraftSchema,
+  rentDraftModelSchema,
 } from "./research-agent.js";
 
 const discoverySchema = z.object({
@@ -82,11 +83,11 @@ export class MiniMaxResearchAgent implements ResearchAgent {
   }): Promise<AgentResult<RentDraft>> {
     const result = await generateStructured({
       model: this.model,
-      schema: rentDraftSchema,
+      schema: rentDraftModelSchema,
       maxOutputTokens: this.config.maxOutputTokens,
       temperature: 0,
       system:
-        "You extract reviewable immigration-relocation data. Use only supplied evidence. Preserve units as monthly EUR amounts, do not infer unsupported precision, and cite evidence by zero-based array index.",
+        "You extract reviewable immigration-relocation data. Use only supplied evidence. Preserve units as monthly EUR amounts, do not infer unsupported precision, and cite evidence by zero-based array index. citations.note and citations.rows must be flat arrays of numbers.",
       prompt: [
         `Target: ${input.target}`,
         `Existing rent value (context only): ${JSON.stringify(input.existingRent ?? null)}`,
@@ -94,7 +95,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
         "Produce a concise note and at least one representative city row. Every note and row claim must cite evidence.",
       ].join("\n"),
     });
-    return this.result(rentDraftSchema.parse(result.object), result.usage);
+    return this.result(normalizeRentDraft(rentDraftModelSchema.parse(result.object)), result.usage);
   }
 
   async judge(input: RentExtraction): Promise<AgentResult<JudgeOutput>> {
