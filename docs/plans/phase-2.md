@@ -416,7 +416,8 @@ Tasks:
 
 ### S7 [Data]: Research Agent & One End-to-End Flow
 
-Status: Not started
+Status: In progress — implementation and Rings 1/2 are complete; the live Ring 3
+run awaits a Cloud run with the newly configured `MINIMAX_API_KEY`.
 
 The AI layer: the orchestrator-worker agent behind a provider port, producing real
 proposals/claims/evidence through to the gate on **one** target — the walking
@@ -424,18 +425,18 @@ skeleton that proves the architecture. Needs S6.
 
 Tasks:
 
-- [ ] Wire the **agent behind a port** on the Vercel AI SDK (provider-agnostic,
+- [x] Wire the **agent behind a port** on the Vercel AI SDK (provider-agnostic,
       configurable model/prompt/guardrails, mockable for tests).
-- [ ] Implement the **hybrid orchestrator-worker** flow: a discovery run, a durable
+- [x] Implement the **hybrid orchestrator-worker** flow: a discovery run, a durable
       `spawn_subtarget` (BullMQ-backed), and an extraction sub-agent that researches
       one entity via provider web tools and emits structured, contract-validated
       proposals + field-level claims + evidence.
-- [ ] Add the **groundedness/judge step** (claims scored against cited evidence,
+- [x] Add the **groundedness/judge step** (claims scored against cited evidence,
       feeding confidence + the risk roll-up) and enforce **per-run + per-cascade
       token/cost ceilings** via the metering ledger.
 - [ ] Prove **one end-to-end flow** (manual trigger): target → proposals in the
       gate, with provenance, confidence, and budgets recorded.
-- [ ] Ring 2 cassette tests (real-shaped output replay + contract-drift guard) and a
+- [x] Ring 2 cassette tests (real-shaped output replay + contract-drift guard) and a
       **small Ring 3 eval suite** (golden targets scored on coverage/groundedness/
       cost), run out-of-band (`test:eval`), never gating.
 

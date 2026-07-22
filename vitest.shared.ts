@@ -25,9 +25,10 @@ export const testExclude = ["**/dist/**", "**/node_modules/**"];
 // They are named `*.integration.test.ts` and run in their own vitest project, so
 // the default `test` (unit) tier stays fast and Docker-free. See docs/testing.md.
 export const integrationGlob = "**/*.integration.test.ts";
+export const evalGlob = "**/*.eval.test.ts";
 
 // The unit project excludes integration tests so it never reaches for Docker.
-export const unitExclude = [...testExclude, integrationGlob];
+export const unitExclude = [...testExclude, integrationGlob, evalGlob];
 
 export function defineWorkspaceTestConfig(options: Parameters<typeof defineConfig>[0]) {
   return defineConfig(options);

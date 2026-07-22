@@ -1,10 +1,20 @@
-import { getRedisUrl, getRequiredEnv } from "@pathport/config";
-import { FAKE_RESEARCH_JOB, type FakeResearchJob, INGESTION_QUEUE } from "@pathport/contracts";
+import { getRedisUrl, getRequiredEnv, getResearchAgentConfig } from "@pathport/config";
+import {
+  DISCOVERY_RESEARCH_JOB,
+  type DiscoveryResearchJob,
+  EXTRACTION_RESEARCH_JOB,
+  type ExtractionResearchJob,
+  FAKE_RESEARCH_JOB,
+  INGESTION_QUEUE,
+  type IngestionJob,
+} from "@pathport/contracts";
 import { createDatabaseClient, createDatabasePool, ingestionRuns } from "@pathport/db";
-import { Worker } from "bullmq";
+import { Queue, Worker } from "bullmq";
 import { config as loadEnv } from "dotenv";
 import { eq } from "drizzle-orm";
 import { produceFakeRentProposal } from "./fake-producer.js";
+import { MiniMaxResearchAgent } from "./minimax-research-agent.js";
+import { runDiscovery, runExtraction } from "./research-pipeline.js";
 
 loadEnv({ path: [".env", "../../.env"], quiet: true });
 
@@ -18,25 +28,52 @@ const connection = {
 };
 const pool = createDatabasePool(getRequiredEnv("DATABASE_URL"));
 const db = createDatabaseClient(pool);
+const queue = new Queue<IngestionJob>(INGESTION_QUEUE, { connection });
+const researchConfig = getResearchAgentConfig();
+let researchAgent: MiniMaxResearchAgent | undefined;
 
-const worker = new Worker<FakeResearchJob>(
+function getResearchAgent(): MiniMaxResearchAgent {
+  researchAgent ??= new MiniMaxResearchAgent(getRequiredEnv("MINIMAX_API_KEY"), researchConfig);
+  return researchAgent;
+}
+
+const worker = new Worker<IngestionJob>(
   INGESTION_QUEUE,
   async (job) => {
-    if (job.name !== FAKE_RESEARCH_JOB) {
-      throw new Error(`Unsupported ingestion job: ${job.name}`);
-    }
     try {
-      return await produceFakeRentProposal(db, job.data.runId);
+      if (job.name === FAKE_RESEARCH_JOB) {
+        return await produceFakeRentProposal(db, job.data.runId);
+      }
+      if (job.name === DISCOVERY_RESEARCH_JOB) {
+        return await runDiscovery(
+          db,
+          queue,
+          getResearchAgent(),
+          researchConfig,
+          job.data as DiscoveryResearchJob,
+        );
+      }
+      if (job.name === EXTRACTION_RESEARCH_JOB) {
+        return await runExtraction(
+          db,
+          getResearchAgent(),
+          researchConfig,
+          job.data as ExtractionResearchJob,
+        );
+      }
+      throw new Error(`Unsupported ingestion job: ${job.name}`);
     } catch (error) {
-      await db
-        .update(ingestionRuns)
-        .set({
-          status: "failed",
-          error: error instanceof Error ? error.message : String(error),
-          finishedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(ingestionRuns.id, job.data.runId));
+      if (job.name === FAKE_RESEARCH_JOB) {
+        await db
+          .update(ingestionRuns)
+          .set({
+            status: "failed",
+            error: error instanceof Error ? error.message : String(error),
+            finishedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(ingestionRuns.id, job.data.runId));
+      }
       throw error;
     }
   },
@@ -55,6 +92,7 @@ let shutdownPromise: Promise<void> | undefined;
 function shutdown(): Promise<void> {
   shutdownPromise ??= (async () => {
     await worker.close();
+    await queue.close();
     await pool.end();
   })();
   return shutdownPromise;

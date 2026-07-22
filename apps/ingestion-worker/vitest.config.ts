@@ -1,6 +1,7 @@
 import {
   coverageConfig,
   defineWorkspaceTestConfig,
+  evalGlob,
   integrationGlob,
   testExclude,
   unitExclude,
@@ -15,7 +16,15 @@ export default defineWorkspaceTestConfig({
       { extends: true, test: { name: "unit", exclude: unitExclude } },
       {
         extends: true,
-        test: { name: "integration", include: [integrationGlob], exclude: testExclude },
+        test: {
+          name: "integration",
+          include: [integrationGlob],
+          exclude: [...testExclude, evalGlob],
+        },
+      },
+      {
+        extends: true,
+        test: { name: "eval", include: [evalGlob], exclude: testExclude },
       },
     ],
   },

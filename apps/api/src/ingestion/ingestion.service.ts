@@ -6,8 +6,13 @@ import {
   NotFoundException,
   type OnModuleDestroy,
 } from "@nestjs/common";
-import { getRedisUrl } from "@pathport/config";
-import { FAKE_RESEARCH_JOB, INGESTION_QUEUE } from "@pathport/contracts";
+import { getRedisUrl, getResearchAgentConfig } from "@pathport/config";
+import {
+  DISCOVERY_RESEARCH_JOB,
+  FAKE_RESEARCH_JOB,
+  INGESTION_QUEUE,
+  RENT_RESEARCH_TARGET,
+} from "@pathport/contracts";
 import {
   contentCitations,
   ingestionClaimEvidence,
@@ -79,6 +84,43 @@ export class IngestionService implements OnModuleDestroy {
     });
     try {
       const job = await this.queue.add(FAKE_RESEARCH_JOB, { runId }, { jobId: runId });
+      return { runId, jobId: job.id };
+    } catch (error) {
+      await this.database.client
+        .update(ingestionRuns)
+        .set({
+          status: "failed",
+          error: error instanceof Error ? error.message : String(error),
+          finishedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(ingestionRuns.id, runId));
+      throw error;
+    }
+  }
+
+  async triggerResearch(): Promise<{ runId: string; jobId: string | undefined }> {
+    const runId = randomUUID();
+    const config = getResearchAgentConfig();
+    await this.database.client.insert(ingestionRuns).values({
+      id: runId,
+      type: "discovery",
+      target: { path: RENT_RESEARCH_TARGET.path },
+      modelId: config.modelId,
+      promptVersion: config.promptVersion,
+      guardrailVersion: config.guardrailVersion,
+      agentVersion: config.agentVersion,
+      idempotencyKey: `discovery:${runId}:${RENT_RESEARCH_TARGET.path}`,
+      tokenBudget: config.cascadeTokenBudget,
+      costCeilingMicros: config.cascadeCostCeilingMicros,
+      modelPricing: config.pricing,
+    });
+    try {
+      const job = await this.queue.add(
+        DISCOVERY_RESEARCH_JOB,
+        { version: 1, runId },
+        { jobId: runId },
+      );
       return { runId, jobId: job.id };
     } catch (error) {
       await this.database.client
@@ -172,7 +214,17 @@ export class IngestionService implements OnModuleDestroy {
     }
 
     const provenance = { runId: proposal.runId, proposalId: proposal.id };
-    const record = await this.applyCanonical(proposal, assembly.payload, provenance);
+    const canonicalConfidence = lowestConfidence(
+      claims
+        .filter((claim) => claim.decision === "approved" || claim.decision === "edited")
+        .map((claim) => claim.confidence),
+    );
+    const record = await this.applyCanonical(
+      proposal,
+      assembly.payload,
+      provenance,
+      canonicalConfidence,
+    );
     await this.mapEvidenceToCitations(proposal.id, record.id, proposal.targetKind);
     await this.database.client
       .update(ingestionProposals)
@@ -197,8 +249,20 @@ export class IngestionService implements OnModuleDestroy {
     proposal: Proposal,
     payload: Record<string, unknown>,
     provenance: { runId: string; proposalId: string },
+    confidence: "low" | "medium" | "high",
   ): Promise<{ id: string }> {
     if (proposal.targetKind === "content_block") {
+      if (
+        proposal.target.researchPath === RENT_RESEARCH_TARGET.path &&
+        proposal.target.canonicalTargetPath === RENT_RESEARCH_TARGET.canonicalTargetPath &&
+        proposal.target.mergePath === RENT_RESEARCH_TARGET.mergePath
+      ) {
+        const content =
+          typeof payload.content === "object" && payload.content !== null
+            ? (payload.content as Record<string, unknown>)
+            : {};
+        return this.writes.patchDestinationRent(content.rent, confidence, provenance);
+      }
       return this.requireRow(
         await this.writes.upsertContentBlock(parseContentBlockBody(payload), provenance),
       );
@@ -296,4 +360,10 @@ export class IngestionService implements OnModuleDestroy {
       }
     }
   }
+}
+
+function lowestConfidence(values: Array<"low" | "medium" | "high">): "low" | "medium" | "high" {
+  if (values.includes("low")) return "low";
+  if (values.includes("medium")) return "medium";
+  return "high";
 }

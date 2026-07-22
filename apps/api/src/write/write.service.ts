@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { livingProfileSchema, rentProfileSchema } from "@pathport/contracts";
 import {
   citizenships,
   contentCitations,
@@ -87,6 +88,44 @@ export class WriteService {
       })
       .returning();
 
+    return row;
+  }
+
+  async patchDestinationRent(
+    value: unknown,
+    confidence: "low" | "medium" | "high",
+    provenance: Provenance,
+  ) {
+    const rent = rentProfileSchema.safeParse(value);
+    if (!rent.success) {
+      throw new BadRequestException(`Invalid rent content: ${rent.error.message}`);
+    }
+    const [existing] = await this.database.client
+      .select()
+      .from(destinationContentBlocks)
+      .where(eq(destinationContentBlocks.targetPath, "DE.living"))
+      .limit(1);
+    if (!existing)
+      throw new NotFoundException('Canonical content block "DE.living" was not found.');
+    const living = livingProfileSchema.safeParse(existing.content);
+    if (!living.success) {
+      throw new BadRequestException(`Existing living content is invalid: ${living.error.message}`);
+    }
+    const content = livingProfileSchema.parse({ ...living.data, rent: rent.data });
+    const [row] = await this.database.client
+      .update(destinationContentBlocks)
+      .set({
+        content,
+        reviewStatus: "reviewed",
+        confidence,
+        isDemo: false,
+        sourceRunId: provenance.runId,
+        sourceProposalId: provenance.proposalId,
+        updatedAt: new Date(),
+      })
+      .where(eq(destinationContentBlocks.id, existing.id))
+      .returning();
+    if (!row) throw new BadRequestException("Rent patch did not return a canonical row.");
     return row;
   }
 

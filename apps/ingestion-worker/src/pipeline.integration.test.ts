@@ -74,7 +74,7 @@ describe("deterministic BullMQ producer", () => {
         .where(eq(ingestionEvidence.runId, run.id));
       expect(storedRun?.status).toBe("completed");
       expect(proposals).toHaveLength(1);
-      expect(claims.length).toBeGreaterThan(5);
+      expect(claims).toHaveLength(2);
       expect(evidence).toHaveLength(1);
 
       const [duplicateRun] = await db
