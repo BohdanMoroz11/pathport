@@ -16,19 +16,24 @@ describe.skipIf(!runLive)("Ring 3 MiniMax rent eval", () => {
     });
     expect(discovery.value.subtargets).toEqual([RENT_RESEARCH_TARGET.path]);
 
-    const extraction = await agent.extractRent({ target: RENT_RESEARCH_TARGET.path });
-    expect(extraction.value.rent.rows.length).toBeGreaterThan(0);
-    expect(extraction.value.evidence.length).toBeGreaterThan(0);
-    expect(extraction.value.citations.note.length).toBeGreaterThan(0);
-    expect(extraction.value.citations.rows.length).toBeGreaterThan(0);
+    const search = await agent.searchRentEvidence({ target: RENT_RESEARCH_TARGET.path });
+    const draft = await agent.extractRent({
+      target: RENT_RESEARCH_TARGET.path,
+      evidence: search.value,
+    });
+    const extraction = { ...draft.value, evidence: search.value };
+    expect(extraction.rent.rows.length).toBeGreaterThan(0);
+    expect(extraction.evidence.length).toBeGreaterThan(0);
+    expect(extraction.citations.note.length).toBeGreaterThan(0);
+    expect(extraction.citations.rows.length).toBeGreaterThan(0);
 
-    const judge = await agent.judge(extraction.value);
+    const judge = await agent.judge(extraction);
     expect(judge.value.claims).toHaveLength(2);
     expect(
       Math.min(...judge.value.claims.map((claim) => claim.scoreBasisPoints)),
     ).toBeGreaterThanOrEqual(5_000);
 
-    const usage = [discovery, extraction, judge].reduce(
+    const usage = [discovery, search, draft, judge].reduce(
       (total, result) => ({
         inputTokens: total.inputTokens + result.usage.inputTokens,
         outputTokens: total.outputTokens + result.usage.outputTokens,
@@ -41,8 +46,8 @@ describe.skipIf(!runLive)("Ring 3 MiniMax rent eval", () => {
     console.info(
       JSON.stringify({
         target: RENT_RESEARCH_TARGET.path,
-        rows: extraction.value.rent.rows.length,
-        evidence: extraction.value.evidence.length,
+        rows: extraction.rent.rows.length,
+        evidence: extraction.evidence.length,
         minimumJudgeScore: Math.min(...judge.value.claims.map((claim) => claim.scoreBasisPoints)),
         usage,
         costMicros,

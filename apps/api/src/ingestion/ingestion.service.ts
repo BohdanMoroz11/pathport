@@ -214,7 +214,17 @@ export class IngestionService implements OnModuleDestroy {
     }
 
     const provenance = { runId: proposal.runId, proposalId: proposal.id };
-    const record = await this.applyCanonical(proposal, assembly.payload, provenance);
+    const canonicalConfidence = lowestConfidence(
+      claims
+        .filter((claim) => claim.decision === "approved" || claim.decision === "edited")
+        .map((claim) => claim.confidence),
+    );
+    const record = await this.applyCanonical(
+      proposal,
+      assembly.payload,
+      provenance,
+      canonicalConfidence,
+    );
     await this.mapEvidenceToCitations(proposal.id, record.id, proposal.targetKind);
     await this.database.client
       .update(ingestionProposals)
@@ -239,6 +249,7 @@ export class IngestionService implements OnModuleDestroy {
     proposal: Proposal,
     payload: Record<string, unknown>,
     provenance: { runId: string; proposalId: string },
+    confidence: "low" | "medium" | "high",
   ): Promise<{ id: string }> {
     if (proposal.targetKind === "content_block") {
       if (
@@ -250,7 +261,7 @@ export class IngestionService implements OnModuleDestroy {
           typeof payload.content === "object" && payload.content !== null
             ? (payload.content as Record<string, unknown>)
             : {};
-        return this.writes.patchDestinationRent(content.rent, provenance);
+        return this.writes.patchDestinationRent(content.rent, confidence, provenance);
       }
       return this.requireRow(
         await this.writes.upsertContentBlock(parseContentBlockBody(payload), provenance),
@@ -349,4 +360,10 @@ export class IngestionService implements OnModuleDestroy {
       }
     }
   }
+}
+
+function lowestConfidence(values: Array<"low" | "medium" | "high">): "low" | "medium" | "high" {
+  if (values.includes("low")) return "low";
+  if (values.includes("medium")) return "medium";
+  return "high";
 }

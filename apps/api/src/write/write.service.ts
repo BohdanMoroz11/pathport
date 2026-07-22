@@ -91,7 +91,11 @@ export class WriteService {
     return row;
   }
 
-  async patchDestinationRent(value: unknown, provenance: Provenance) {
+  async patchDestinationRent(
+    value: unknown,
+    confidence: "low" | "medium" | "high",
+    provenance: Provenance,
+  ) {
     const rent = rentProfileSchema.safeParse(value);
     if (!rent.success) {
       throw new BadRequestException(`Invalid rent content: ${rent.error.message}`);
@@ -113,7 +117,7 @@ export class WriteService {
       .set({
         content,
         reviewStatus: "reviewed",
-        confidence: "high",
+        confidence,
         isDemo: false,
         sourceRunId: provenance.runId,
         sourceProposalId: provenance.proposalId,

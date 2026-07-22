@@ -10,10 +10,10 @@ import {
   evidenceCandidateSchema,
   type JudgeOutput,
   judgeOutputSchema,
+  type RentDraft,
   type RentExtraction,
   type ResearchAgent,
-  rentExtractionSchema,
-  validateExtractionCitations,
+  rentDraftSchema,
 } from "./research-agent.js";
 
 const discoverySchema = z.object({
@@ -54,16 +54,22 @@ export class MiniMaxResearchAgent implements ResearchAgent {
     return this.result(discoverySchema.parse(result.object), result.usage);
   }
 
+  async searchRentEvidence(input: {
+    target: ResearchTargetPath;
+  }): Promise<AgentResult<EvidenceCandidate[]>> {
+    return this.searchEvidence(
+      `Target ${input.target}. Current typical monthly asking rents in Germany for one-bedroom apartments in city centre, outside centre, and family-sized apartments. Prefer official German statistics or other primary sources; include representative cities and quote exact supporting excerpts.`,
+    );
+  }
+
   async extractRent(input: {
     target: ResearchTargetPath;
-    existingRent?: RentExtraction["rent"];
-  }): Promise<AgentResult<RentExtraction>> {
-    const search = await this.searchEvidence(
-      "Current typical monthly asking rents in Germany for one-bedroom apartments in city centre, outside centre, and family-sized apartments. Prefer official German statistics or other primary sources; include representative cities and quote exact supporting excerpts.",
-    );
+    evidence: EvidenceCandidate[];
+    existingRent?: RentDraft["rent"];
+  }): Promise<AgentResult<RentDraft>> {
     const result = await generateStructured({
       model: this.model,
-      schema: rentExtractionSchema,
+      schema: rentDraftSchema,
       maxOutputTokens: this.config.maxOutputTokens,
       temperature: 0,
       system:
@@ -71,16 +77,11 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       prompt: [
         `Target: ${input.target}`,
         `Existing rent value (context only): ${JSON.stringify(input.existingRent ?? null)}`,
-        `Web evidence: ${JSON.stringify(search.value)}`,
+        `Web evidence: ${JSON.stringify(input.evidence)}`,
         "Produce a concise note and at least one representative city row. Every note and row claim must cite evidence.",
       ].join("\n"),
     });
-    const value = validateExtractionCitations(rentExtractionSchema.parse(result.object));
-    return {
-      value,
-      usage: addUsage(search.usage, normalizeUsage(result.usage)),
-      modelId: this.config.modelId,
-    };
+    return this.result(rentDraftSchema.parse(result.object), result.usage);
   }
 
   async judge(input: RentExtraction): Promise<AgentResult<JudgeOutput>> {
@@ -160,11 +161,4 @@ export class MiniMaxResearchAgent implements ResearchAgent {
 
 function normalizeUsage(usage: { inputTokens?: number; outputTokens?: number }): AgentUsage {
   return { inputTokens: usage.inputTokens ?? 0, outputTokens: usage.outputTokens ?? 0 };
-}
-
-function addUsage(a: AgentUsage, b: AgentUsage): AgentUsage {
-  return {
-    inputTokens: a.inputTokens + b.inputTokens,
-    outputTokens: a.outputTokens + b.outputTokens,
-  };
 }

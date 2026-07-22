@@ -11,7 +11,7 @@
     "test": "vitest run --project unit --passWithNoTests",
     "test:integration": "vitest run --project integration",
     "test:eval": "vitest run --project eval",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --project unit --project integration --coverage"
   },
   "dependencies": {
     "@pathport/config": "workspace:*",

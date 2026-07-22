@@ -44,25 +44,29 @@ function scriptedAgent(): ResearchAgent {
       usage: { inputTokens: 100, outputTokens: 20 },
       modelId: "cassette-model",
     }),
+    searchRentEvidence: vi.fn().mockResolvedValue({
+      value: [
+        {
+          url: "https://example.test/german-rent-statistics",
+          title: "German rent statistics",
+          publisher: "Official statistics",
+          sourceType: "official",
+          trustTier: "primary",
+          excerpt: "Berlin representative asking rents: 1500, 1100, 2300 EUR monthly.",
+        },
+      ],
+      usage: { inputTokens: 200, outputTokens: 50 },
+      modelId: "cassette-model",
+    }),
     extractRent: vi.fn().mockResolvedValue({
       value: {
         rent: {
           note: "Representative monthly asking rents in EUR.",
           rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
         },
-        evidence: [
-          {
-            url: "https://example.test/german-rent-statistics",
-            title: "German rent statistics",
-            publisher: "Official statistics",
-            sourceType: "official",
-            trustTier: "primary",
-            excerpt: "Berlin representative asking rents: 1500, 1100, 2300 EUR monthly.",
-          },
-        ],
         citations: { note: [0], rows: [0] },
       },
-      usage: { inputTokens: 500, outputTokens: 200 },
+      usage: { inputTokens: 300, outputTokens: 150 },
       modelId: "cassette-model",
     }),
     judge: vi.fn().mockResolvedValue({
@@ -199,6 +203,7 @@ describe("durable research pipeline", () => {
         }),
       ).resolves.toEqual({ proposalId: proposal?.id });
       expect(agent.discover).toHaveBeenCalledTimes(1);
+      expect(agent.searchRentEvidence).toHaveBeenCalledTimes(1);
       expect(agent.extractRent).toHaveBeenCalledTimes(1);
       expect(agent.judge).toHaveBeenCalledTimes(1);
 
@@ -228,6 +233,68 @@ describe("durable research pipeline", () => {
         .where(eq(ingestionRuns.id, blockedRoot.id));
       expect(storedBlockedRoot?.status).toBe("budget_exceeded");
       expect(blockedAgent.discover).not.toHaveBeenCalled();
+
+      const failingAgent = scriptedAgent();
+      failingAgent.extractRent = vi.fn().mockRejectedValue(new Error("extraction failed"));
+      const [failureRoot] = await db
+        .insert(ingestionRuns)
+        .values({
+          type: "discovery",
+          target: { path: RENT_RESEARCH_TARGET.path },
+          status: "completed",
+          modelId: config.modelId,
+          promptVersion: config.promptVersion,
+          guardrailVersion: config.guardrailVersion,
+          agentVersion: config.agentVersion,
+          idempotencyKey: "research-integration-failure-root",
+          tokenBudget: config.cascadeTokenBudget,
+          costCeilingMicros: config.cascadeCostCeilingMicros,
+          modelPricing: config.pricing,
+        })
+        .returning();
+      if (!failureRoot) throw new Error("Failure root insert returned no row.");
+      const [failureChild] = await db
+        .insert(ingestionRuns)
+        .values({
+          parentRunId: failureRoot.id,
+          type: "extraction",
+          target: { path: RENT_RESEARCH_TARGET.path },
+          modelId: config.modelId,
+          promptVersion: config.promptVersion,
+          guardrailVersion: config.guardrailVersion,
+          agentVersion: config.agentVersion,
+          idempotencyKey: "research-integration-failure-child",
+          tokenBudget: config.runTokenBudget,
+          costCeilingMicros: config.runCostCeilingMicros,
+          modelPricing: config.pricing,
+        })
+        .returning();
+      if (!failureChild) throw new Error("Failure child insert returned no row.");
+      await expect(
+        runExtraction(db, failingAgent, config, {
+          version: 1,
+          runId: failureChild.id,
+          rootRunId: failureRoot.id,
+        }),
+      ).rejects.toThrow("extraction failed");
+      const [storedFailureChild] = await db
+        .select()
+        .from(ingestionRuns)
+        .where(eq(ingestionRuns.id, failureChild.id));
+      const [storedFailureRoot] = await db
+        .select()
+        .from(ingestionRuns)
+        .where(eq(ingestionRuns.id, failureRoot.id));
+      expect(storedFailureChild).toMatchObject({
+        status: "failed",
+        tokensIn: 200,
+        tokensOut: 50,
+        callCount: 1,
+      });
+      expect(storedFailureRoot).toMatchObject({
+        childTokensIn: 200,
+        childTokensOut: 50,
+      });
     } finally {
       await worker.close();
       await events.close();

@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { ResearchAgentConfig } from "@pathport/config";
 import {
   type DiscoveryResearchJob,
@@ -20,7 +20,13 @@ import {
 import type { Queue } from "bullmq";
 import { eq } from "drizzle-orm";
 import { assertBudgetAvailable, BudgetExceededError, estimateCostMicros } from "./budget.js";
-import type { AgentResult, JudgeOutput, RentExtraction, ResearchAgent } from "./research-agent.js";
+import {
+  type AgentResult,
+  type JudgeOutput,
+  type RentExtraction,
+  type ResearchAgent,
+  validateExtractionCitations,
+} from "./research-agent.js";
 
 const INPUT_RESERVATION = 8_000;
 
@@ -33,44 +39,59 @@ export async function runDiscovery(
 ): Promise<{ childRunId: string }> {
   const run = await requireRun(db, job.runId);
   requireTarget(run.target);
+  const [existingChild] = await db
+    .select({ id: ingestionRuns.id })
+    .from(ingestionRuns)
+    .where(eq(ingestionRuns.parentRunId, run.id))
+    .limit(1);
   if (run.status === "completed") {
-    const [child] = await db
-      .select({ id: ingestionRuns.id })
-      .from(ingestionRuns)
-      .where(eq(ingestionRuns.parentRunId, run.id))
-      .limit(1);
-    if (!child) throw new Error("Completed discovery run has no durable child.");
-    return { childRunId: child.id };
+    if (!existingChild) throw new Error("Completed discovery run has no durable child.");
+    return { childRunId: existingChild.id };
   }
   await startRun(db, run.id);
   try {
-    assertCallBudget(run, config, INPUT_RESERVATION, Math.min(config.maxOutputTokens, 1_000));
-    const discovery = await agent.discover({
-      target: RENT_RESEARCH_TARGET.path,
-      allowedTargets: [RENT_RESEARCH_TARGET.path],
-    });
-    if (
-      discovery.value.subtargets.length !== 1 ||
-      discovery.value.subtargets[0] !== RENT_RESEARCH_TARGET.path
-    ) {
-      throw new Error("Discovery must spawn exactly the allowlisted S7 target.");
+    if (run.callCount === 0 && !existingChild) {
+      assertCallBudget(run, config, INPUT_RESERVATION, Math.min(config.maxOutputTokens, 1_000));
+      const discovery = await agent.discover({
+        target: RENT_RESEARCH_TARGET.path,
+        allowedTargets: [RENT_RESEARCH_TARGET.path],
+      });
+      if (
+        discovery.value.subtargets.length !== 1 ||
+        discovery.value.subtargets[0] !== RENT_RESEARCH_TARGET.path
+      ) {
+        throw new Error("Discovery must spawn exactly the allowlisted S7 target.");
+      }
+      const usage = usageTotals(discovery, config);
+      await db
+        .update(ingestionRuns)
+        .set({
+          tokensIn: discovery.usage.inputTokens,
+          tokensOut: discovery.usage.outputTokens,
+          callCount: 1,
+          costEstimateMicros: usage.costMicros,
+          updatedAt: new Date(),
+        })
+        .where(eq(ingestionRuns.id, run.id));
     }
-    const usage = usageTotals(discovery, config);
-    const childRunId = randomUUID();
-    await db.insert(ingestionRuns).values({
-      id: childRunId,
-      parentRunId: run.id,
-      type: "extraction",
-      target: { path: RENT_RESEARCH_TARGET.path },
-      modelId: config.modelId,
-      promptVersion: config.promptVersion,
-      guardrailVersion: config.guardrailVersion,
-      agentVersion: config.agentVersion,
-      idempotencyKey: `extraction:${run.id}:${RENT_RESEARCH_TARGET.path}`,
-      tokenBudget: config.runTokenBudget,
-      costCeilingMicros: config.runCostCeilingMicros,
-      modelPricing: config.pricing,
-    });
+    const childRunId = deterministicUuid(`extraction:${run.id}:${RENT_RESEARCH_TARGET.path}`);
+    await db
+      .insert(ingestionRuns)
+      .values({
+        id: childRunId,
+        parentRunId: run.id,
+        type: "extraction",
+        target: { path: RENT_RESEARCH_TARGET.path },
+        modelId: config.modelId,
+        promptVersion: config.promptVersion,
+        guardrailVersion: config.guardrailVersion,
+        agentVersion: config.agentVersion,
+        idempotencyKey: `extraction:${run.id}:${RENT_RESEARCH_TARGET.path}`,
+        tokenBudget: config.runTokenBudget,
+        costCeilingMicros: config.runCostCeilingMicros,
+        modelPricing: config.pricing,
+      })
+      .onConflictDoNothing({ target: ingestionRuns.idempotencyKey });
     await queue.add(
       EXTRACTION_RESEARCH_JOB,
       { version: 1, runId: childRunId, rootRunId: run.id } satisfies ExtractionResearchJob,
@@ -80,10 +101,6 @@ export async function runDiscovery(
       .update(ingestionRuns)
       .set({
         status: "completed",
-        tokensIn: discovery.usage.inputTokens,
-        tokensOut: discovery.usage.outputTokens,
-        callCount: 1,
-        costEstimateMicros: usage.costMicros,
         finishedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -115,71 +132,87 @@ export async function runExtraction(
   }
   const root = await requireRun(db, job.rootRunId);
   await startRun(db, run.id);
+  let direct = {
+    tokensIn: run.tokensIn,
+    tokensOut: run.tokensOut,
+    costMicros: run.costEstimateMicros,
+    callCount: run.callCount,
+  };
+  let descendants = {
+    tokensIn: root.childTokensIn,
+    tokensOut: root.childTokensOut,
+    costMicros: root.childCostEstimateMicros,
+  };
   try {
-    const rootSpentTokens =
-      root.tokensIn + root.tokensOut + root.childTokensIn + root.childTokensOut;
-    assertBudgetAvailable({
-      spentTokens: rootSpentTokens,
-      spentCostMicros: root.costEstimateMicros + root.childCostEstimateMicros,
-      reservedInputTokens: INPUT_RESERVATION * 2,
-      reservedOutputTokens: config.maxOutputTokens * 2,
-      tokenBudget: root.tokenBudget,
-      costCeilingMicros: root.costCeilingMicros,
-      pricing: config.pricing,
-    });
-    assertCallBudget(run, config, INPUT_RESERVATION * 2, config.maxOutputTokens * 2);
-
     const existingRent = await loadExistingRent(db);
-    const extraction = await agent.extractRent({
+    admitModelCall(run, root, direct, descendants, config, INPUT_RESERVATION, 4_000);
+    const search = await agent.searchRentEvidence({ target: RENT_RESEARCH_TARGET.path });
+    ({ direct, descendants } = await recordChildUsage(
+      db,
+      run.id,
+      root.id,
+      direct,
+      descendants,
+      search,
+      config,
+    ));
+    enforceRecordedSpend(run, root, direct, descendants);
+
+    admitModelCall(
+      run,
+      root,
+      direct,
+      descendants,
+      config,
+      INPUT_RESERVATION,
+      config.maxOutputTokens,
+    );
+    const draft = await agent.extractRent({
       target: RENT_RESEARCH_TARGET.path,
+      evidence: search.value,
       existingRent,
     });
-    const extractionUsage = usageTotals(extraction, config);
-
-    assertBudgetAvailable({
-      spentTokens: extractionUsage.tokens,
-      spentCostMicros: extractionUsage.costMicros,
-      reservedInputTokens: INPUT_RESERVATION,
-      reservedOutputTokens: Math.min(config.maxOutputTokens, 2_000),
-      tokenBudget: run.tokenBudget,
-      costCeilingMicros: run.costCeilingMicros,
-      pricing: config.pricing,
+    ({ direct, descendants } = await recordChildUsage(
+      db,
+      run.id,
+      root.id,
+      direct,
+      descendants,
+      draft,
+      config,
+    ));
+    enforceRecordedSpend(run, root, direct, descendants);
+    const extraction = validateExtractionCitations({
+      ...draft.value,
+      evidence: search.value,
     });
-    const judge = await agent.judge(extraction.value);
-    const judgeUsage = usageTotals(judge, config);
-    const totals = {
-      tokensIn: extraction.usage.inputTokens + judge.usage.inputTokens,
-      tokensOut: extraction.usage.outputTokens + judge.usage.outputTokens,
-      costMicros: extractionUsage.costMicros + judgeUsage.costMicros,
-    };
-    enforceActualSpend(run, totals);
-    enforceActualCascade(root, totals);
 
-    const proposalId = await persistProposal(db, run.id, extraction.value, judge.value);
+    admitModelCall(run, root, direct, descendants, config, INPUT_RESERVATION, 2_000);
+    const judge = await agent.judge(extraction);
+    ({ direct, descendants } = await recordChildUsage(
+      db,
+      run.id,
+      root.id,
+      direct,
+      descendants,
+      judge,
+      config,
+    ));
+    enforceRecordedSpend(run, root, direct, descendants);
+
+    const proposalId = await persistProposal(db, run.id, extraction, judge.value);
     await db
       .update(ingestionRuns)
       .set({
         status: "completed",
-        tokensIn: totals.tokensIn,
-        tokensOut: totals.tokensOut,
-        callCount: 3,
-        costEstimateMicros: totals.costMicros,
         finishedAt: new Date(),
         updatedAt: new Date(),
       })
       .where(eq(ingestionRuns.id, run.id));
-    await db
-      .update(ingestionRuns)
-      .set({
-        childTokensIn: root.childTokensIn + totals.tokensIn,
-        childTokensOut: root.childTokensOut + totals.tokensOut,
-        childCostEstimateMicros: root.childCostEstimateMicros + totals.costMicros,
-        updatedAt: new Date(),
-      })
-      .where(eq(ingestionRuns.id, root.id));
     return { proposalId };
   } catch (error) {
     await failRun(db, run.id, error);
+    if (error instanceof BudgetExceededError) await failRun(db, root.id, error);
     throw error;
   }
 }
@@ -201,12 +234,25 @@ async function persistProposal(
   const scores = judge.claims.map((claim) => claim.scoreBasisPoints);
   const minimumScore = Math.min(...scores);
   const confidence = minimumScore >= 8_000 ? "high" : minimumScore >= 5_000 ? "medium" : "low";
+  const uniqueEvidence: RentExtraction["evidence"] = [];
+  const persistedIndexByOriginal = new Map<number, number>();
+  const uniqueIndexByHash = new Map<string, number>();
+  extraction.evidence.forEach((evidence, originalIndex) => {
+    const hash = createHash("sha256").update(evidence.excerpt).digest("hex");
+    let uniqueIndex = uniqueIndexByHash.get(hash);
+    if (uniqueIndex === undefined) {
+      uniqueIndex = uniqueEvidence.length;
+      uniqueEvidence.push(evidence);
+      uniqueIndexByHash.set(hash, uniqueIndex);
+    }
+    persistedIndexByOriginal.set(originalIndex, uniqueIndex);
+  });
 
   return db.transaction(async (tx) => {
     const evidenceRows = await tx
       .insert(ingestionEvidence)
       .values(
-        extraction.evidence.map((evidence) => ({
+        uniqueEvidence.map((evidence) => ({
           runId,
           url: evidence.url,
           sourceType: evidence.sourceType,
@@ -269,8 +315,12 @@ async function persistProposal(
         .returning({ id: ingestionClaims.id });
       if (!claim) throw new Error("Claim insert returned no row.");
       await tx.insert(ingestionClaimEvidence).values(
-        [...new Set(claimInput.evidenceIndexes)].map((index) => {
-          const evidence = evidenceRows[index];
+        [
+          ...new Set(
+            claimInput.evidenceIndexes.map((index) => persistedIndexByOriginal.get(index)),
+          ),
+        ].map((index) => {
+          const evidence = index === undefined ? undefined : evidenceRows[index];
           if (!evidence) throw new Error(`Missing persisted evidence at index ${index}.`);
           return { claimId: claim.id, evidenceId: evidence.id };
         }),
@@ -289,6 +339,15 @@ async function loadExistingRent(db: DatabaseClient) {
   if (!block || typeof block.content !== "object" || block.content === null) return undefined;
   const parsed = rentProfileSchema.safeParse((block.content as Record<string, unknown>).rent);
   return parsed.success ? parsed.data : undefined;
+}
+
+function deterministicUuid(value: string): string {
+  const hex = createHash("sha256").update(value).digest("hex").slice(0, 32).split("");
+  hex[12] = "4";
+  hex[16] = ((Number.parseInt(hex[16] ?? "0", 16) & 0x3) | 0x8).toString(16);
+  return `${hex.slice(0, 8).join("")}-${hex.slice(8, 12).join("")}-${hex
+    .slice(12, 16)
+    .join("")}-${hex.slice(16, 20).join("")}-${hex.slice(20).join("")}`;
 }
 
 function assertCallBudget(
@@ -315,30 +374,103 @@ function usageTotals<T>(result: AgentResult<T>, config: ResearchAgentConfig) {
   };
 }
 
-function enforceActualSpend(
+type DirectSpend = {
+  tokensIn: number;
+  tokensOut: number;
+  costMicros: number;
+  callCount: number;
+};
+
+type DescendantSpend = Omit<DirectSpend, "callCount">;
+
+function admitModelCall(
   run: typeof ingestionRuns.$inferSelect,
-  usage: { tokensIn: number; tokensOut: number; costMicros: number },
+  root: typeof ingestionRuns.$inferSelect,
+  direct: DirectSpend,
+  descendants: DescendantSpend,
+  config: ResearchAgentConfig,
+  reservedInputTokens: number,
+  reservedOutputTokens: number,
 ): void {
-  if (run.tokenBudget !== null && usage.tokensIn + usage.tokensOut > run.tokenBudget) {
-    throw new BudgetExceededError("Actual model usage exceeded the run token budget.");
-  }
-  if (run.costCeilingMicros !== null && usage.costMicros > run.costCeilingMicros) {
-    throw new BudgetExceededError("Actual model usage exceeded the run cost ceiling.");
-  }
+  assertBudgetAvailable({
+    spentTokens: direct.tokensIn + direct.tokensOut,
+    spentCostMicros: direct.costMicros,
+    reservedInputTokens,
+    reservedOutputTokens,
+    tokenBudget: run.tokenBudget,
+    costCeilingMicros: run.costCeilingMicros,
+    pricing: config.pricing,
+  });
+  assertBudgetAvailable({
+    spentTokens: root.tokensIn + root.tokensOut + descendants.tokensIn + descendants.tokensOut,
+    spentCostMicros: root.costEstimateMicros + descendants.costMicros,
+    reservedInputTokens,
+    reservedOutputTokens,
+    tokenBudget: root.tokenBudget,
+    costCeilingMicros: root.costCeilingMicros,
+    pricing: config.pricing,
+  });
 }
 
-function enforceActualCascade(
+async function recordChildUsage<T>(
+  db: DatabaseClient,
+  runId: string,
+  rootId: string,
+  direct: DirectSpend,
+  descendants: DescendantSpend,
+  result: AgentResult<T>,
+  config: ResearchAgentConfig,
+): Promise<{ direct: DirectSpend; descendants: DescendantSpend }> {
+  const cost = estimateCostMicros(result.usage, config.pricing);
+  const nextDirect = {
+    tokensIn: direct.tokensIn + result.usage.inputTokens,
+    tokensOut: direct.tokensOut + result.usage.outputTokens,
+    costMicros: direct.costMicros + cost,
+    callCount: direct.callCount + 1,
+  };
+  const nextDescendants = {
+    tokensIn: descendants.tokensIn + result.usage.inputTokens,
+    tokensOut: descendants.tokensOut + result.usage.outputTokens,
+    costMicros: descendants.costMicros + cost,
+  };
+  await db.transaction(async (tx) => {
+    await tx
+      .update(ingestionRuns)
+      .set({
+        tokensIn: nextDirect.tokensIn,
+        tokensOut: nextDirect.tokensOut,
+        costEstimateMicros: nextDirect.costMicros,
+        callCount: nextDirect.callCount,
+        updatedAt: new Date(),
+      })
+      .where(eq(ingestionRuns.id, runId));
+    await tx
+      .update(ingestionRuns)
+      .set({
+        childTokensIn: nextDescendants.tokensIn,
+        childTokensOut: nextDescendants.tokensOut,
+        childCostEstimateMicros: nextDescendants.costMicros,
+        updatedAt: new Date(),
+      })
+      .where(eq(ingestionRuns.id, rootId));
+  });
+  return { direct: nextDirect, descendants: nextDescendants };
+}
+
+function enforceRecordedSpend(
+  run: typeof ingestionRuns.$inferSelect,
   root: typeof ingestionRuns.$inferSelect,
-  usage: { tokensIn: number; tokensOut: number; costMicros: number },
+  direct: DirectSpend,
+  descendants: DescendantSpend,
 ): void {
-  const tokens =
-    root.tokensIn +
-    root.tokensOut +
-    root.childTokensIn +
-    root.childTokensOut +
-    usage.tokensIn +
-    usage.tokensOut;
-  const cost = root.costEstimateMicros + root.childCostEstimateMicros + usage.costMicros;
+  if (run.tokenBudget !== null && direct.tokensIn + direct.tokensOut > run.tokenBudget) {
+    throw new BudgetExceededError("Actual model usage exceeded the run token budget.");
+  }
+  if (run.costCeilingMicros !== null && direct.costMicros > run.costCeilingMicros) {
+    throw new BudgetExceededError("Actual model usage exceeded the run cost ceiling.");
+  }
+  const tokens = root.tokensIn + root.tokensOut + descendants.tokensIn + descendants.tokensOut;
+  const cost = root.costEstimateMicros + descendants.costMicros;
   if (root.tokenBudget !== null && tokens > root.tokenBudget) {
     throw new BudgetExceededError("Actual model usage exceeded the cascade token budget.");
   }

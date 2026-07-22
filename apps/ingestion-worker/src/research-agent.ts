@@ -31,6 +31,8 @@ export const rentExtractionSchema = z.object({
   }),
 });
 export type RentExtraction = z.infer<typeof rentExtractionSchema>;
+export const rentDraftSchema = rentExtractionSchema.omit({ evidence: true });
+export type RentDraft = z.infer<typeof rentDraftSchema>;
 
 export const judgeOutputSchema = z.object({
   claims: z
@@ -50,10 +52,14 @@ export interface ResearchAgent {
     target: ResearchTargetPath;
     allowedTargets: readonly ResearchTargetPath[];
   }): Promise<AgentResult<{ subtargets: ResearchTargetPath[] }>>;
+  searchRentEvidence(input: {
+    target: ResearchTargetPath;
+  }): Promise<AgentResult<EvidenceCandidate[]>>;
   extractRent(input: {
     target: ResearchTargetPath;
+    evidence: EvidenceCandidate[];
     existingRent?: RentProfile;
-  }): Promise<AgentResult<RentExtraction>>;
+  }): Promise<AgentResult<RentDraft>>;
   judge(input: RentExtraction): Promise<AgentResult<JudgeOutput>>;
 }
 
