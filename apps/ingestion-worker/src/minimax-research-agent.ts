@@ -135,7 +135,7 @@ export class MiniMaxResearchAgent implements ResearchAgent {
               role: "user",
               content: [
                 query,
-                "Use web search to gather sources, then reply with ONLY a JSON array (no narration).",
+                "Use web search to gather sources, then reply with ONLY a JSON array of at most 8 items (no narration).",
                 "Each item must contain url, title, optional publisher,",
                 "sourceType (official|legal|community|ai_assisted|other),",
                 "trustTier (primary|secondary|community|unknown), and a verbatim excerpt.",
@@ -162,20 +162,22 @@ export class MiniMaxResearchAgent implements ResearchAgent {
       .map((block) => block.text ?? "")
       .join("\n")
       .trim();
+    const hits = extractWebSearchHits(body.content ?? []);
 
     if (text) {
       try {
+        const parsed = truncateEvidenceArray(parseJsonPayload(text));
         return {
-          value: searchEvidenceSchema.parse(parseJsonPayload(text)),
+          value: searchEvidenceSchema.parse(parsed),
           usage: searchUsage,
           modelId: this.config.modelId,
         };
-      } catch {
+      } catch (error) {
+        if (hits.length === 0) throw error;
         // Fall through to search-hit synthesis when MiniMax narrates or truncates.
       }
     }
 
-    const hits = extractWebSearchHits(body.content ?? []);
     if (hits.length === 0) {
       throw new Error("MiniMax web search returned neither JSON evidence nor search hits.");
     }
@@ -229,6 +231,10 @@ export function extractWebSearchHits(content: MiniMaxContentBlock[]): WebSearchH
     }
   }
   return hits;
+}
+
+export function truncateEvidenceArray(value: unknown): unknown {
+  return Array.isArray(value) ? value.slice(0, 8) : value;
 }
 
 function normalizeToolResultContent(content: unknown): unknown[] {

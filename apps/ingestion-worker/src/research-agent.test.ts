@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractWebSearchHits } from "./minimax-research-agent";
+import { extractWebSearchHits, truncateEvidenceArray } from "./minimax-research-agent";
 import {
   parseJsonPayload,
   rentExtractionSchema,
@@ -104,5 +104,17 @@ describe("extractWebSearchHits", () => {
         excerpt: "Berlin centre rents remain elevated.",
       },
     ]);
+  });
+
+  it("keeps oversized model arrays within the evidence cap via parse+slice", () => {
+    const oversized = Array.from({ length: 12 }, (_, index) => ({
+      url: `https://example.test/${index}`,
+      title: `Source ${index}`,
+      sourceType: "other" as const,
+      trustTier: "unknown" as const,
+      excerpt: `Excerpt ${index}`,
+    }));
+    expect(truncateEvidenceArray(oversized)).toHaveLength(8);
+    expect(truncateEvidenceArray({ not: "array" })).toEqual({ not: "array" });
   });
 });
