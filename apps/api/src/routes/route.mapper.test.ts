@@ -1,9 +1,14 @@
-import type { routeSources, routes } from "@pathport/db";
+import type { routes } from "@pathport/db";
 import { describe, expect, it } from "vitest";
 import { toRouteDetail, toRouteSummary } from "./route.mapper";
 
 type RouteRow = typeof routes.$inferSelect;
-type RouteSourceRow = typeof routeSources.$inferSelect;
+type RouteSourceRow = {
+  type: "official" | "legal" | "community" | "ai_assisted" | "other";
+  label: string;
+  url: string;
+  lastReviewedAt: Date | null;
+};
 
 // A fully-populated row; individual tests override just the fields they exercise.
 // The seed data always has complete ranges, so the null branches below are only
@@ -101,14 +106,10 @@ describe("toRouteDetail", () => {
   const destination = { code: "DE", name: "Germany" };
 
   const baseSource: RouteSourceRow = {
-    id: "33333333-3333-3333-3333-333333333333",
-    routeId: baseRoute.id,
     type: "official",
     label: "Official page",
     url: "https://example.gov",
     lastReviewedAt: new Date("2026-02-03T00:00:00Z"),
-    createdAt: new Date("2026-01-01T00:00:00Z"),
-    updatedAt: new Date("2026-01-01T00:00:00Z"),
   };
 
   it("includes the destination and normalizes the JSONB details to arrays", () => {

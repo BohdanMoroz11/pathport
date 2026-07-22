@@ -1,4 +1,3 @@
-import type { DestinationDetail, DestinationPairing } from "@pathport/contracts";
 import {
   boolean,
   index,
@@ -106,12 +105,6 @@ export const destinationCountries = pgTable("destination_countries", {
   tagline: text("tagline"),
   region: text("region"),
   description: text("description"),
-
-  // Destination-level section content (Country / Living / Work / Family +
-  // quick facts) as validated JSONB — the shape and its runtime validation live
-  // in @pathport/contracts. Kept as JSONB while the section shapes are volatile;
-  // see docs/domain-model.md.
-  profile: jsonb("profile").$type<DestinationDetail>().notNull().default({}),
 
   ...contentMetadata,
   ...timestamps,
@@ -248,55 +241,4 @@ export const contentCitations = pgTable(
     index("content_citations_source_document_idx").on(table.sourceDocumentId),
     index("content_citations_target_idx").on(table.targetType, table.targetId),
   ],
-);
-
-/**
- * Visa-free / visitor / initial-arrival context for a citizenship x destination
- * pair. This is a fact about the pair, not a migration route.
- */
-export const arrivalContext = pgTable(
-  "arrival_context",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    citizenshipId: uuid("citizenship_id")
-      .notNull()
-      .references(() => citizenships.id, { onDelete: "cascade" }),
-    destinationCountryId: uuid("destination_country_id")
-      .notNull()
-      .references(() => destinationCountries.id, { onDelete: "cascade" }),
-    visaFreeDays: integer("visa_free_days"),
-    summary: text("summary").notNull(),
-
-    // Pairing-level, reader-specific section content (language read, entry
-    // brief + detail, glance metrics, fits-you-if) as validated JSONB. This
-    // broadens arrival_context into the citizenship × destination pairing
-    // record; see docs/domain-model.md.
-    profile: jsonb("profile").$type<DestinationPairing>().notNull().default({}),
-
-    ...contentMetadata,
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex("arrival_context_citizenship_destination_idx").on(
-      table.citizenshipId,
-      table.destinationCountryId,
-    ),
-    index("arrival_context_destination_country_id_idx").on(table.destinationCountryId),
-  ],
-);
-
-export const routeSources = pgTable(
-  "route_sources",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    routeId: uuid("route_id")
-      .notNull()
-      .references(() => routes.id, { onDelete: "cascade" }),
-    type: sourceTypeEnum("type").notNull(),
-    label: text("label").notNull(),
-    url: text("url").notNull(),
-    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
-    ...timestamps,
-  },
-  (table) => [index("route_sources_route_id_idx").on(table.routeId)],
 );

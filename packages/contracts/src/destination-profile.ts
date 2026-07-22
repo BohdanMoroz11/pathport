@@ -427,11 +427,11 @@ export type DestinationIdentity = {
   description: string;
 };
 
-// --- Stored JSONB blobs ----------------------------------------------------
+// --- Scoped content block contracts ---------------------------------------
 
 /**
- * Destination-level section content, stored as the `destination_countries.profile`
- * JSONB. Each section is optional so an unfilled one degrades to its scaffold.
+ * Destination-level content assembled from scoped destination content blocks.
+ * Each section is optional so an unfilled one degrades to its scaffold.
  * (`quickFacts` defaults to empty for the same reason.)
  */
 export const destinationDetailSchema = z.object({
@@ -447,8 +447,7 @@ export type DestinationDetail = z.input<typeof destinationDetailSchema>;
 export type NormalizedDestinationDetail = z.output<typeof destinationDetailSchema>;
 
 /**
- * Pairing-level, reader-specific section content, stored as the
- * `arrival_context.profile` JSONB. All optional; a missing pairing row falls
+ * Pairing-level, reader-specific content assembled from scoped blocks. All optional; missing content falls
  * back to a synthesized "being gathered" stub in the API.
  */
 export const destinationPairingSchema = z.object({

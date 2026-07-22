@@ -5,7 +5,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDatabaseClient, createDatabasePool, type DatabaseClient } from "../client";
 import { resetSchema } from "../migrate";
 import {
-  arrivalContext,
   citizenships,
   contentCitations,
   destinationContentBlocks,
@@ -66,13 +65,11 @@ describe("demo seed", () => {
 
   it("marks all seeded content as demo data", async () => {
     const seededRoutes = await db.select({ isDemo: routes.isDemo }).from(routes);
-    const seededArrival = await db.select({ isDemo: arrivalContext.isDemo }).from(arrivalContext);
     const seededBlocks = await db
       .select({ isDemo: destinationContentBlocks.isDemo })
       .from(destinationContentBlocks);
 
     expect(seededRoutes.every((row) => row.isDemo)).toBe(true);
-    expect(seededArrival.every((row) => row.isDemo)).toBe(true);
     expect(seededBlocks.every((row) => row.isDemo)).toBe(true);
   });
 
@@ -91,20 +88,29 @@ describe("demo seed", () => {
   });
 
   it("stores arrival context for every demo citizenship x destination pair", async () => {
-    const seededArrival = await db.select().from(arrivalContext);
+    const seededArrival = await db
+      .select()
+      .from(destinationContentBlocks)
+      .where(eq(destinationContentBlocks.blockKey, "arrivalSummary"));
     expect(seededArrival).toHaveLength(demoSeedData.arrivalContext.length);
 
     const [usGermany] = await db
       .select()
-      .from(arrivalContext)
-      .innerJoin(citizenships, eq(citizenships.id, arrivalContext.citizenshipId))
+      .from(destinationContentBlocks)
+      .innerJoin(citizenships, eq(citizenships.id, destinationContentBlocks.citizenshipId))
       .innerJoin(
         destinationCountries,
-        eq(destinationCountries.id, arrivalContext.destinationCountryId),
+        eq(destinationCountries.id, destinationContentBlocks.destinationCountryId),
       )
-      .where(and(eq(citizenships.code, "USA"), eq(destinationCountries.code, "DE")));
+      .where(
+        and(
+          eq(citizenships.code, "USA"),
+          eq(destinationCountries.code, "DE"),
+          eq(destinationContentBlocks.blockKey, "arrivalSummary"),
+        ),
+      );
 
-    expect(usGermany?.arrival_context.visaFreeDays).toBe(90);
+    expect(usGermany?.destination_content_blocks.content).toMatchObject({ visaFreeDays: 90 });
   });
 
   it("seeds scoped destination blocks and general route citations", async () => {

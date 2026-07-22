@@ -10,7 +10,6 @@ import {
 } from "./client";
 import { migrateToLatest } from "./migrate";
 import {
-  arrivalContext,
   citizenships,
   contentCitations,
   destinationContentBlocks,
@@ -57,13 +56,11 @@ describe("database foundation", () => {
     );
 
     expect(result.rows.map((row) => row.table_name)).toEqual([
-      "arrival_context",
       "citizenships",
       "content_citations",
       "destination_content_blocks",
       "destination_countries",
       "route_applicability",
-      "route_sources",
       "routes",
       "source_documents",
     ]);
@@ -159,7 +156,7 @@ describe("database foundation", () => {
     expect(citations).toHaveLength(1);
   });
 
-  it("stores arrival context for a citizenship x destination pair", async () => {
+  it("stores arrival context as a scoped citizenship x destination block", async () => {
     const [citizenship] = await db
       .insert(citizenships)
       .values({ code: "UKR", name: "Ukraine" })
@@ -170,16 +167,19 @@ describe("database foundation", () => {
       .returning();
 
     const [context] = await db
-      .insert(arrivalContext)
+      .insert(destinationContentBlocks)
       .values({
         citizenshipId: citizenship.id,
         destinationCountryId: destination.id,
-        visaFreeDays: 90,
-        summary: "Visa-free short stays in the Schengen area.",
+        sectionKey: "overview",
+        blockKey: "arrivalSummary",
+        scope: "citizenship_destination",
+        targetPath: "UKR→PT.arrivalSummary",
+        content: { visaFreeDays: 90, summary: "Visa-free short stays." },
         isDemo: true,
       })
       .returning();
 
-    expect(context.visaFreeDays).toBe(90);
+    expect(context.content).toEqual({ visaFreeDays: 90, summary: "Visa-free short stays." });
   });
 });

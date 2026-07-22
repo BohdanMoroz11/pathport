@@ -8,7 +8,6 @@ import type {
   RouteType,
 } from "@pathport/contracts";
 import {
-  arrivalContext,
   assembleDestinationDetailFromBlocks,
   assembleDestinationPairingFromBlocks,
   citizenships,
@@ -173,20 +172,32 @@ export class DestinationsService {
     const rows = await this.database.client
       .select({
         destinationCode: destinationCountries.code,
-        visaFreeDays: arrivalContext.visaFreeDays,
-        summary: arrivalContext.summary,
-        reviewStatus: arrivalContext.reviewStatus,
-        confidence: arrivalContext.confidence,
-        isDemo: arrivalContext.isDemo,
+        content: destinationContentBlocks.content,
+        reviewStatus: destinationContentBlocks.reviewStatus,
+        confidence: destinationContentBlocks.confidence,
+        isDemo: destinationContentBlocks.isDemo,
       })
-      .from(arrivalContext)
+      .from(destinationContentBlocks)
       .innerJoin(
         destinationCountries,
-        eq(destinationCountries.id, arrivalContext.destinationCountryId),
+        eq(destinationCountries.id, destinationContentBlocks.destinationCountryId),
       )
-      .where(eq(arrivalContext.citizenshipId, citizenshipId));
+      .where(
+        and(
+          eq(destinationContentBlocks.citizenshipId, citizenshipId),
+          eq(destinationContentBlocks.blockKey, "arrivalSummary"),
+        ),
+      );
 
-    return new Map(rows.map(({ destinationCode, ...context }) => [destinationCode, context]));
+    return new Map(
+      rows.map(({ destinationCode, content, ...metadata }) => {
+        const value = content as { visaFreeDays?: number; summary: string };
+        return [
+          destinationCode,
+          { ...value, visaFreeDays: value.visaFreeDays ?? null, ...metadata },
+        ];
+      }),
+    );
   }
 
   private async requireCitizenshipId(citizenshipCode: string): Promise<string> {

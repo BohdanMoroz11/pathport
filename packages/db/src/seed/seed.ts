@@ -1,6 +1,7 @@
 import { parseDestinationDetail, parseDestinationPairing } from "@pathport/contracts";
 import type { DatabaseClient } from "../client.js";
 import {
+  arrivalSummaryTargetPath,
   destinationTargetPath,
   pairingTargetPath,
   routeApplicabilityTargetPath,
@@ -10,7 +11,6 @@ import {
 } from "../content-blocks.js";
 import { parseRouteDetails } from "../route-details.js";
 import {
-  arrivalContext,
   citizenships,
   contentCitations,
   destinationContentBlocks,
@@ -65,8 +65,6 @@ export async function seedDatabase(
           tagline: destination.tagline,
           region: destination.region,
           description: destination.description,
-          // Legacy compatibility while public reads move to scoped S6 blocks.
-          profile,
           isDemo: true,
         })
         .returning(),
@@ -206,13 +204,14 @@ export async function seedDatabase(
     }
 
     const profile = context.profile ? parseDestinationPairing(context.profile) : {};
-    await db.insert(arrivalContext).values({
-      citizenshipId,
+    await db.insert(destinationContentBlocks).values({
       destinationCountryId,
-      visaFreeDays: context.visaFreeDays,
-      summary: context.summary,
-      // Legacy compatibility while public reads move to scoped S6 blocks.
-      profile,
+      citizenshipId,
+      sectionKey: "overview",
+      blockKey: "arrivalSummary",
+      scope: "citizenship_destination",
+      content: { visaFreeDays: context.visaFreeDays, summary: context.summary },
+      targetPath: arrivalSummaryTargetPath(context.citizenship, context.destination),
       reviewStatus: context.reviewStatus ?? "needs_review",
       confidence: context.confidence ?? "low",
       isDemo: true,

@@ -15,6 +15,11 @@ export type DestinationContentBlockInput = {
   assumptions?: Record<string, unknown>;
 };
 
+export type ArrivalSummaryContent = {
+  visaFreeDays?: number;
+  summary: string;
+};
+
 const DESTINATION_DETAIL_BLOCKS = [
   { sectionKey: "overview", blockKey: "quickFacts", scope: "destination" },
   { sectionKey: "country", blockKey: "country", scope: "destination" },
@@ -49,6 +54,10 @@ export function pairingTargetPath(
   blockKey: string,
 ): string {
   return `${citizenshipCode.toUpperCase()}→${destinationCode.toUpperCase()}.${blockKey}`;
+}
+
+export function arrivalSummaryTargetPath(citizenshipCode: string, destinationCode: string): string {
+  return pairingTargetPath(citizenshipCode, destinationCode, "arrivalSummary");
 }
 
 export function routeTargetPath(destinationCode: string, routeKey: string): string {
