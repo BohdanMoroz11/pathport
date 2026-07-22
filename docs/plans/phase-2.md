@@ -416,7 +416,8 @@ Tasks:
 
 ### S7 [Data]: Research Agent & One End-to-End Flow
 
-Status: Not started
+Status: Done — live MiniMax Ring 3 and the manual discovery→extraction cascade
+are verified in a Cloud run with `MINIMAX_API_KEY` injected.
 
 The AI layer: the orchestrator-worker agent behind a provider port, producing real
 proposals/claims/evidence through to the gate on **one** target — the walking
@@ -424,20 +425,23 @@ skeleton that proves the architecture. Needs S6.
 
 Tasks:
 
-- [ ] Wire the **agent behind a port** on the Vercel AI SDK (provider-agnostic,
+- [x] Wire the **agent behind a port** on the Vercel AI SDK (provider-agnostic,
       configurable model/prompt/guardrails, mockable for tests).
-- [ ] Implement the **hybrid orchestrator-worker** flow: a discovery run, a durable
+- [x] Implement the **hybrid orchestrator-worker** flow: a discovery run, a durable
       `spawn_subtarget` (BullMQ-backed), and an extraction sub-agent that researches
       one entity via provider web tools and emits structured, contract-validated
       proposals + field-level claims + evidence.
-- [ ] Add the **groundedness/judge step** (claims scored against cited evidence,
+- [x] Add the **groundedness/judge step** (claims scored against cited evidence,
       feeding confidence + the risk roll-up) and enforce **per-run + per-cascade
       token/cost ceilings** via the metering ledger.
-- [ ] Prove **one end-to-end flow** (manual trigger): target → proposals in the
-      gate, with provenance, confidence, and budgets recorded.
-- [ ] Ring 2 cassette tests (real-shaped output replay + contract-drift guard) and a
+- [x] Prove **one end-to-end flow** (manual trigger): target → proposals in the
+      gate, with provenance, confidence, and budgets recorded. Verified against
+      live MiniMax via `POST /local-ingestion/research-runs` (discovery + one
+      extraction child → pending `DE.living.rent` claims/evidence + metering).
+- [x] Ring 2 cassette tests (real-shaped output replay + contract-drift guard) and a
       **small Ring 3 eval suite** (golden targets scored on coverage/groundedness/
-      cost), run out-of-band (`test:eval`), never gating.
+      cost), run out-of-band (`test:eval`), never gating. Live
+      `RUN_LIVE_AI_EVAL=1 pnpm test:eval` passed with `MINIMAX_API_KEY`.
 
 ### S8 [Admin]: Admin App and Auth
 
@@ -615,3 +619,10 @@ Phase 2 is done when:
   source documents + field/block citations. Full cookie auth is deferred to S8;
   S6 still creates local/dev write endpoints and a separate fake-producer worker so
   the queue→proposal→review→publish path is testable without real AI.
+
+- **S7 live verification.** A follow-up Cloud run with `MINIMAX_API_KEY` injected
+  completed the remaining S7 proof: `RUN_LIVE_AI_EVAL=1 pnpm test:eval` and a
+  manual `POST /local-ingestion/research-runs` cascade against live MiniMax
+  (discovery → extraction → pending rent claims with evidence, judge scores, and
+  metering). MiniMax web-search responses were hardened (JSON fencing/aliases,
+  prefer tool hits, flatten nested citation indexes).

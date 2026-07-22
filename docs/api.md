@@ -91,6 +91,9 @@ The S6 deterministic ingestion surface is also local/dev-only:
 
 - `POST /local-ingestion/fake-runs` queues the deterministic `DE.living.rent`
   fixture through BullMQ;
+- `POST /local-ingestion/research-runs` starts the bounded S7 discovery cascade
+  for `DE.living.rent`; the discovery agent may spawn exactly one durable
+  extraction run, which stops at the pending review gate;
 - `POST /local-ingestion/claims/:id/review` records an approved, rejected, held,
   or edited human decision;
 - `POST /local-ingestion/proposals/:id/publish` assembles cleared claims, blocks
@@ -99,6 +102,11 @@ The S6 deterministic ingestion surface is also local/dev-only:
 
 The fixture is not a second implementation of S7 research: it is a deterministic
 producer behind the same queue, run ledger, proposal, and publish seams.
+
+`DE.living.rent` is a granular **research** target, not a separate canonical
+content block. Publishing reviewed rent claims replaces `rent` inside the
+canonical `DE.living` block, validates the complete living contract, and
+preserves all sibling living fields.
 
 The API should not expose `arrival_context` as a product concept after the S6
 storage rework. Reader-specific entry/language/fit content is destination-page

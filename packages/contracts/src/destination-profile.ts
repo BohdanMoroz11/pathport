@@ -224,6 +224,12 @@ export const rentRowSchema = z.object({
 });
 export type RentRow = z.infer<typeof rentRowSchema>;
 
+export const rentProfileSchema = z.object({
+  note: z.string(),
+  rows: z.array(rentRowSchema).min(1),
+});
+export type RentProfile = z.infer<typeof rentProfileSchema>;
+
 /** One way to access a service (a healthcare track, a type of school). */
 export const accessOptionSchema = z.object({
   label: z.string(),
@@ -239,7 +245,7 @@ export const livingProfileSchema = z.object({
   currency: z.string(),
   intro: z.string(),
   budgets: z.array(budgetPersonaSchema),
-  rent: z.object({ note: z.string(), rows: z.array(rentRowSchema) }),
+  rent: rentProfileSchema,
   groceries: z.array(priceItemSchema),
   eatingOut: z.array(priceItemSchema),
   leisure: z.array(priceItemSchema),

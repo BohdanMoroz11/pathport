@@ -1,0 +1,243 @@
+import { describe, expect, it } from "vitest";
+import {
+  evidenceFromSearchHits,
+  extractWebSearchHits,
+  normalizeEvidenceCandidates,
+  truncateEvidenceArray,
+} from "./minimax-research-agent";
+import {
+  normalizeRentDraft,
+  parseJsonPayload,
+  rentExtractionSchema,
+  validateExtractionCitations,
+} from "./research-agent";
+
+const extraction = {
+  rent: {
+    note: "Monthly asking rents in representative German cities.",
+    rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+  },
+  evidence: [
+    {
+      url: "https://example.test/statistics",
+      title: "Rent statistics",
+      publisher: "Statistical office",
+      sourceType: "official" as const,
+      trustTier: "primary" as const,
+      excerpt: "Representative asking-rent figures.",
+    },
+  ],
+  citations: { note: [0], rows: [0] },
+};
+
+describe("rent research contract", () => {
+  it("accepts a grounded rent profile", () => {
+    expect(validateExtractionCitations(rentExtractionSchema.parse(extraction))).toEqual(extraction);
+  });
+
+  it("rejects malformed rent rows", () => {
+    expect(() =>
+      rentExtractionSchema.parse({
+        ...extraction,
+        rent: { note: "Missing rows", rows: [] },
+      }),
+    ).toThrow();
+  });
+
+  it("rejects citations without evidence", () => {
+    expect(() =>
+      validateExtractionCitations(
+        rentExtractionSchema.parse({ ...extraction, citations: { note: [1], rows: [0] } }),
+      ),
+    ).toThrow("Citation index 1 has no corresponding evidence.");
+  });
+});
+
+describe("parseJsonPayload", () => {
+  it("parses fenced JSON and prose-prefixed arrays", () => {
+    expect(parseJsonPayload('```json\n[{"url":"https://example.test"}]\n```')).toEqual([
+      { url: "https://example.test" },
+    ]);
+    expect(parseJsonPayload('I\'ll search first.\n[{"url":"https://example.test"}]')).toEqual([
+      { url: "https://example.test" },
+    ]);
+  });
+
+  it("rejects responses without JSON", () => {
+    expect(() => parseJsonPayload("I'll search the web now.")).toThrow(
+      "Model response did not contain valid JSON.",
+    );
+  });
+});
+
+describe("normalizeRentDraft", () => {
+  it("flattens nested citation index arrays from the model", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0, [1]], rows: [[0, 1], 1] },
+      }),
+    ).toEqual({
+      rent: {
+        note: "Monthly asking rents.",
+        rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+      },
+      citations: { note: [0, 1], rows: [0, 1] },
+    });
+  });
+
+  it("shares citation indexes when one side is empty", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0], rows: [] },
+      }).citations,
+    ).toEqual({ note: [0], rows: [0] });
+  });
+
+  it("lifts top-level citation rows into the citations object", () => {
+    expect(
+      normalizeRentDraft({
+        rent: {
+          note: "Monthly asking rents.",
+          rows: [{ city: "Berlin", centre: 1500, outer: 1100, family: 2300 }],
+        },
+        citations: { note: [0] },
+        rows: [[0, 1]],
+      }).citations,
+    ).toEqual({ note: [0], rows: [0, 1] });
+  });
+});
+
+describe("extractWebSearchHits", () => {
+  it("collects web_search_result blocks from MiniMax tool payloads", () => {
+    expect(
+      extractWebSearchHits([
+        { type: "server_tool_use" },
+        {
+          type: "web_search_tool_result",
+          content: [
+            {
+              type: "web_search_result",
+              url: "https://www.destatis.de/rent",
+              title: "Destatis rents",
+              content: "Average rent rose in 2023.",
+            },
+          ],
+        },
+        {
+          type: "web_search_tool_result",
+          content: JSON.stringify([
+            {
+              type: "web_search_result",
+              url: "https://example.test/market",
+              title: "Market note",
+              content: "Berlin centre rents remain elevated.",
+            },
+          ]),
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://www.destatis.de/rent",
+        title: "Destatis rents",
+        excerpt: "Average rent rose in 2023.",
+      },
+      {
+        url: "https://example.test/market",
+        title: "Market note",
+        excerpt: "Berlin centre rents remain elevated.",
+      },
+    ]);
+  });
+
+  it("keeps oversized model arrays within the evidence cap via parse+slice", () => {
+    const oversized = Array.from({ length: 12 }, (_, index) => ({
+      url: `https://example.test/${index}`,
+      title: `Source ${index}`,
+      sourceType: "other" as const,
+      trustTier: "unknown" as const,
+      excerpt: `Excerpt ${index}`,
+    }));
+    expect(truncateEvidenceArray(oversized)).toHaveLength(8);
+    expect(truncateEvidenceArray({ not: "array" })).toEqual({ not: "array" });
+  });
+
+  it("maps alternate excerpt keys onto the evidence contract", () => {
+    expect(
+      normalizeEvidenceCandidates([
+        {
+          url: "https://example.test/a",
+          title: "A",
+          sourceType: "other",
+          trustTier: "unknown",
+          "verbatim excerpt": "From the search hit.",
+        },
+        {
+          url: "https://example.test/b",
+          title: "B",
+          sourceType: "other",
+          trustTier: "unknown",
+          content: "Content field excerpt.",
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://example.test/a",
+        title: "A",
+        sourceType: "other",
+        trustTier: "unknown",
+        "verbatim excerpt": "From the search hit.",
+        excerpt: "From the search hit.",
+      },
+      {
+        url: "https://example.test/b",
+        title: "B",
+        sourceType: "other",
+        trustTier: "unknown",
+        content: "Content field excerpt.",
+        excerpt: "Content field excerpt.",
+      },
+    ]);
+  });
+
+  it("builds evidence candidates from raw web search hits", () => {
+    expect(
+      evidenceFromSearchHits([
+        {
+          url: "https://www.destatis.de/rent",
+          title: "Destatis rents",
+          excerpt: "Average rent rose in 2023.",
+        },
+        {
+          url: "https://www.reddit.com/r/germany/comments/1",
+          title: "Anecdote",
+          excerpt: "My rent in Berlin is high.",
+        },
+      ]),
+    ).toEqual([
+      {
+        url: "https://www.destatis.de/rent",
+        title: "Destatis rents",
+        excerpt: "Average rent rose in 2023.",
+        publisher: "destatis.de",
+        sourceType: "official",
+        trustTier: "primary",
+      },
+      {
+        url: "https://www.reddit.com/r/germany/comments/1",
+        title: "Anecdote",
+        excerpt: "My rent in Berlin is high.",
+        publisher: "reddit.com",
+        sourceType: "community",
+        trustTier: "community",
+      },
+    ]);
+  });
+});

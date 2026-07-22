@@ -446,6 +446,26 @@ cost-vs-budget. This replaces eyeballing with a repeatable, scored signal.
   harness — labeled judge-accuracy sets, calibration, regression dashboards — is
   Phase 3.
 
+### S7 walking-skeleton cut
+
+The implemented Phase-2 cascade intentionally has one allowlisted research
+target: `DE.living.rent`. A real provider-neutral planning call chooses from that
+allowlist, then a BullMQ child performs extraction and a separate groundedness
+judge call. Fan-out is one and depth is one; broader target catalogs and
+recursion remain Phase 3.
+
+The initial adapter uses MiniMax M3 through the Vercel AI SDK. Model ID, prompt,
+guardrail and agent versions, output limits, token/cost ceilings, and the
+pricing snapshot all come from configuration. The orchestration and persistence
+layers depend only on the `ResearchAgent` port, so replacing MiniMax does not
+change the queue or proposal model. MiniMax's Anthropic-compatible server-side
+web-search tool supplies the extraction evidence.
+
+The granular target maps to the existing public contract rather than creating a
+new canonical block: reviewed `{ note, rows[] }` rent content is merged into the
+`rent` field of `DE.living`. Live AI stops at pending claims in the human gate;
+only deterministic integration tests cross review and publish.
+
 ### What this buys
 
 Rings 1–2 prove the *mechanism* deterministically on every change; Ring 3 gives a

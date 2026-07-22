@@ -26,6 +26,7 @@
     "format": "biome format --write .",
     "test": "pnpm -r test",
     "test:integration": "pnpm -r test:integration",
+    "test:eval": "pnpm --filter @pathport/ingestion-worker test:eval",
     "test:coverage": "pnpm -r test:coverage",
     "test:e2e": "playwright test",
     "test:all": "pnpm test && pnpm test:integration && pnpm test:e2e",

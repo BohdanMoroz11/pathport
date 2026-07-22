@@ -1,0 +1,52 @@
+{
+  "modelId": "MiniMax-M3",
+  "discovery": {
+    "subtargets": ["DE.living.rent"]
+  },
+  "extraction": {
+    "rent": {
+      "note": "Representative monthly asking rents in EUR; prices vary by district and listing.",
+      "rows": [
+        {
+          "city": "Berlin",
+          "centre": 1500,
+          "outer": 1100,
+          "family": 2300,
+          "note": "Illustrative city comparison, not a universal Germany-wide price."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "url": "https://example.test/cassette/germany-rent",
+        "title": "Recorded German rent evidence",
+        "publisher": "Ring 2 cassette",
+        "sourceType": "official",
+        "trustTier": "primary",
+        "excerpt": "Recorded response excerpt supporting the Berlin monthly rent comparison."
+      }
+    ],
+    "citations": {
+      "note": [0],
+      "rows": [0]
+    }
+  },
+  "judge": {
+    "claims": [
+      {
+        "fieldPath": "content.rent.note",
+        "scoreBasisPoints": 8200,
+        "explanation": "The caveated note is supported by the cited excerpt."
+      },
+      {
+        "fieldPath": "content.rent.rows",
+        "scoreBasisPoints": 8600,
+        "explanation": "The row is linked to the recorded source."
+      }
+    ]
+  },
+  "usage": {
+    "inputTokens": 850,
+    "outputTokens": 320
+  }
+}

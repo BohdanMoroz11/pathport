@@ -112,3 +112,22 @@ required-field blocking, reviewer edits, run transitions, and cascade budget
 math. Container-backed tests cover BullMQ + Redis → fake producer → real Postgres
 and the API review/publish path into a cited canonical block. They remain named
 `*.integration.test.ts`, keeping `pnpm test` Docker-free.
+
+## S7 Research-Agent Testing
+
+S7 keeps the provider as the only nondeterministic seam:
+
+- Ring 1 uses a scripted `ResearchAgent` with real Postgres and BullMQ/Redis to
+  prove discovery → durable extraction spawn → evidence/claims/judge scores →
+  pending review gate. The API integration test approves the deterministic rent
+  claims, merges them into `DE.living`, and verifies the public profile read.
+- Ring 2 replays `src/fixtures/de-living-rent-v1.json` through the current Zod
+  extraction and judge contracts. It runs with ordinary worker unit tests and
+  makes provider/canonical contract drift visible without network access.
+- Ring 3 is the opt-in live MiniMax M3 quality check:
+  `RUN_LIVE_AI_EVAL=1 pnpm test:eval`. It requires `MINIMAX_API_KEY`, scores the
+  one Phase-2 golden target (`DE.living.rent`) for coverage, citations,
+  groundedness, and budget compliance, and never runs in `pnpm test`,
+  `pnpm test:all`, or CI. Live verification also includes the manual cascade
+  `POST /local-ingestion/research-runs` (discovery → one extraction child →
+  pending reviewable claims with evidence and metering).

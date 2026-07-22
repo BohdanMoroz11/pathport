@@ -29,10 +29,16 @@ export async function produceFakeRentProposal(
   if (!destination) throw new Error("Fake producer requires the seeded DE destination.");
 
   const content = {
-    summary: "Illustrative mid-range monthly rent for one person in Germany.",
-    amount: 1_200,
-    currency: "EUR",
-    period: "month",
+    note: "Illustrative monthly asking rents in EUR.",
+    rows: [
+      {
+        city: "Berlin",
+        centre: 1_500,
+        outer: 1_100,
+        family: 2_300,
+        note: "Deterministic fixture; not current market guidance.",
+      },
+    ],
   };
   const contentHash = createHash("sha256").update(JSON.stringify(content)).digest("hex");
   const [evidence] = await db
@@ -56,10 +62,15 @@ export async function produceFakeRentProposal(
     .values({
       runId,
       targetKind: "content_block",
-      operation: "create",
-      target: { path: "DE.living.rent", destinationId: destination.id },
-      contractVersion: "destination-content-block/v1",
-      payload: {},
+      operation: "update",
+      target: {
+        researchPath: "DE.living.rent",
+        canonicalTargetPath: "DE.living",
+        mergePath: "rent",
+        destinationId: destination.id,
+      },
+      contractVersion: "destination-rent/v1",
+      payload: { rent: content },
       dedupKey: `DE.living.rent:${contentHash}`,
     })
     .onConflictDoNothing({ target: ingestionProposals.dedupKey })
@@ -71,16 +82,8 @@ export async function produceFakeRentProposal(
   }
 
   const claimValues = [
-    ["destinationCode", "DE"],
-    ["sectionKey", "living"],
-    ["blockKey", "rent"],
-    ["scope", "assumption"],
-    ["assumptions.persona", "single renter; illustrative mid-range example"],
-    ["content.summary", content.summary],
-    ["content.amount", content.amount],
-    ["content.currency", content.currency],
-    ["content.period", content.period],
-    ["targetPath", "DE.living.rent"],
+    ["content.rent.note", content.note],
+    ["content.rent.rows", content.rows],
   ] as const;
   const claims = await db
     .insert(ingestionClaims)
