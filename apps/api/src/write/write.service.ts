@@ -38,7 +38,7 @@ export class WriteService {
     }
   }
 
-  async upsertContentBlock(body: UpsertContentBlockBody) {
+  async upsertContentBlock(body: UpsertContentBlockBody, provenance?: Provenance) {
     const destinationId = await this.requireDestinationId(body.destinationCode);
     const citizenshipId = body.citizenshipCode
       ? await this.requireCitizenshipId(body.citizenshipCode)
@@ -60,6 +60,8 @@ export class WriteService {
       reviewStatus: body.reviewStatus ?? "draft",
       confidence: body.confidence ?? "low",
       isDemo: body.isDemo ?? false,
+      sourceRunId: provenance?.runId ?? null,
+      sourceProposalId: provenance?.proposalId ?? null,
     } as const;
 
     const [row] = await this.database.client
@@ -78,6 +80,8 @@ export class WriteService {
           reviewStatus: values.reviewStatus,
           confidence: values.confidence,
           isDemo: values.isDemo,
+          sourceRunId: values.sourceRunId,
+          sourceProposalId: values.sourceProposalId,
           updatedAt: new Date(),
         },
       })
@@ -86,33 +90,39 @@ export class WriteService {
     return row;
   }
 
-  async createRoute(body: CreateRouteBody) {
+  async createRoute(body: CreateRouteBody, provenance?: Provenance, routeId?: string) {
     const destinationCountryId = await this.requireDestinationId(body.destinationCode);
-    const [row] = await this.database.client
-      .insert(routes)
-      .values({
-        destinationCountryId,
-        type: body.type,
-        title: body.title,
-        summary: body.summary,
-        costMin: body.costMin ?? null,
-        costMax: body.costMax ?? null,
-        costCurrency: body.costCurrency ?? null,
-        timelineMinMonths: body.timelineMinMonths ?? null,
-        timelineMaxMonths: body.timelineMaxMonths ?? null,
-        workPermission: body.workPermission,
-        familyInclusion: body.familyInclusion ?? false,
-        familyInclusionNote: body.familyInclusionNote ?? null,
-        pathToPermanentResidence: body.pathToPermanentResidence,
-        pathToPermanentResidenceNote: body.pathToPermanentResidenceNote ?? null,
-        renewable: body.renewable ?? false,
-        renewableNote: body.renewableNote ?? null,
-        details: parseRouteDetails(body.details ?? {}),
-        reviewStatus: body.reviewStatus ?? "draft",
-        confidence: body.confidence ?? "low",
-        isDemo: body.isDemo ?? false,
-      })
-      .returning();
+    const values = {
+      destinationCountryId,
+      type: body.type,
+      title: body.title,
+      summary: body.summary,
+      costMin: body.costMin ?? null,
+      costMax: body.costMax ?? null,
+      costCurrency: body.costCurrency ?? null,
+      timelineMinMonths: body.timelineMinMonths ?? null,
+      timelineMaxMonths: body.timelineMaxMonths ?? null,
+      workPermission: body.workPermission,
+      familyInclusion: body.familyInclusion ?? false,
+      familyInclusionNote: body.familyInclusionNote ?? null,
+      pathToPermanentResidence: body.pathToPermanentResidence,
+      pathToPermanentResidenceNote: body.pathToPermanentResidenceNote ?? null,
+      renewable: body.renewable ?? false,
+      renewableNote: body.renewableNote ?? null,
+      details: parseRouteDetails(body.details ?? {}),
+      reviewStatus: body.reviewStatus ?? "draft",
+      confidence: body.confidence ?? "low",
+      isDemo: body.isDemo ?? false,
+      sourceRunId: provenance?.runId ?? null,
+      sourceProposalId: provenance?.proposalId ?? null,
+    } as const;
+    const [row] = routeId
+      ? await this.database.client
+          .update(routes)
+          .set({ ...values, updatedAt: new Date() })
+          .where(eq(routes.id, routeId))
+          .returning()
+      : await this.database.client.insert(routes).values(values).returning();
 
     if (!row) {
       throw new BadRequestException("Route insert did not return a row.");
@@ -120,7 +130,7 @@ export class WriteService {
     return row;
   }
 
-  async upsertRouteApplicability(body: UpsertRouteApplicabilityBody) {
+  async upsertRouteApplicability(body: UpsertRouteApplicabilityBody, provenance?: Provenance) {
     const citizenshipId = await this.requireCitizenshipId(body.citizenshipCode);
     const [row] = await this.database.client
       .insert(routeApplicability)
@@ -131,6 +141,8 @@ export class WriteService {
         reviewStatus: body.reviewStatus ?? "draft",
         confidence: body.confidence ?? "low",
         isDemo: body.isDemo ?? false,
+        sourceRunId: provenance?.runId ?? null,
+        sourceProposalId: provenance?.proposalId ?? null,
       })
       .onConflictDoUpdate({
         target: [routeApplicability.routeId, routeApplicability.citizenshipId],
@@ -139,6 +151,8 @@ export class WriteService {
           reviewStatus: body.reviewStatus ?? "draft",
           confidence: body.confidence ?? "low",
           isDemo: body.isDemo ?? false,
+          sourceRunId: provenance?.runId ?? null,
+          sourceProposalId: provenance?.proposalId ?? null,
           updatedAt: new Date(),
         },
       })
@@ -147,7 +161,7 @@ export class WriteService {
     return row;
   }
 
-  async upsertSourceDocument(body: UpsertSourceDocumentBody) {
+  async upsertSourceDocument(body: UpsertSourceDocumentBody, provenance?: Provenance) {
     const [row] = await this.database.client
       .insert(sourceDocuments)
       .values({
@@ -157,6 +171,8 @@ export class WriteService {
         publisher: body.publisher ?? null,
         lastReviewedAt: body.lastReviewedAt ? new Date(body.lastReviewedAt) : null,
         snapshot: body.snapshot ?? {},
+        sourceRunId: provenance?.runId ?? null,
+        sourceProposalId: provenance?.proposalId ?? null,
       })
       .onConflictDoUpdate({
         target: sourceDocuments.url,
@@ -166,6 +182,8 @@ export class WriteService {
           publisher: body.publisher ?? null,
           lastReviewedAt: body.lastReviewedAt ? new Date(body.lastReviewedAt) : null,
           snapshot: body.snapshot ?? {},
+          sourceRunId: provenance?.runId ?? null,
+          sourceProposalId: provenance?.proposalId ?? null,
           updatedAt: new Date(),
         },
       })
@@ -224,3 +242,5 @@ export class WriteService {
     return `${destinationCode.toUpperCase()}.${blockKey}`;
   }
 }
+
+export type Provenance = { runId: string; proposalId: string };

@@ -1,13 +1,22 @@
-import { defineProject, mergeConfig } from "vitest/config";
-import sharedConfig from "../../vitest.shared";
+import {
+  coverageConfig,
+  defineWorkspaceTestConfig,
+  integrationGlob,
+  testExclude,
+  unitExclude,
+} from "../../vitest.shared";
 
-export default mergeConfig(
-  sharedConfig,
-  defineProject({
-    test: {
-      name: "unit",
-      include: ["src/**/*.test.ts"],
-      exclude: ["src/**/*.integration.test.ts"],
-    },
-  }),
-);
+export default defineWorkspaceTestConfig({
+  test: {
+    environment: "node",
+    globals: true,
+    coverage: { ...coverageConfig, exclude: [...coverageConfig.exclude, "src/main.ts"] },
+    projects: [
+      { extends: true, test: { name: "unit", exclude: unitExclude } },
+      {
+        extends: true,
+        test: { name: "integration", include: [integrationGlob], exclude: testExclude },
+      },
+    ],
+  },
+});
