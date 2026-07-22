@@ -2,8 +2,11 @@ import { getRedisUrl, getRequiredEnv } from "@pathport/config";
 import { FAKE_RESEARCH_JOB, type FakeResearchJob, INGESTION_QUEUE } from "@pathport/contracts";
 import { createDatabaseClient, createDatabasePool, ingestionRuns } from "@pathport/db";
 import { Worker } from "bullmq";
+import { config as loadEnv } from "dotenv";
 import { eq } from "drizzle-orm";
 import { produceFakeRentProposal } from "./fake-producer.js";
+
+loadEnv({ path: [".env", "../../.env"], quiet: true });
 
 const redisUrl = new URL(getRedisUrl());
 const connection = {
@@ -43,11 +46,19 @@ const worker = new Worker<FakeResearchJob>(
 worker.on("failed", (job, error) => {
   console.error("Ingestion job failed", { jobId: job?.id, error });
 });
+worker.on("ready", () => {
+  console.info(`Ingestion worker ready on queue "${INGESTION_QUEUE}".`);
+});
 
-async function shutdown(): Promise<void> {
-  await worker.close();
-  await pool.end();
+let shutdownPromise: Promise<void> | undefined;
+
+function shutdown(): Promise<void> {
+  shutdownPromise ??= (async () => {
+    await worker.close();
+    await pool.end();
+  })();
+  return shutdownPromise;
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => void shutdown());
+process.on("SIGTERM", () => void shutdown());

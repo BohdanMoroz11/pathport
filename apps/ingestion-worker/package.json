@@ -17,6 +17,7 @@
     "@pathport/contracts": "workspace:*",
     "@pathport/db": "workspace:*",
     "bullmq": "^5.58.0",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.0"
   },
   "devDependencies": {

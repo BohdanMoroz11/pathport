@@ -93,7 +93,7 @@ Create a local environment file before starting the app:
 cp .env.example .env
 ```
 
-Start the local Postgres database and apply migrations:
+Start local Postgres and Redis, then apply migrations:
 
 ```sh
 pnpm db:up
@@ -106,9 +106,10 @@ Then start the app:
 pnpm dev
 ```
 
-The root `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` scripts build shared
-packages before starting the app dev servers. Use `pnpm db:down` to stop the
-local database.
+The root `pnpm dev`, `pnpm dev:api`, `pnpm dev:web`, and `pnpm dev:worker`
+scripts build shared packages before starting their dev processes. Root
+`pnpm dev` runs the API, web app, and ingestion worker together. Use
+`pnpm db:down` to stop Postgres and Redis.
 
 ### Production stack
 
@@ -135,7 +136,7 @@ Lighthouse audits — never the dev server.
 
 | Script | What it does |
 | --- | --- |
-| `pnpm dev` | Build shared packages, then run API + web dev servers (also `dev:api`, `dev:web`) |
+| `pnpm dev` | Build shared packages, then run API + web + ingestion worker (also `dev:api`, `dev:web`, `dev:worker`) |
 | `pnpm build` | Build every workspace project (`build:packages` builds just the shared packages) |
 | `pnpm typecheck` | Type-check every workspace project |
 | `pnpm check` / `pnpm format` | Biome lint / format |
@@ -144,7 +145,7 @@ Lighthouse audits — never the dev server.
 | `pnpm test:coverage` | Unit + integration with coverage (needs Docker) |
 | `pnpm test:e2e` | Playwright end-to-end tests |
 | `pnpm test:all` | `test` + `test:integration` + `test:e2e` in one command |
-| `pnpm db:up` / `db:down` / `db:logs` | Manage the local dev Postgres container |
+| `pnpm db:up` / `db:down` / `db:logs` | Manage local Postgres and Redis containers |
 | `pnpm db:migrate` / `db:seed` / `db:generate` | Apply migrations / reset + seed demo data / generate a migration |
 | `pnpm start:stack` / `stop:stack` | Bring the production Docker stack up / down |
 | `pnpm lighthouse` | Bring the stack up, run Lighthouse, tear it down |
